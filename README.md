@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://liberocobre.online">
-    <img href="https://capsule-render.vercel.app/api?type=pulse&height=300&color=gradient&text=Libero%20Web&section=header&fontColor=E3A610">
+    <img src="https://capsule-render.vercel.app/api?type=pulse&height=300&color=gradient&text=Libero%20Web&section=header&fontColor=E3A610">
   </a>
 </p>
 
@@ -28,36 +28,37 @@
 
 ### Desarrollado por
 
-<p align="center">
-    <b>Lorem</b><br>
-    <a href="https://github.com/yuta578">
+<table align="center">
+  <tr>
+    <td align="center" width="150">
+      <b>Lorem</b><br>
+      <a href="https://github.com/yuta578">
         <img src="https://github.com/yuta578.png" width="75px"><br>
         <b>@yuta578</b>
-    </a>
-</p>
-
-<p align="center">
-    <b>Lorem</b><br>
-    <a href="https://github.com/StivenOrt">
+      </a>
+    </td>
+    <td align="center" width="150">
+      <b>Lorem</b><br>
+      <a href="https://github.com/StivenOrt">
         <img src="https://github.com/StivenOrt.png" width="75px"><br>
         <b>@StivenOrt</b>
-    </a>
-</p>
-
-<p align="center">
-    <b>Lorem</b><br>
-    <a href="https://github.com/Eduardo342-Git">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="150">
+      <b>Lorem</b><br>
+      <a href="https://github.com/Eduardo342-Git">
         <img src="https://github.com/Eduardo342-Git.png" width="75px"><br>
         <b>@Eduardo342-Git</b>
-    </a>
-</p>
-
-<p align="center">
-    <b>Lorem</b><br>
-    <a href="https://github.com/Moncka20">
+      </a>
+    </td>
+    <td align="center" width="150">
+      <b>Lorem</b><br>
+      <a href="https://github.com/Moncka20">
         <img src="https://github.com/Moncka20.png" width="75px"><br>
         <b>@Moncka20</b>
-    </a>
-</p>
-
-
+      </a>
+    </td>
+  </tr>
+</table>

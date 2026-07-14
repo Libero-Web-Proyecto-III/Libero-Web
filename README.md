@@ -1,98 +1,63 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <a href="https://liberocobre.online">
+    <img src="/public/images/logo.png">
+  </a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+  <a href="https://liberocobre.online">
+    <img href="https://capsule-render.vercel.app/api?type=pulse&height=300&color=gradient&text=Libero%20Web&section=header&fontColor=E3A610">
+  </a>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<p align="center">
+    <a href="https://github.com/D4N-1/Libero-Web">
+        <img src="https://img.shields.io/badge/Github-Repository-F59827?style=for-the-badge&logo=github">
+        <img src="https://img.shields.io/badge/Versi%C3%B3n-BETA_0.1-F5C827?style=for-the-badge&logo=github">
+        <img src="https://img.shields.io/github/stars/D4N-1/Libero-Web?color=yellow&style=for-the-badge" alt="stars"/>
+        <img src="https://img.shields.io/github/forks/D4N-1/Libero-Web?color=blue&style=for-the-badge" alt="forks"/>
+    </a>
+    <a href="https://github.com/D4N-1/Libero-Web/commits/main">
+        <img src="https://img.shields.io/github/commit-activity/w/D4N-1/Libero-Web?color=purple&style=for-the-badge" alt="commits">
+    </a>
+</p>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## Project setup
 
-```bash
-$ npm install
-```
 
-## Compile and run the project
 
-```bash
-# development
-$ npm run start
+### Desarrollado por
 
-# watch mode
-$ npm run start:dev
+<p align="center">
+    <b>Lorem</b><br>
+    <a href="https://github.com/yuta578">
+        <img src="https://github.com/yuta578.png" width="75px"><br>
+        <b>@yuta578</b>
+    </a>
+</p>
 
-# production mode
-$ npm run start:prod
-```
+<p align="center">
+    <b>Lorem</b><br>
+    <a href="https://github.com/StivenOrt">
+        <img src="https://github.com/StivenOrt.png" width="75px"><br>
+        <b>@StivenOrt</b>
+    </a>
+</p>
 
-## Run tests
+<p align="center">
+    <b>Lorem</b><br>
+    <a href="https://github.com/Eduardo342-Git">
+        <img src="https://github.com/Eduardo342-Git.png" width="75px"><br>
+        <b>@Eduardo342-Git</b>
+    </a>
+</p>
 
-```bash
-# unit tests
-$ npm run test
+<p align="center">
+    <b>Lorem</b><br>
+    <a href="https://github.com/Moncka20">
+        <img src="https://github.com/Moncka20.png" width="75px"><br>
+        <b>@Moncka20</b>
+    </a>
+</p>
 
-# e2e tests
-$ npm run test:e2e
 
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

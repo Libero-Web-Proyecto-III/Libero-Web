@@ -3,6 +3,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
+import { TagModule } from './modules/tag/tag.module';
+import { RolModule } from './modules/rol/rol.module';
+
 
 @Module({
   imports: [
@@ -12,8 +15,10 @@ import { ConfigModule } from '@nestjs/config';
       envFilePath: '.env'
     }),
 
-    DatabaseModule
-  ],
+    DatabaseModule,
+
+    TagModule, RolModule,
+],
   controllers: [AppController],
   providers: [AppService],
 })

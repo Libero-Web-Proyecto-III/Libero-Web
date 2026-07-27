@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm'
 import { MoreThan, LessThan, Repository } from 'typeorm';
-import { Event } from './entity/event.entity';
+import { Event } from './entities/event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { FilterEventDto } from './dto/filter-event.dto';
 import { EventStatus } from './enum/eventStatus.enum';
-import { User } from '../user/entity/user.entity';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class EventService {

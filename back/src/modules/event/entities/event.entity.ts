@@ -6,11 +6,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../user/entity/user.entity';
-import { Tag } from '../../tag/entity/tag.entity';
+import { UserEntity } from '../../user/entities/user.entity';
 
 @Entity('event')
-export class Event {
+export class EventEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -26,11 +25,8 @@ export class Event {
   @Column()
   endDate: Date;
 
-  @ManyToOne(() => User)
-  organizer: User;
-
-  @ManyToOne(() => Tag, { nullable: true })
-  tag: Tag;
+  @ManyToOne(() => UserEntity, (user) => user.events, { nullable: false })
+  organizer: UserEntity;
 
   @CreateDateColumn()
   createdAt: Date;

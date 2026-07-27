@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm'
 import { MoreThan, LessThan, Repository } from 'typeorm';
-import { Event } from './entities/event.entity';
+import { EventEntity } from './entities/event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { FilterEventDto } from './dto/filter-event.dto';
 import { EventStatus } from './enum/eventStatus.enum';
-import { User } from '../user/entities/user.entity';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class EventService {
@@ -37,7 +37,6 @@ export class EventService {
     } else if (filter.status === EventStatus.FINISHED) {
       where.endDate = LessThan(now);
     }
-    // ONGOING (startDate <= now <= endDate) requiere query builder, ver nota abajo
 
     const events = await this.eventRepo.find({
       where,

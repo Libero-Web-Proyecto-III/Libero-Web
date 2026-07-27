@@ -14,9 +14,6 @@ import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { FilterEventDto } from './dto/filter-event.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolsGuard } from '../../common/guards/rols.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('events')
 export class EventController {
@@ -34,21 +31,21 @@ export class EventController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolsGuard)
-  @Roles('moderator')
+  @Rols('moderator')
   create(@Body() dto: CreateEventDto, @Req() req: any) {
     return this.eventService.create(dto, req.user);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolsGuard)
-  @Roles('moderator')
+  @Rols('moderator')
   update(@Param('id') id: string, @Body() dto: UpdateEventDto) {
     return this.eventService.update(id, dto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolsGuard)
-  @Roles('moderator')
+  @Rols('moderator')
   remove(@Param('id') id: string) {
     return this.eventService.remove(id);
   }

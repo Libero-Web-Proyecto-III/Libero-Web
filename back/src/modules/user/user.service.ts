@@ -8,6 +8,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import bcrypt from 'bcrypt';
 import { RolService } from '../rol/rol.service';
 import { enumRol } from 'src/common/enums/rol.enum';
+import { TagService } from '../tag/tag.service';
 
 
 @Injectable()
@@ -18,7 +19,8 @@ export class UserService {
     @InjectRepository(UserEntity)
     private readonly UserRepository: Repository<UserEntity>,
 
-    private readonly RolRepository: RolService
+    private readonly RolRepository: RolService,
+    private readonly TagRepository: TagService
 
   ) {}
 
@@ -93,7 +95,9 @@ export class UserService {
 
         newUserData.rol = await this.RolRepository.findOne( rol ?? enumRol.USER );
 
+        if (tag) newUserData.tag = await this.TagRepository.findOne( tag );
 
+        
         const exists = await this.UserRepository.findOneBy({ name })
         if (exists) throw new ConflictException( 'Ya existe un usuario con ese nombre' )
         newUserData.name = name

@@ -30,9 +30,9 @@ export class UserEntity {
     @ManyToOne( ()  => RolEntity, (rol) => rol.users)
     rol: RolEntity;
 
-    @Column()
+    @Column({ nullable: true })
     @ManyToOne( () => TagEntity, (tag) => tag.users)
-    tag: TagEntity;
+    tag?: TagEntity | null;
 
         
     @CreateDateColumn({ type: 'timestamp' })

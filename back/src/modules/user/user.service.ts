@@ -6,6 +6,8 @@ import { GetAllUserQueryDto } from './dto/get-user.dto';
 import { AllResponse } from 'src/common/interface/res-all.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import bcrypt from 'bcrypt';
+import { RolService } from '../rol/rol.service';
+import { enumRol } from 'src/common/enums/rol.enum';
 
 
 @Injectable()
@@ -14,7 +16,9 @@ export class UserService {
   constructor(
 
     @InjectRepository(UserEntity)
-    private readonly UserRepository: Repository<UserEntity>
+    private readonly UserRepository: Repository<UserEntity>,
+
+    private readonly RolRepository: RolService
 
   ) {}
 
@@ -83,12 +87,11 @@ export class UserService {
 
     async create(createUserDto: CreateUserDto): Promise<UserEntity> {
 
-        const { name, password, ...newData } = createUserDto;
+        const { name, password, rol, tag, ...newData } = createUserDto;
 
         const newUserData: Partial<UserEntity> = { ...newData }
 
-        //newUserData.role = await this.roleService.findOneBy.name( roleName ?? enumRole.USER );
-
+        newUserData.rol = await this.RolRepository.findOne( rol ?? enumRol.USER );
 
 
         const exists = await this.UserRepository.findOneBy({ name })

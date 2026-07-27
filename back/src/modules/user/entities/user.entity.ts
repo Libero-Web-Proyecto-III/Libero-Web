@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Generated, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { RolEntity } from "src/modules/rol/entities/rol.entity";
+import { TagEntity } from "src/modules/tag/entities/tag.entity";
+import { Column, CreateDateColumn, DeleteDateColumn, Generated, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 
@@ -25,18 +27,20 @@ export class UserEntity {
     avatar: string;
 
     @Column()
-    role: string;
+    @ManyToOne( ()  => RolEntity, (rol) => rol.users)
+    rol: RolEntity;
 
     @Column()
-    tag: string;
+    @ManyToOne( () => TagEntity, (tag) => tag.users)
+    tag: TagEntity;
 
         
-    @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+    @CreateDateColumn({ type: 'timestamp' })
     createdAt: Date;
         
-    @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+    @UpdateDateColumn({ type: 'timestamp' })
     updatedAt: Date;
         
-    @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
+    @DeleteDateColumn({ type: 'timestamp'})
     deletedAt: Date;
 }

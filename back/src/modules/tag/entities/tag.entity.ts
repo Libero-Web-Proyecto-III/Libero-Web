@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ApiHideProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
@@ -14,17 +14,17 @@ export class TagEntity {
     @Column( { unique: true, default: '#ffffff' } )
     color: string;
 
-    @Column({ default: true })
-    isActive: boolean;
+    @DeleteDateColumn({ type: 'timestamp', name: 'deletedAt' })
+    deletedAt: Date;
 
-    @Column({ default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn({ type: 'timestamp', name: 'createdAt' })
     createdAt: Date;
 
-    @Column({ default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+    @UpdateDateColumn({ type: 'timestamp', name: 'updatedAt' })    
     updatedAt: Date;
 
     @ApiHideProperty()
     @Exclude()
-    @OneToMany( () => UserEntity, (user) => user.rol)
+    @OneToMany( () => UserEntity, (user) => user.tag )
     users: UserEntity[];
 }

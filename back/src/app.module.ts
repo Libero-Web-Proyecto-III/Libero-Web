@@ -1,11 +1,27 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { DatabaseModule } from './database/database.module';
+import { ConfigModule } from '@nestjs/config';
+import { TagModule } from './modules/tag/tag.module';
+import { RolModule } from './modules/rol/rol.module';
+import { UserModule } from './modules/user/user.module';
 import { PublicationModule } from './modules/publication/publication.module';
 import { EventModule } from './modules/event/event.module';
 
+
 @Module({
-  imports: [PublicationModule, EventModule],
+  imports: [
+
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env'
+    }),
+
+    DatabaseModule,
+
+    TagModule, RolModule, UserModule, PublicationModule, EventModule
+],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -14,5 +14,6 @@ import { TagModule } from '../tag/tag.module';
   ],
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService]
 })
 export class UserModule {}

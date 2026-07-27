@@ -1,6 +1,7 @@
+import { ApiHideProperty } from "@nestjs/swagger";
 import { RolEntity } from "src/modules/rol/entities/rol.entity";
 import { TagEntity } from "src/modules/tag/entities/tag.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Generated, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Generated, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 
@@ -43,4 +44,16 @@ export class UserEntity {
         
     @DeleteDateColumn({ type: 'timestamp'})
     deletedAt: Date;
+
+
+    //////////////////
+
+    @ApiHideProperty()
+    @OneToMany( () => EventEntity, (event) => event.organizer)
+    events: EventEntity[];
+
+    @ApiHideProperty()
+    @OneToMany( () => PublicationEntity, (publication), publication.organizer)
+    publications: PublicationEntity[];
+
 }

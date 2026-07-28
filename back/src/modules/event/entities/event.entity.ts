@@ -1,17 +1,24 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
   CreateDateColumn,
+  Entity,
+  Generated,
+  ManyToOne,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserEntity } from '../../user/entities/user.entity';
+import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { TagEntity } from 'src/modules/tag/entities/tag.entity';
 
 @Entity('event')
 export class EventEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  index: number;
+
+  @PrimaryColumn()
+  @Generated('uuid')
+  uuid: string;
 
   @Column()
   title: string;
@@ -19,18 +26,21 @@ export class EventEntity {
   @Column('text')
   description: string;
 
-  @Column()
+  @Column({ type: 'timestamp' })
   startDate: Date;
 
-  @Column()
+  @Column({ type: 'timestamp' })
   endDate: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.events, { nullable: false })
+  @ManyToOne(() => UserEntity, (user) => user.events)
   organizer: UserEntity;
 
-  @CreateDateColumn()
+  @ManyToOne(() => TagEntity, { nullable: true })
+  tag?: TagEntity | null;
+
+  @CreateDateColumn({ type: 'timestamp', name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp', name: 'updatedAt' })
   updatedAt: Date;
 }

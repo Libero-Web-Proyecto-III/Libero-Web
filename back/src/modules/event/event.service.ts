@@ -1,75 +1,69 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm'
-import { MoreThan, LessThan, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 import { EventEntity } from './entities/event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { FilterEventDto } from './dto/filter-event.dto';
+import { GetAllEventQueryDto } from './dto/get-event-query.dto';
 import { EventStatus } from './enum/eventStatus.enum';
-import { UserService } from '../user/user.service';
+import { UserEntity } from 'src/modules/user/entities/user.entity';
 
 @Injectable()
 export class EventService {
   constructor(
-    @InjectRepository(Event)
-    private readonly eventRepo: Repository<Event>,
-  ) {}
+    @InjectRepository(EventEntity)
+    private readonly EventRepository: Repository<EventEntity>,
+  ) { }
 
-  async create(dto: CreateEventDto, organizer: User): Promise<Event> {
-    const event = this.eventRepo.create({
-      ...dto,
-      startDate: new Date(dto.startDate),
-      endDate: new Date(dto.endDate),
+  async create(createEventDto: CreateEventDto, organizer: UserEntity): Promise<EventEntity> {
+    const newEvent = this.EventRepository.create({
+      ...createEventDto,
+      startDate: new Date(createEventDto.startDate),
+      endDate: new Date(createEventDto.endDate),
       organizer,
-      tag: dto.tagId ? ({ id: dto.tagId } as any) : null,
     });
-    return this.eventRepo.save(event);
+    return this.EventRepository.save(newEvent);
   }
 
-  async findAll(filter: FilterEventDto): Promise<Event[]> {
+  async findAll(query: GetAllEventQueryDto): Promise<EventEntity[]> {
     const now = new Date();
     const where: any = {};
 
-    if (filter.tagId) where.tag = { id: filter.tagId };
+    if (query.tagUuid) where.tag = { uuid: query.tagUuid };
+    if (query.status === EventStatus.UPCOMING) where.startDate = MoreThan(now);
+    if (query.status === EventStatus.FINISHED) where.endDate = LessThan(now);
 
-    if (filter.status === EventStatus.UPCOMING) {
-      where.startDate = MoreThan(now);
-    } else if (filter.status === EventStatus.FINISHED) {
-      where.endDate = LessThan(now);
-    }
-
-    const events = await this.eventRepo.find({
+    const events = await this.EventRepository.find({
       where,
-      relations: ['organizer', 'tag'],
+      relations: { organizer: true, tag: true },
       order: { startDate: 'ASC' },
     });
 
-    if (filter.status === EventStatus.ONGOING) {
+    if (query.status === EventStatus.ONGOING) {
       return events.filter((e) => e.startDate <= now && e.endDate >= now);
     }
-
     return events;
   }
 
-  async findOne(id: string): Promise<Event> {
-    const event = await this.eventRepo.findOne({
-      where: { id },
-      relations: ['organizer', 'tag'],
-    });
-    if (!event) {
-      throw new NotFoundException(`Evento con id ${id} no encontrado`);
-    }
-    return event;
+  findOneBy = {
+    uuid: async (uuid: string): Promise<EventEntity> => {
+      const event = await this.EventRepository.findOne({
+        where: { uuid },
+        relations: { organizer: true, tag: true },
+      });
+
+      if (!event) throw new NotFoundException('No se encontró este evento por UUID');
+      return event;
+    },
+  };
+
+  async update(uuid: string, updateEventDto: UpdateEventDto): Promise<EventEntity> {
+    const event = await this.findOneBy.uuid(uuid);
+    return this.EventRepository.save({ index: event.index, ...updateEventDto });
   }
 
-  async update(id: string, dto: UpdateEventDto): Promise<Event> {
-    const event = await this.findOne(id);
-    Object.assign(event, dto);
-    return this.eventRepo.save(event);
-  }
-
-  async remove(id: string): Promise<void> {
-    const event = await this.findOne(id);
-    await this.eventRepo.remove(event);
+  async remove(uuid: string): Promise<void> {
+    const event = await this.findOneBy.uuid(uuid);
+    await this.EventRepository.remove(event);
   }
 }

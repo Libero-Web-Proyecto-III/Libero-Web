@@ -1,24 +1,32 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  Generated,
   ManyToOne,
   OneToMany,
-  CreateDateColumn,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
 } from 'typeorm';
-import { User } from '../../user/entity/user.entity';
-import { Comment } from '../../comment/entity/comment.entity';
-import { Reaction } from '../../reaction/entity/reaction.entity';
+import { ApiHideProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
+import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { CommentEntity } from 'src/modules/comment/entities/comment.entity';
+import { ReactionEntity } from 'src/modules/reaction/entities/reaction.entity';
 
 @Entity('publication')
-export class Publication {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class PublicationEntity {
+  @PrimaryGeneratedColumn()
+  index: number;
 
-  @ManyToOne(() => User, (user) => user.publications, { eager: false })
-  author: User;
+  @PrimaryColumn()
+  @Generated('uuid')
+  uuid: string;
+
+  @ManyToOne(() => UserEntity, (user) => user.publications)
+  author: UserEntity;
 
   @Column()
   title: string;
@@ -29,18 +37,22 @@ export class Publication {
   @Column('text')
   content: string;
 
-  @OneToMany(() => Comment, (comment) => comment.publication)
-  comments: Comment[];
+  @ApiHideProperty()
+  @Exclude()
+  @OneToMany(() => CommentEntity, (comment) => comment.publication)
+  comments: CommentEntity[];
 
-  @OneToMany(() => Reaction, (reaction) => reaction.publication)
-  reactions: Reaction[];
+  @ApiHideProperty()
+  @Exclude()
+  @OneToMany(() => ReactionEntity, (reaction) => reaction.publication)
+  reactions: ReactionEntity[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp', name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp', name: 'updatedAt' })
   updatedAt: Date;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ type: 'timestamp', name: 'deletedAt' })
   deletedAt: Date;
 }

@@ -1,6 +1,7 @@
 import {
   IsString,
   IsDateString,
+  IsOptional,
   Validate,
   ValidatorConstraint,
   ValidatorConstraintInterface,
@@ -33,4 +34,8 @@ export class CreateEventDto {
   @IsDateString()
   @Validate(IsDateRangeValid)
   endDate: string;
+
+  @IsOptional()
+  @IsString()
+  tagUuid?: string;
 }

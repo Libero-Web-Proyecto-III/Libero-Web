@@ -3,10 +3,10 @@ import { IsString, IsOptional, IsArray, MinLength } from 'class-validator';
 export class CreatePublicationDto {
   @IsString()
   @MinLength(3)
-  title: string;
+  title!: string;
 
   @IsString()
-  content: string;
+  content!: string;
 
   @IsOptional()
   @IsArray()

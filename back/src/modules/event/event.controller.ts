@@ -1,52 +1,35 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { FilterEventDto } from './dto/filter-event.dto';
+import { GetAllEventQueryDto } from './dto/get-event-query.dto';
 
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
   @Get()
-  findAll(@Query() filter: FilterEventDto) {
-    return this.eventService.findAll(filter);
+  findAll(@Query() query: GetAllEventQueryDto) {
+    return this.eventService.findAll(query);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.eventService.findOne(id);
+  @Get(':uuid')
+  findOne(@Param('uuid') uuid: string) {
+    return this.eventService.findOneBy.uuid(uuid);
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolsGuard)
-  @Rols('moderator')
-  create(@Body() dto: CreateEventDto, @Req() req: any) {
-    return this.eventService.create(dto, req.user);
+  create(@Body() createEventDto: CreateEventDto, @Req() req: any) {
+    return this.eventService.create(createEventDto, req.user);
   }
 
-  @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolsGuard)
-  @Rols('moderator')
-  update(@Param('id') id: string, @Body() dto: UpdateEventDto) {
-    return this.eventService.update(id, dto);
+  @Patch(':uuid')
+  update(@Param('uuid') uuid: string, @Body() updateEventDto: UpdateEventDto) {
+    return this.eventService.update(uuid, updateEventDto);
   }
 
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolsGuard)
-  @Rols('moderator')
-  remove(@Param('id') id: string) {
-    return this.eventService.remove(id);
+  @Delete(':uuid')
+  remove(@Param('uuid') uuid: string) {
+    return this.eventService.remove(uuid);
   }
 }

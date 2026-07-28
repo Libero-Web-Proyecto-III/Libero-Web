@@ -1,7 +1,7 @@
 import { ApiHideProperty } from "@nestjs/swagger";
 import { RolEntity } from "src/modules/rol/entities/rol.entity";
 import { TagEntity } from "src/modules/tag/entities/tag.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Generated, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('user')
 export class UserEntity {
@@ -26,12 +26,14 @@ export class UserEntity {
     @Column()
     avatar: string;
 
-    @Column()
+    @JoinColumn({ name: 'rol' })
     @ManyToOne( ()  => RolEntity, (rol) => rol.users)
     rol: RolEntity;
 
-    @Column({ nullable: true })
-    @ManyToOne( () => TagEntity, (tag) => tag.users)
+    @JoinColumn({ name: 'tag' })
+    @ManyToOne( () => TagEntity, (tag) => tag.users, {
+        nullable: true
+    })
     tag?: TagEntity | null;
 
         

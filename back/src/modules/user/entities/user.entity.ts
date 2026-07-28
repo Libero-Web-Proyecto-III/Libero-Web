@@ -1,10 +1,9 @@
 import { ApiHideProperty } from "@nestjs/swagger";
 import { RolEntity } from "src/modules/rol/entities/rol.entity";
 import { TagEntity } from "src/modules/tag/entities/tag.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Generated, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
-
-
+@Entity('user')
 export class UserEntity {
 
 

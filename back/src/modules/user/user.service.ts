@@ -72,7 +72,17 @@ export class UserService {
 
         if (!user) throw new NotFoundException( 'No se encontró este usuario por NAME' );
         return user
+    },
+
+    email: async(email: string): Promise<UserEntity> => {
+        const user = await this.UserRepository.findOne({
+            where: { email },
+        })
+
+        if (!user) throw new NotFoundException( 'No se encontró este usuario por EMAIL' );
+        return user
     }
+    
   };
 
 

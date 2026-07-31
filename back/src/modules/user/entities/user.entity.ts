@@ -26,7 +26,7 @@ export class UserEntity {
     @Column()
     password: string;
 
-    @Column()
+    @Column({ nullable: true })
     avatar: string;
 
     @JoinColumn({ name: 'rol' })

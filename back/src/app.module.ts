@@ -33,7 +33,16 @@ import { ReactionModule } from './modules/reaction/reaction.module';
 ],
   controllers: [AppController],
   providers: [
-    AppService
+    AppService,
+    
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
   ],
 })
 export class AppModule {}

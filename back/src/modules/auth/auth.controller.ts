@@ -8,32 +8,34 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../common/guard/jwt-auth.guard';
-import { Public } from '../../common/decorator/public.decorator';
-import { Roles } from '../../common/decorator/roles.decorator';
+import { RolesGuard } from '../../common/guard/roles.guard';
+
+import { PRIVATE } from '../../common/decorator/private.decorator';
+import { ROLES } from '../../common/decorator/roles.decorator';
+
+import { enumRol } from '../../common/enums/rol.enum';
 
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
   ) {}
 
-  @Public()
   @Post('login')
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
 
-  @Public()
   @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
-  @Public()
   @Post('request-password-reset')
   requestPasswordReset(
     @Body('email') email: string,
@@ -41,7 +43,6 @@ export class AuthController {
     return this.authService.requestPasswordReset(email);
   }
 
-  @Public()
   @Post('reset-password')
   resetPassword(
     @Body('token') token: string,
@@ -53,13 +54,14 @@ export class AuthController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @PRIVATE()
   @Get('profile')
   getProfile(@Request() req: any) {
     return req.user;
   }
 
-  @Roles('ADMIN')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   @Get('admin')
   getAdmin() {
     return {

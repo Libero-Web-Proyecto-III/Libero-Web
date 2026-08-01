@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthUser } from './interface/auth-user.interface';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly userService: UserService,
   ) {}
 
   async login(dto: LoginDto) {
@@ -38,30 +40,44 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto) {
-    const passwordHash = await this.hashPassword(dto.password);
-
-    // TODO: Integrar con UsersService.create()
-    // Guardar username, email y passwordHash en la base de datos.
+    const newUser = await this.userService.create({
+      name: dto.username,
+      email: dto.email,
+      password: dto.password,
+      avatar: '',
+    });
 
     return {
       success: true,
-      message: 'Endpoint de registro preparado.',
-      data: {
-        username: dto.username,
-        email: dto.email,
-        passwordHash,
-      },
+      message: 'Usuario registrado correctamente.',
+      data: newUser,
     };
   }
 
   async validateUser(dto: LoginDto): Promise<AuthUser | null> {
-    // TODO: Reemplazar por UsersService.validateUser()
+
+    const user = await this.userService.findByIdentifier(
+      dto.identifier,
+    );
+
+    if (!user) {
+      return null;
+    }
+
+    const passwordCorrect = await this.comparePassword(
+      dto.password,
+      user.password,
+    );
+
+    if (!passwordCorrect) {
+      return null;
+    }
 
     return {
-      id: 1,
-      username: 'eduardo',
-      email: dto.email,
-      role: 'ADMIN',
+      id: user.index,
+      username: user.name,
+      email: user.email,
+      role: user.rol.name,
     };
   }
 

@@ -16,7 +16,7 @@ export class EventEntity {
   @PrimaryGeneratedColumn()
   index: number;
 
-  @PrimaryColumn()
+  @Column({ unique: true })
   @Generated('uuid')
   uuid: string;
 

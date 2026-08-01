@@ -15,6 +15,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guard/jwt-auth.guard';
 import { RolesGuard } from './common/guard/roles.guard';
 import { ReactionModule } from './modules/reaction/reaction.module';
+import { CommentModule } from './modules/comment/comment.module';
 
 
 @Module({
@@ -29,7 +30,7 @@ import { ReactionModule } from './modules/reaction/reaction.module';
 
     TagModule, RolModule,
     UserModule, PublicationModule, ReactionModule,
-    EventModule, AuthModule,
+    EventModule, AuthModule, CommentModule
 ],
   controllers: [AppController],
   providers: [

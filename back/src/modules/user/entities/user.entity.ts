@@ -13,7 +13,9 @@ export class UserEntity {
     @PrimaryGeneratedColumn()
     index: number;
 
-    @PrimaryColumn()
+    @Column({
+        unique: true
+    })
     @Generated('uuid')
     uuid: string;
 

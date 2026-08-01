@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
@@ -11,36 +12,49 @@ import { CommentEntity } from 'src/modules/comment/entities/comment.entity';
 import { PublicationEntity } from 'src/modules/publication/entities/publication.entity';
 import { ReactionType } from '../enum/reactionType.enum';
 
-// La combinación (comment, author) es única: un usuario solo puede tener
-// UNA reacción por comentario (like O dislike, nunca las dos a la vez).
-// Esto lo refuerza también el servicio (ver reaction.service.ts), pero
-// se deja aquí como respaldo a nivel de base de datos.
+// Una reacción apunta EXACTAMENTE a un comentario O a una publicación
+// (nunca a los dos, eso lo valida el servicio antes de guardar).
+//
+// Las dos restricciones @Unique de abajo son las que garantizan, a nivel
+// de base de datos, que un mismo usuario no pueda tener like y dislike
+// al mismo tiempo ni en el mismo comentario ni en la misma publicación.
 @Entity('reaction')
 @Unique('uq_reaction_author_comment', ['comment', 'author'])
+@Unique('uq_reaction_author_publication', ['publication', 'author'])
 export class ReactionEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // Un mismo usuario SÍ puede reaccionar a muchos comentarios distintos;
-  // la restricción de arriba es por la combinación (comment, author).
+  // Un mismo usuario SÍ puede reaccionar a muchos comentarios y
+  // publicaciones distintas; la restricción es por la combinación
+  // (comment, author) o (publication, author), no por author solo.
+  //
+  // @JoinColumn con referencedColumnName: 'index' deja una sola columna
+  // FK (authorIndex) en vez de las 2 que TypeORM crearía por defecto,
+  // porque UserEntity tiene llave compuesta (index + uuid).
   @ManyToOne(() => UserEntity, { eager: false })
+  @JoinColumn({ name: 'authorIndex', referencedColumnName: 'index' })
   author: UserEntity;
 
-  // Reacción sobre un COMENTARIO (lo pedido: like/dislike a comentarios).
+  // Reacción sobre un COMENTARIO. Nula si la reacción es a una publicación.
+  // CommentEntity ya tiene llave primaria simple (index), así que aquí
+  // TypeORM crea una sola columna FK (commentIndex) sin necesidad de
+  // @JoinColumn explícito, pero lo dejamos igual para que sea explícito.
   @ManyToOne(() => CommentEntity, (comment) => comment.reactions, {
+    nullable: true,
     onDelete: 'CASCADE',
   })
-  comment: CommentEntity;
+  @JoinColumn({ name: 'commentIndex', referencedColumnName: 'index' })
+  comment: CommentEntity | null;
 
-  // PublicationEntity ya declaraba `reactions: ReactionEntity[]` vía
-  // `@OneToMany(() => ReactionEntity, (reaction) => reaction.publication)`.
-  // Se deja aquí, nullable y SIN usar por este módulo, únicamente para no
-  // romper esa relación existente en publication.entity.ts. Si en el futuro
-  // quieren reacciones directas a publicaciones, ya queda la columna lista.
+  // Reacción sobre una PUBLICACIÓN. Nula si la reacción es a un comentario.
+  // Igual que con author: una sola columna FK (publicationIndex) en vez
+  // de dos, porque PublicationEntity también tiene llave compuesta.
   @ManyToOne(() => PublicationEntity, (publication) => publication.reactions, {
     nullable: true,
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'publicationIndex', referencedColumnName: 'index' })
   publication: PublicationEntity | null;
 
   @Column({ type: 'enum', enum: ReactionType })

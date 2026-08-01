@@ -10,8 +10,9 @@ export class ReactionController {
 
   @Post()
   @ApiOperation({
-    summary: 'Reaccionar (like/dislike) a un comentario. Es un toggle',
+    summary: 'Reaccionar (like/dislike) a un comentario o a una publicación. Es un toggle',
     description:
+      'Enviar EXACTAMENTE uno de los dos: commentUuid o publicationUuid, junto con type ("like" | "dislike"). ' +
       'Si no había reacción, se crea. Si ya tenía el mismo tipo, se elimina. ' +
       'Si tenía el tipo contrario, se reemplaza. Nunca queda like y dislike a la vez.',
   })
@@ -22,7 +23,14 @@ export class ReactionController {
   @Get('comment/:uuid')
   @ApiOperation({ summary: 'Ver el resumen de likes/dislikes de un comentario' })
   @ApiQuery({ name: 'userUuid', required: false, description: 'Para incluir la reacción propia' })
-  getSummary(@Param('uuid') uuid: string, @Query('userUuid') userUuid?: string) {
-    return this.reactionService.getSummary(uuid, userUuid);
+  getCommentSummary(@Param('uuid') uuid: string, @Query('userUuid') userUuid?: string) {
+    return this.reactionService.getCommentSummary(uuid, userUuid);
+  }
+
+  @Get('publication/:uuid')
+  @ApiOperation({ summary: 'Ver el resumen de likes/dislikes de una publicación' })
+  @ApiQuery({ name: 'userUuid', required: false, description: 'Para incluir la reacción propia' })
+  getPublicationSummary(@Param('uuid') uuid: string, @Query('userUuid') userUuid?: string) {
+    return this.reactionService.getPublicationSummary(uuid, userUuid);
   }
 }

@@ -9,6 +9,7 @@ import {
   PrimaryColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
@@ -21,11 +22,14 @@ export class PublicationEntity {
   @PrimaryGeneratedColumn()
   index: number;
 
-  @PrimaryColumn()
+  @Column({ unique: true })
   @Generated('uuid')
   uuid: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.publications)
+  @JoinColumn({ name: 'author' })
+  @ManyToOne(() => UserEntity, (user) => user.publications, {
+    nullable: true,
+  })
   author: UserEntity;
 
   @Column()

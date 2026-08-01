@@ -7,9 +7,9 @@ import {
   PrimaryColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
-import { TagEntity } from 'src/modules/tag/entities/tag.entity';
 
 @Entity('event')
 export class EventEntity {
@@ -32,11 +32,9 @@ export class EventEntity {
   @Column({ type: 'timestamp' })
   endDate: Date;
 
+  @JoinColumn({ name: 'organizer' })
   @ManyToOne(() => UserEntity, (user) => user.events)
   organizer: UserEntity;
-
-  @ManyToOne(() => TagEntity, { nullable: true })
-  tag?: TagEntity | null;
 
   @CreateDateColumn({ type: 'timestamp', name: 'createdAt' })
   createdAt: Date;

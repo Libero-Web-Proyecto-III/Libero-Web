@@ -35,7 +35,7 @@ export class EventService {
 
     const events = await this.EventRepository.find({
       where,
-      relations: { organizer: true, tag: true },
+      relations: { organizer: true },
       order: { startDate: 'ASC' },
     });
 
@@ -49,7 +49,7 @@ export class EventService {
     uuid: async (uuid: string): Promise<EventEntity> => {
       const event = await this.EventRepository.findOne({
         where: { uuid },
-        relations: { organizer: true, tag: true },
+        relations: { organizer: true },
       });
 
       if (!event) throw new NotFoundException('No se encontró este evento por UUID');

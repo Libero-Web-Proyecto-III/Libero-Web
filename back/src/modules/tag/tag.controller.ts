@@ -28,7 +28,12 @@ export class TagController {
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.tagService.remove(id);
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.tagService.delete(id);
+  }
+
+  @Patch('recover/:id')
+  recover(@Param('id', ParseIntPipe) id: number) {
+    return this.tagService.recover(id);
   }
 }

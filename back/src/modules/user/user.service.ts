@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
-import { ILike, Repository } from 'typeorm';
+import { UserEntity, UserEntityRelations } from './entities/user.entity';
+import { FindOptionsRelations, ILike, Repository } from 'typeorm';
 import { GetAllUserQueryDto } from './dto/get-user.dto';
 import { AllResponse } from 'src/common/interface/res-all.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -52,11 +52,10 @@ export class UserService {
     uuid: async (uuid: string): Promise<UserEntity> => {
       const user = await this.UserRepository.findOne({
         where: { uuid },
+        relations: UserEntityRelations as FindOptionsRelations<UserEntity>
       });
 
-      if (!user) {
-        throw new NotFoundException('No se encontró este usuario por UUID');
-      }
+      if (!user) throw new NotFoundException('No se encontró este usuario por UUID');
 
       return user;
     },
@@ -64,11 +63,11 @@ export class UserService {
     name: async (name: string): Promise<UserEntity> => {
       const user = await this.UserRepository.findOne({
         where: { name },
+        relations: UserEntityRelations as FindOptionsRelations<UserEntity>
       });
 
-      if (!user) {
-        throw new NotFoundException('No se encontró este usuario por NAME');
-      }
+      if (!user) throw new NotFoundException('No se encontró este usuario por NAME');
+      
 
       return user;
     },
@@ -76,11 +75,10 @@ export class UserService {
     email: async (email: string): Promise<UserEntity> => {
       const user = await this.UserRepository.findOne({
         where: { email },
+        relations: UserEntityRelations as FindOptionsRelations<UserEntity>
       });
 
-      if (!user) {
-        throw new NotFoundException('No se encontró este usuario por EMAIL');
-      }
+      if (!user) throw new NotFoundException('No se encontró este usuario por EMAIL');
 
       return user;
     },
@@ -92,26 +90,31 @@ export class UserService {
     uuid: async (uuid: string): Promise<UserEntity | null> => {
       return await this.UserRepository.findOne({
         where: { uuid },
+        relations: UserEntityRelations as FindOptionsRelations<UserEntity>
       });
     },
 
-  };
 
-  /**
-   * Buscar usuario por nombre o correo.
-   * Lo utilizará AuthService para el login.
-   */
-  async findByIdentifier(identifier: string): Promise<UserEntity | null> {
-    return await this.UserRepository.findOne({
-      where: [
-        { email: ILike(identifier) },
-        { name: ILike(identifier) },
-      ],
-      relations: {
-        rol: true,
-      },
-    });
-  }
+    name: async (name: string): Promise<UserEntity|null> => {
+      const user = await this.UserRepository.findOne({
+        where: { name },
+        relations: UserEntityRelations as FindOptionsRelations<UserEntity>
+      });
+
+      return user;
+    },
+
+    email: async (email: string): Promise<UserEntity|null> => {
+      const user = await this.UserRepository.findOne({
+        where: { email },
+        relations: UserEntityRelations as FindOptionsRelations<UserEntity>
+      });
+
+      return user;
+    },
+
+
+  };
 
   async create(createUserDto: CreateUserDto): Promise<UserEntity> {
 
@@ -119,22 +122,16 @@ export class UserService {
 
     const newUserData: Partial<UserEntity> = { ...newData };
 
-    newUserData.rol = await this.RolRepository.findOne(
-      rol ?? enumRol.USER,
-    );
+    const [ findRol, findTag, findUser ] = await Promise.all([
+      this.RolRepository.findOne( enumRol.USER ),
+      tag ? this.TagRepository.findOne( tag ) : null,
+      this.UserRepository.findOneBy({ name })
+    ])
 
-    if (tag) {
-      newUserData.tag = await this.TagRepository.findOne(tag);
-    }
+    if (findUser) throw new ConflictException( 'Ya existe un usuario con ese nombre' );
 
-    const exists = await this.UserRepository.findOneBy({ name });
-
-    if (exists) {
-      throw new ConflictException(
-        'Ya existe un usuario con ese nombre',
-      );
-    }
-
+    newUserData.rol = findRol
+    newUserData.tag = findTag
     newUserData.name = name;
     newUserData.password = await bcrypt.hash(password, 10);
 

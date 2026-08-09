@@ -1,7 +1,11 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
-import { ILike, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { GetAllUserQueryDto } from './dto/get-user.dto';
 import { AllResponse } from 'src/common/interface/res-all.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -10,18 +14,14 @@ import { RolService } from '../rol/rol.service';
 import { enumRol } from 'src/common/enums/rol.enum';
 import { TagService } from '../tag/tag.service';
 
-
 @Injectable()
 export class UserService {
-
   constructor(
-
     @InjectRepository(UserEntity)
     private readonly UserRepository: Repository<UserEntity>,
 
     private readonly RolRepository: RolService,
     private readonly TagRepository: TagService,
-
   ) {}
 
   async findAll(query: GetAllUserQueryDto): Promise<AllResponse> {
@@ -48,14 +48,15 @@ export class UserService {
   }
 
   findOneBy = {
-
     uuid: async (uuid: string): Promise<UserEntity> => {
       const user = await this.UserRepository.findOne({
         where: { uuid },
       });
 
       if (!user) {
-        throw new NotFoundException('No se encontró este usuario por UUID');
+        throw new NotFoundException(
+          'No se encontró este usuario por UUID',
+        );
       }
 
       return user;
@@ -67,7 +68,9 @@ export class UserService {
       });
 
       if (!user) {
-        throw new NotFoundException('No se encontró este usuario por NAME');
+        throw new NotFoundException(
+          'No se encontró este usuario por NAME',
+        );
       }
 
       return user;
@@ -79,42 +82,42 @@ export class UserService {
       });
 
       if (!user) {
-        throw new NotFoundException('No se encontró este usuario por EMAIL');
+        throw new NotFoundException(
+          'No se encontró este usuario por EMAIL',
+        );
       }
 
       return user;
     },
-
   };
 
   findOrNull = {
-
     uuid: async (uuid: string): Promise<UserEntity | null> => {
       return await this.UserRepository.findOne({
         where: { uuid },
       });
     },
 
+    email: async (email: string): Promise<UserEntity | null> => {
+      return await this.UserRepository.findOne({
+        where: { email },
+        relations: {
+          rol: true,
+        },
+      });
+    },
+
+    name: async (name: string): Promise<UserEntity | null> => {
+      return await this.UserRepository.findOne({
+        where: { name },
+        relations: {
+          rol: true,
+        },
+      });
+    },
   };
 
-  /**
-   * Buscar usuario por nombre o correo.
-   * Lo utilizará AuthService para el login.
-   */
-  async findByIdentifier(identifier: string): Promise<UserEntity | null> {
-    return await this.UserRepository.findOne({
-      where: [
-        { email: ILike(identifier) },
-        { name: ILike(identifier) },
-      ],
-      relations: {
-        rol: true,
-      },
-    });
-  }
-
   async create(createUserDto: CreateUserDto): Promise<UserEntity> {
-
     const { name, password, rol, tag, ...newData } = createUserDto;
 
     const newUserData: Partial<UserEntity> = { ...newData };
@@ -144,7 +147,6 @@ export class UserService {
   }
 
   async delete(uuid: string) {
-
     const contact = await this.findOneBy.uuid(uuid);
 
     return {
@@ -154,7 +156,6 @@ export class UserService {
   }
 
   async recover(uuid: string) {
-
     const user = await this.UserRepository.findOne({
       where: { uuid },
       withDeleted: true,
@@ -172,5 +173,4 @@ export class UserService {
 
     return await this.UserRepository.recover(user);
   }
-
 }

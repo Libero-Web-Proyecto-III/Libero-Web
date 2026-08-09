@@ -26,7 +26,7 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException(
-        'Correo o contraseña incorrectos.',
+        'Correo, usuario o contraseña incorrectos.',
       );
     }
 
@@ -55,10 +55,15 @@ export class AuthService {
   }
 
   async validateUser(dto: LoginDto): Promise<AuthUser | null> {
-
-    const user = await this.userService.findByIdentifier(
+    let user = await this.userService.findOrNull.email(
       dto.identifier,
     );
+
+    if (!user) {
+      user = await this.userService.findOrNull.name(
+        dto.identifier,
+      );
+    }
 
     if (!user) {
       return null;
@@ -116,7 +121,7 @@ export class AuthService {
     };
   }
 
-    async requestPasswordReset(email: string) {
+  async requestPasswordReset(email: string) {
     // TODO:
     // 1. Buscar el usuario por email.
     // 2. Generar un token seguro.
@@ -125,7 +130,7 @@ export class AuthService {
     return {
       success: true,
       message: 'Solicitud de recuperación preparada.',
-        data: {
+      data: {
         email,
       },
     };
@@ -142,7 +147,7 @@ export class AuthService {
     // 2. Buscar el usuario.
     // 3. Actualizar el passwordHash usando UsersService.
 
-  return {
+    return {
       success: true,
       message: 'Cambio de contraseña preparado.',
       data: {

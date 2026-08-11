@@ -11,13 +11,13 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/D4N-1/Libero-Web">
+    <a href="https://github.com/Libero-Web-Proyecto-III/Libero-Web">
         <img src="https://img.shields.io/badge/Github-Repository-F59827?style=for-the-badge&logo=github">
         <img src="https://img.shields.io/badge/Versi%C3%B3n-BETA_0.1-F5C827?style=for-the-badge&logo=github">
         <img src="https://img.shields.io/github/stars/D4N-1/Libero-Web?color=yellow&style=for-the-badge" alt="stars"/>
         <img src="https://img.shields.io/github/forks/D4N-1/Libero-Web?color=blue&style=for-the-badge" alt="forks"/>
     </a>
-    <a href="https://github.com/D4N-1/Libero-Web/commits/main">
+    <a href="https://github.com/Libero-Web-Proyecto-III/Libero-Web/commits/main">
         <img src="https://img.shields.io/github/commit-activity/w/D4N-1/Libero-Web?color=purple&style=for-the-badge" alt="commits">
     </a>
 </p>

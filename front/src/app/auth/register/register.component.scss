@@ -13,6 +13,40 @@
   color: #f4f4f5;
 }
 
+.back-btn {
+  position: absolute;
+  top: 1.75rem;
+  left: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.95rem;
+  background: rgba(24, 24, 27, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  color: #a1a1aa;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
+  z-index: 20;
+
+  &:hover {
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(39, 39, 42, 0.85);
+    transform: translateX(-2px);
+  }
+}
+
+.back-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
 .auth-glow {
   position: absolute;
   border-radius: 50%;
@@ -341,5 +375,14 @@
 
   &:hover {
     color: #d4d4d8;
+  }
+}
+
+@media (max-width: 640px) {
+  .back-btn {
+    top: 1rem;
+    left: 1rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
   }
 }

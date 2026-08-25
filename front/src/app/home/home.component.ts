@@ -53,14 +53,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   // ─── Google Maps ──────────────────────────────────────────────────────────
   mapUrl: SafeResourceUrl;
 
-  // ─── Estadísticas ──────────────────────────────────────────────────────────
-  stats = [
-    { value: '1.300', label: 'Mt de Recursos Minerales', icon: '⛏️' },
-    { value: '0.49%', label: 'Ley Equivalente de Cobre', icon: '🔩' },
-    { value: '30+', label: 'Años de Exploración', icon: '📅' },
-    { value: '100%', label: 'Compromiso Ambiental', icon: '🌿' },
-  ];
-
   // ─── Huellitas Verdes ──────────────────────────────────────────────────────
   huellitasItems = [
     {

@@ -4,6 +4,10 @@ import { AppComponent } from './app';
 
 export const routes: Routes = [
   {
+    path: 'auth',
+    loadChildren: () => import('./auth/auth.routes').then((m) => m.AUTH_ROUTES),
+  },
+  {
     path: 'eventos',
     loadComponent: () => import('./events/events.component').then(m => m.EventsComponent)
   },

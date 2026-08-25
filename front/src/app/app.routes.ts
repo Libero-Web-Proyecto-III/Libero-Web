@@ -3,6 +3,10 @@ import { About } from './about/about';
 import { AppComponent } from './app';
 
 export const routes: Routes = [
+  {
+    path: 'eventos',
+    loadComponent: () => import('./events/events.component').then(m => m.EventsComponent)
+  },
     {
       path: '',
       loadComponent: () =>

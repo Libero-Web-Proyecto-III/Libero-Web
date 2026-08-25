@@ -4,7 +4,8 @@
   "description": "<p align=\"center\">\r   <a href=\"https://liberocobre.online\">\r     <img src=\"/public/images/logo.png\">\r   </a>\r </p>",
   "main": "index.js",
   "workspaces": [
-    "/back"
+    "/back",
+    "/front"
   ],
   "repository": {
     "type": "git",

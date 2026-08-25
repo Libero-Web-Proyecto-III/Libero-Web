@@ -1,0 +1,231 @@
+/* ── Footer ──────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap');
+
+.footer {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+
+  &__wave {
+    line-height: 0;
+    overflow: hidden;
+    margin-bottom: -1px;
+    width: 100%;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 60px;
+    }
+  }
+
+  &__body {
+    background: black;
+    padding: 3.5rem 0 2rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 3rem;
+    box-sizing: border-box;
+
+    @media (max-width: 900px) { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 580px) { grid-template-columns: 1fr; gap: 2rem; }
+  }
+
+  &__col {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    &--brand { gap: 1.25rem; }
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+  }
+
+  &__logo-img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  &__logo-main {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.03em;
+  }
+
+  &__logo-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: gray;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  &__description {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: gray;
+    margin: 0;
+  }
+
+  &__socials {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  &__social-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 30px;
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    border: 1px solid gray;
+    background: black;
+    color: white;
+
+    &:hover {
+      background: white;
+      color: black;
+      border-color: white;
+      transform: translateY(-2px);
+    }
+  }
+
+  &__social-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  &__heading {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0 0 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid gray;
+  }
+
+  &__links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__link {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: gray;
+    padding: 0.4rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    text-align: left;
+    transition: color 0.2s ease, gap 0.2s ease;
+
+    &:hover { color: white; gap: 0.7rem; }
+  }
+
+  &__link-arrow {
+    font-size: 1rem;
+    color: gray;
+    line-height: 1;
+  }
+
+  &__contact-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      color: gray;
+      line-height: 1.5;
+    }
+  }
+
+  &__contact-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+
+  &__bottom {
+    background: black;
+    border-top: 1px solid gray;
+    padding: 1.25rem 0;
+
+    .footer__container {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+  }
+
+  &__copyright {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: gray;
+    margin: 0;
+
+    strong { color: white; }
+  }
+
+  &__tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: gray;
+    margin: 0;
+    letter-spacing: 0.05em;
+  }
+}

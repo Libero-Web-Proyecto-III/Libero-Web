@@ -1,0 +1,54 @@
+<nav class="navbar" [class.scrolled]="scrolled()">
+  <div class="navbar__container">
+
+    <!-- Logo -->
+    <div class="navbar__brand">
+      <img class="navbar__logo-img" src="logo.png" alt="Libero Cobre Logo" />
+      <div class="navbar__logo-text">
+        <span class="navbar__logo-main">Libero Cobre</span>
+        <span class="navbar__logo-sub">Mocoa · Putumayo</span>
+      </div>
+    </div>
+
+    <!-- Desktop Nav Links -->
+    <ul class="navbar__links">
+      @for (link of navLinks; track link.fragment) {
+        <li>
+          <button class="navbar__link" (click)="scrollToSection(link.fragment)">
+            {{ link.label }}
+          </button>
+        </li>
+      }
+    </ul>
+
+    <!-- Avatar / Foto de perfil -->
+    <div class="navbar__avatar" aria-label="Perfil de usuario"></div>
+
+    <!-- Hamburger Button -->
+    <button
+      class="navbar__hamburger"
+      [class.open]="menuOpen()"
+      (click)="toggleMenu()"
+      aria-label="Abrir menú de navegación"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  @if (menuOpen()) {
+    <div class="navbar__mobile-menu">
+      <ul>
+        @for (link of navLinks; track link.fragment) {
+          <li>
+            <button class="navbar__mobile-link" (click)="scrollToSection(link.fragment)">
+              {{ link.label }}
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</nav>

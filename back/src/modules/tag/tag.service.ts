@@ -30,6 +30,12 @@ export class TagService {
   }
 
   async update(id: number, updateTagDto: UpdateTagDto): Promise<TagEntity | null> {
+    const tag = await this.findOne(id);
+    if (!tag) throw new NotFoundException('No existe ese TAG');
+    const tagExists = await this.tagRepository.findOneBy({ name: updateTagDto.name });
+    if (tagExists && tagExists.id !== id) {
+      throw new ConflictException('Ya existe un TAG con ese nombre');
+    }
     return this.tagRepository.save({ id, ...updateTagDto });
   }
 

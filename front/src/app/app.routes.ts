@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { About } from './about/about';
 import { AppComponent } from './app';
+import { NoticeComponent } from './notice/notice.component';
 
 export const routes: Routes = [
   {
@@ -17,5 +18,6 @@ export const routes: Routes = [
         import('./home/home.component').then(m => m.HomeComponent),
     },
     { path: 'about', component: About },
+    { path: 'noticias', component: NoticeComponent },
     { path: '**', redirectTo: '' },
 ];

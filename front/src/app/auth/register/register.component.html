@@ -1,0 +1,169 @@
+<div class="auth-container">
+  <div class="auth-glow auth-glow-1"></div>
+  <div class="auth-glow auth-glow-2"></div>
+
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="brand-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="brand-icon">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span>Líbero Cobre</span>
+      </div>
+      <h1 class="auth-title">Crear una cuenta</h1>
+      <p class="auth-subtitle">Únete a la comunidad de Líbero Cobre hoy</p>
+    </div>
+
+    <div *ngIf="SuccessMessage" class="alert alert-success">
+      <svg xmlns="http://www.w3.org/2000/svg" class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+      </svg>
+      <span>{{ SuccessMessage }}</span>
+    </div>
+
+    <div *ngIf="ErrorMessage" class="alert alert-danger">
+      <svg xmlns="http://www.w3.org/2000/svg" class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+      </svg>
+      <span>{{ ErrorMessage }}</span>
+    </div>
+
+    <form [formGroup]="RegisterForm" (ngSubmit)="OnSubmit()" class="auth-form" novalidate>
+      <!-- Campo Nombre Completo -->
+      <div class="form-group">
+        <label for="full-name" class="form-label">Nombre completo</label>
+        <div class="input-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <input
+            id="full-name"
+            type="text"
+            formControlName="FullName"
+            placeholder="Juan Pérez"
+            class="form-input"
+            [class.input-error]="RegisterForm.get('FullName')?.invalid && RegisterForm.get('FullName')?.touched"
+          />
+        </div>
+        <div *ngIf="RegisterForm.get('FullName')?.invalid && RegisterForm.get('FullName')?.touched" class="field-error">
+          <span *ngIf="RegisterForm.get('FullName')?.errors?.['required']">El nombre completo es requerido.</span>
+          <span *ngIf="RegisterForm.get('FullName')?.errors?.['minlength']">El nombre debe tener al menos 3 caracteres.</span>
+        </div>
+      </div>
+
+      <!-- Campo Correo Electrónico -->
+      <div class="form-group">
+        <label for="user-email" class="form-label">Correo electrónico</label>
+        <div class="input-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <input
+            id="user-email"
+            type="email"
+            formControlName="UserEmail"
+            placeholder="nombre@ejemplo.com"
+            class="form-input"
+            [class.input-error]="RegisterForm.get('UserEmail')?.invalid && RegisterForm.get('UserEmail')?.touched"
+          />
+        </div>
+        <div *ngIf="RegisterForm.get('UserEmail')?.invalid && RegisterForm.get('UserEmail')?.touched" class="field-error">
+          <span *ngIf="RegisterForm.get('UserEmail')?.errors?.['required']">El correo electrónico es requerido.</span>
+          <span *ngIf="RegisterForm.get('UserEmail')?.errors?.['email']">Por favor ingresa un correo electrónico válido.</span>
+        </div>
+      </div>
+
+      <!-- Campo Contraseña -->
+      <div class="form-group">
+        <label for="user-password" class="form-label">Contraseña</label>
+        <div class="input-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <input
+            id="user-password"
+            [type]="ShowPassword ? 'text' : 'password'"
+            formControlName="UserPassword"
+            placeholder="••••••••"
+            class="form-input"
+            [class.input-error]="RegisterForm.get('UserPassword')?.invalid && RegisterForm.get('UserPassword')?.touched"
+          />
+          <button type="button" class="toggle-password" (click)="TogglePasswordVisibility()" aria-label="Cambiar visibilidad de contraseña">
+            <svg *ngIf="!ShowPassword" xmlns="http://www.w3.org/2000/svg" class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg *ngIf="ShowPassword" xmlns="http://www.w3.org/2000/svg" class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        <div *ngIf="RegisterForm.get('UserPassword')?.invalid && RegisterForm.get('UserPassword')?.touched" class="field-error">
+          <span *ngIf="RegisterForm.get('UserPassword')?.errors?.['required']">La contraseña es requerida.</span>
+          <span *ngIf="RegisterForm.get('UserPassword')?.errors?.['minlength']">La contraseña debe tener al menos 6 caracteres.</span>
+        </div>
+      </div>
+
+      <!-- Campo Confirmar Contraseña -->
+      <div class="form-group">
+        <label for="confirm-password" class="form-label">Confirmar contraseña</label>
+        <div class="input-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <input
+            id="confirm-password"
+            [type]="ShowConfirmPassword ? 'text' : 'password'"
+            formControlName="ConfirmPassword"
+            placeholder="••••••••"
+            class="form-input"
+            [class.input-error]="RegisterForm.get('ConfirmPassword')?.invalid && RegisterForm.get('ConfirmPassword')?.touched"
+          />
+          <button type="button" class="toggle-password" (click)="ToggleConfirmPasswordVisibility()" aria-label="Cambiar visibilidad de contraseña">
+            <svg *ngIf="!ShowConfirmPassword" xmlns="http://www.w3.org/2000/svg" class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg *ngIf="ShowConfirmPassword" xmlns="http://www.w3.org/2000/svg" class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        <div *ngIf="RegisterForm.get('ConfirmPassword')?.invalid && RegisterForm.get('ConfirmPassword')?.touched" class="field-error">
+          <span *ngIf="RegisterForm.get('ConfirmPassword')?.errors?.['required']">Por favor confirma tu contraseña.</span>
+          <span *ngIf="RegisterForm.get('ConfirmPassword')?.errors?.['passwordMismatch']">Las contraseñas no coinciden.</span>
+        </div>
+      </div>
+
+      <!-- Casilla de Términos -->
+      <div class="checkbox-group">
+        <label class="checkbox-container">
+          <input type="checkbox" formControlName="AcceptTerm" />
+          <span class="checkmark"></span>
+          <span class="checkbox-label">Acepto los <a href="javascript:void(0)" class="term-link">Términos de servicio</a> y la <a href="javascript:void(0)" class="term-link">Política de privacidad</a></span>
+        </label>
+      </div>
+      <div *ngIf="RegisterForm.get('AcceptTerm')?.invalid && RegisterForm.get('AcceptTerm')?.touched" class="field-error">
+        <span>Debes aceptar los términos para continuar.</span>
+      </div>
+
+      <!-- Botón de Crear Cuenta -->
+      <button type="submit" class="submit-btn" [disabled]="IsLoading">
+        <span *ngIf="!IsLoading">Crear cuenta</span>
+        <span *ngIf="IsLoading" class="spinner-wrapper">
+          <span class="spinner"></span>
+          Registrando...
+        </span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>¿Ya tienes una cuenta? <a routerLink="/auth/login" class="auth-link">Iniciar sesión</a></p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,162 @@
+<div class="events-page">
+  <!-- Header / Navigation Banner -->
+  <header class="page-header">
+    <div class="header-container">
+      <!-- Search Box -->
+      <div class="filter-section">
+        <div class="search-box">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar por título, lugar, descripción..."
+            [ngModel]="searchTerm()"
+            (ngModelChange)="searchTerm.set($event)"
+          />
+          @if (searchTerm()) {
+            <button class="clear-search" (click)="searchTerm.set('')">✕</button>
+          }
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="events-container">
+    <div class="results-bar">
+      <span class="results-count">
+        MOSTRANDO <strong>{{ filteredEvents().length }}</strong> EVENTO(S)
+      </span>
+    </div>
+
+    <!-- Empty State -->
+    @if (filteredEvents().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">⚪</div>
+        <h3>No se encontraron eventos</h3>
+        <p>No hay eventos que coincidan con tu búsqueda "{{ searchTerm() }}". Prueba con otros términos.</p>
+        <button class="reset-btn" (click)="searchTerm.set('')">Ver todos los eventos</button>
+      </div>
+    }
+
+    <!-- Vertical List of Full Horizontal Width Event Cards -->
+    <div class="events-list">
+      @for (event of filteredEvents(); track event.id) {
+        <article class="event-card" (click)="openModal(event)">
+          
+          <!-- Image Section -->
+          <div class="card-image-wrapper">
+            <img [src]="event.imageUrl" [alt]="event.title" class="card-img" />
+            <div class="card-img-overlay"></div>
+            
+            <!-- Date Badge Floating on Top Left -->
+            <div class="date-badge">
+              <span class="date-day">{{ event.dateDay }}</span>
+              <span class="date-month">{{ event.dateMonth }}</span>
+            </div>
+          </div>
+
+          <!-- Content Details Section -->
+          <div class="card-content">
+            <div class="card-meta">
+              <div class="meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>{{ event.time }}</span>
+              </div>
+              <div class="meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>{{ event.location }} · {{ event.city }}</span>
+              </div>
+            </div>
+
+            <h2 class="card-title">{{ event.title }}</h2>
+            <p class="card-subtitle">{{ event.subtitle }}</p>
+            <p class="card-description">{{ event.description }}</p>
+
+            <div class="card-footer">
+              @if (!event.isSubscribed) {
+                <button class="cta-btn" (click)="openModal(event); $event.stopPropagation()">
+                  VER EVENTO
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              } @else {
+                <button class="cta-btn subscribed-btn" (click)="openModal(event); $event.stopPropagation()">
+                  ✓ NOTIFICACIÓN ACTIVADA
+                </button>
+              }
+            </div>
+          </div>
+
+        </article>
+      }
+    </div>
+  </main>
+
+  <!-- Event Detail & Notification Modal -->
+  @if (selectedEventForModal(); as item) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        
+        <button class="modal-close" (click)="closeModal()">✕</button>
+
+        @if (!subscriptionSuccess()) {
+          <div class="modal-header">
+            <span class="modal-badge">DETALLES DEL EVENTO</span>
+            <h2 class="modal-title">{{ item.title }}</h2>
+            <p class="modal-subtitle">{{ item.subtitle }}</p>
+          </div>
+
+          <div class="modal-body">
+            <div class="modal-image-box">
+              <img [src]="item.imageUrl" [alt]="item.title" />
+            </div>
+
+            <div class="modal-details">
+              <div class="detail-row">
+                <span class="label">Fecha:</span>
+                <span class="value">{{ item.dateDay }} de {{ item.dateMonth }} 2026</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Horario:</span>
+                <span class="value">{{ item.time }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Ubicación:</span>
+                <span class="value">{{ item.location }} ({{ item.city }})</span>
+              </div>
+            </div>
+
+            <p class="modal-desc">{{ item.description }}</p>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="modal-cancel-btn" (click)="closeModal()">Cerrar</button>
+            <button type="button" class="modal-confirm-btn" (click)="confirmSubscription()">
+              {{ item.isSubscribed ? 'Notificación Activada' : 'Notificarme Evento' }}
+            </button>
+          </div>
+        } @else {
+          <div class="booking-success-state">
+            <div class="success-icon">✓</div>
+            <h3>¡Notificación Activada!</h3>
+            <p>Recibirás recordatorios y avisos para el evento:</p>
+            <p class="event-name-highlight">"{{ item.title }}"</p>
+            <p class="subtext">Te avisaremos con suficiente antelación antes de que comience.</p>
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+</div>

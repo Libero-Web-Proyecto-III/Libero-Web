@@ -1,0 +1,242 @@
+<div class="page-wrapper">
+  <!-- ════════════ NAVBAR ════════════ -->
+  <app-navbar></app-navbar>
+
+  <main class="main-content">
+
+    <!-- ════════════ SECCIÓN 1: CARRUSEL ════════════ -->
+    <section id="inicio" class="carousel-section">
+      <div class="carousel">
+        <!-- Slides -->
+        <div class="carousel__track">
+          @for (slide of slides; track slide.bgClass; let i = $index) {
+            <div
+              class="carousel__slide"
+              [class]="slide.bgClass"
+              [class.active]="currentSlide() === i"
+              [style.background]="slide.gradient"
+            >
+              <div class="carousel__overlay" [style.background]="slide.gradient"></div>
+              <div class="carousel__content">
+                <h1 class="carousel__title">{{ slide.title }}</h1>
+                <p class="carousel__subtitle">{{ slide.subtitle }}</p>
+                <div class="carousel__badge">Libero Cobre · Mocoa, Putumayo</div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Controles de navegación -->
+        <button class="carousel__btn carousel__btn--prev" (click)="prevSlide()" aria-label="Slide anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <button class="carousel__btn carousel__btn--next" (click)="nextSlide()" aria-label="Siguiente slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </button>
+
+        <!-- Indicadores (puntos) -->
+        <div class="carousel__indicators">
+          @for (slide of slides; track slide.bgClass; let i = $index) {
+            <button
+              class="carousel__dot"
+              [class.active]="currentSlide() === i"
+              (click)="goToSlide(i)"
+              [attr.aria-label]="'Ir al slide ' + (i + 1)"
+            ></button>
+          }
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ════════════ SECCIÓN 2: COLLAGE DE FOTOS ════════════ -->
+    <section class="collage-section">
+      <div class="collage-section__header">
+        <div class="section-tag">Galería</div>
+        <h2 class="section-title">Proyecto Mocoa en Imágenes</h2>
+      </div>
+      <div class="collage-grid">
+        <!-- Foto principal grande -->
+        <div class="collage-item collage-item--main">
+          <div class="collage-placeholder">
+            <span class="collage-placeholder__text">Foto Principal</span>
+          </div>
+        </div>
+        <!-- Foto 2 -->
+        <div class="collage-item">
+          <div class="collage-placeholder">
+            <span class="collage-placeholder__text">Foto 2</span>
+          </div>
+        </div>
+        <!-- Foto 3 -->
+        <div class="collage-item">
+          <div class="collage-placeholder">
+            <span class="collage-placeholder__text">Foto 3</span>
+          </div>
+        </div>
+        <!-- Foto 4 -->
+        <div class="collage-item">
+          <div class="collage-placeholder">
+            <span class="collage-placeholder__text">Foto 4</span>
+          </div>
+        </div>
+        <!-- Foto 5 -->
+        <div class="collage-item">
+          <div class="collage-placeholder">
+            <span class="collage-placeholder__text">Foto 5</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════ SECCIÓN 3: QUIÉNES SOMOS ════════════ -->
+    <section id="quienes-somos" class="about-section">
+      <div class="about-section__container">
+        <div class="about-section__text">
+          <div class="section-tag">Quiénes Somos</div>
+          <h2 class="section-title">Explorando el Futuro del Cobre en la Amazonia</h2>
+          <p>
+            <strong>Libero Cobre</strong> es una empresa de exploración y desarrollo minero enfocada en el
+            <strong>Proyecto Mocoa</strong>, ubicado en el municipio de Mocoa, departamento de Putumayo,
+            en el piedemonte amazónico colombiano.
+          </p>
+          <p>
+            Nuestro proyecto alberga uno de los depósitos de <strong>cobre-molibdeno más significativos de Colombia</strong>,
+            con recursos estimados de 1.300 megatoneladas a una ley equivalente de cobre del 0.49%.
+            Estos minerales son fundamentales para la <em>transición energética global</em>, siendo el cobre
+            el metal esencial en la infraestructura eléctrica, paneles solares y vehículos eléctricos.
+          </p>
+          <p>
+            Nuestro enfoque es el desarrollo responsable: trabajamos en equilibrio con los ecosistemas
+            amazónicos y en coordinación constante con las comunidades locales, autoridades ambientales
+            y grupos de interés de Putumayo.
+          </p>
+          <div class="about-section__actions">
+            <a href="#proyecto" class="btn btn--primary">Ver Proyecto</a>
+            <a href="#huellitas-verdes" class="btn btn--outline">Huellitas Verdes</a>
+          </div>
+        </div>
+
+        <div class="about-section__visual">
+          <div class="about-card">
+            <div class="about-card__header">
+              <span>Proyecto Mocoa</span>
+            </div>
+            <div class="about-card__body">
+              <div class="about-card__item">
+                <span class="about-card__label">Mineral Principal</span>
+                <span class="about-card__value">Cobre (Cu)</span>
+              </div>
+              <div class="about-card__item">
+                <span class="about-card__label">Subproducto</span>
+                <span class="about-card__value">Molibdeno (Mo)</span>
+              </div>
+              <div class="about-card__item">
+                <span class="about-card__label">Ubicación</span>
+                <span class="about-card__value">Mocoa, Putumayo</span>
+              </div>
+              <div class="about-card__item">
+                <span class="about-card__label">Ecosistema</span>
+                <span class="about-card__value">Piedemonte Amazónico</span>
+              </div>
+              <div class="about-card__item">
+                <span class="about-card__label">Recursos</span>
+                <span class="about-card__value">~1.300 Mt</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════ SECCIÓN 4: HUELLITAS VERDES ════════════ -->
+    <section id="huellitas-verdes" class="huellitas-section">
+      <div class="huellitas-section__bg-pattern"></div>
+      <div class="huellitas-section__container">
+        <div class="huellitas-section__header">
+          <div class="huellitas-badge">
+            <span>Iniciativa Especial</span>
+          </div>
+          <h2 class="section-title section-title--light">Huellitas Verdes</h2>
+          <p class="huellitas-section__lead">
+            Nuestra iniciativa de responsabilidad socioambiental que une la minería responsable
+            con la conservación de la biodiversidad única del departamento de Putumayo.
+          </p>
+        </div>
+
+        <div class="huellitas-grid">
+          @for (item of huellitasItems; track item.title) {
+            <div class="huellitas-card">
+              <h3 class="huellitas-card__title">{{ item.title }}</h3>
+              <p class="huellitas-card__desc">{{ item.desc }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="huellitas-section__footer-note">
+          <p>
+            <strong>Huellitas Verdes</strong> es la manifestación de nuestro compromiso:
+            cada paso del Proyecto Mocoa deja huellas de vida, no solo de minería.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════ SECCIÓN 5: MAPA GOOGLE MAPS ════════════ -->
+    <section id="contacto" class="map-section">
+      <div class="map-section__container">
+        <div class="map-section__info">
+          <div class="section-tag">Nuestra Ubicación</div>
+          <h2 class="section-title">Mocoa, Putumayo</h2>
+          <p>
+            El <strong>Proyecto Mocoa</strong> se desarrolla en las estribaciones de la cordillera
+            andino-amazónica, en el corazón del departamento de Putumayo, Colombia.
+          </p>
+          <div class="map-section__details">
+            <div class="map-detail">
+              <div>
+                <strong>Municipio de Mocoa</strong>
+                <span>Putumayo, Colombia</span>
+              </div>
+            </div>
+            <div class="map-detail">
+              <div>
+                <strong>Piedemonte Amazónico</strong>
+                <span>Región Andino-Amazónica</span>
+              </div>
+            </div>
+            <div class="map-detail">
+              <div>
+                <strong>Coordenadas</strong>
+                <span>1.1490° N, 76.6436° O</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="map-section__map">
+          <div class="map-frame">
+            <iframe
+              [src]="mapUrl"
+              allowfullscreen
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title="Ubicación Proyecto Mocoa - Libero Cobre, Putumayo"
+            ></iframe>
+            <div class="map-frame__pin">
+              <span>Mocoa, Putumayo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ════════════ FOOTER ════════════ -->
+  <app-footer></app-footer>
+</div>

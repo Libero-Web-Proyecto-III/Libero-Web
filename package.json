@@ -4,8 +4,8 @@
   "description": "<p align=\"center\">\r   <a href=\"https://liberocobre.online\">\r     <img src=\"/public/images/logo.png\">\r   </a>\r </p>",
   "main": "index.js",
   "workspaces": [
-    "/back",
-    "/front"
+    "back",
+    "front"
   ],
   "repository": {
     "type": "git",
@@ -19,7 +19,5 @@
     "url": "https://github.com/D4N-1/Libero-Web/issues"
   },
   "homepage": "https://github.com/D4N-1/Libero-Web#readme",
-  "dependencies": {
-
-  }
+  "dependencies": {}
 }

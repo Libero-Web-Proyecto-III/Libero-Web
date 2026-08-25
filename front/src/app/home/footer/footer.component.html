@@ -1,0 +1,96 @@
+<footer class="footer">
+  <div class="footer__wave">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,40 C360,0 1080,80 1440,20 L1440,60 L0,60 Z" fill="black"/>
+    </svg>
+  </div>
+
+  <div class="footer__body">
+    <div class="footer__container">
+
+      <!-- Columna: Marca -->
+      <div class="footer__col footer__col--brand">
+        <div class="footer__logo">
+          <img class="footer__logo-img" src="logo.png" alt="Libero Cobre Logo" />
+          <div>
+            <span class="footer__logo-main">Libero Cobre</span>
+            <span class="footer__logo-sub">Mocoa · Putumayo</span>
+          </div>
+        </div>
+        <p class="footer__description">
+          Exploramos y desarrollamos recursos minerales de cobre y molibdeno en la Amazonia colombiana,
+          comprometidos con la sostenibilidad y el bienestar de las comunidades de Mocoa.
+        </p>
+
+        <!-- Redes Sociales -->
+        <div class="footer__socials">
+          <a
+            [href]="facebookUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="footer__social-link footer__social-link--fb"
+            aria-label="Página de Facebook de Libero Cobre"
+            title="Síguenos en Facebook"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              class="footer__social-icon"
+              aria-hidden="true"
+            >
+              <path
+                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                fill="currentColor"
+              />
+            </svg>
+            <span>Facebook</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Columna: Navegación Rápida -->
+      <div class="footer__col">
+        <h3 class="footer__heading">Navegación</h3>
+        <ul class="footer__links">
+          @for (link of quickLinks; track link.fragment) {
+            <li>
+              <button class="footer__link" (click)="scrollToSection(link.fragment)">
+                <span class="footer__link-arrow">›</span>
+                {{ link.label }}
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <!-- Columna: Contacto -->
+      <div class="footer__col">
+        <h3 class="footer__heading">Contacto</h3>
+        <ul class="footer__contact-list">
+          <li>
+            <span>Mocoa, Putumayo, Colombia</span>
+          </li>
+          <li>
+            <span>Proyecto Mocoa – Cobre y Molibdeno</span>
+          </li>
+          <li>
+            <span>Iniciativa Huellitas Verdes</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Barra inferior -->
+  <div class="footer__bottom">
+    <div class="footer__container">
+      <p class="footer__copyright">
+        &copy; {{ currentYear }} <strong>Libero Cobre Mocoa Putumayo</strong>. Todos los derechos reservados.
+      </p>
+      <p class="footer__tagline">
+        Minería responsable para un futuro sostenible
+      </p>
+    </div>
+  </div>
+</footer>

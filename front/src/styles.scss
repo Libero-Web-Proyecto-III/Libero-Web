@@ -1,1 +1,18 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global reset — elimina los márgenes y padding por defecto del navegador */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}

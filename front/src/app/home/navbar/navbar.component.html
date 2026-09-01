@@ -10,15 +10,27 @@
       </div>
     </a>
 
-    <!-- Desktop Nav Links -->
-    <ul class="navbar__links">
-      @for (link of navLinks; track link.path) {
+    <!-- Desktop Nav Links con Contorno Animado Deslizable -->
+    <ul class="navbar__links" #navContainer (mouseleave)="onMouseLeaveLinks()">
+      <!-- Borde/Contorno Gris Deslizable -->
+      <div
+        class="navbar__indicator"
+        [class.animated]="isAnimated()"
+        [style.left.px]="indicatorStyle().left"
+        [style.width.px]="indicatorStyle().width"
+        [style.opacity]="indicatorStyle().opacity"
+      ></div>
+
+      @for (link of navLinks; track link.path; let idx = $index) {
         <li>
           <a
+            #navLinkEl
             class="navbar__link"
             [routerLink]="link.path"
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: link.exact }"
+            (mouseenter)="onMouseEnterLink(idx)"
+            (click)="onClickLink(idx)"
           >
             {{ link.label }}
           </a>

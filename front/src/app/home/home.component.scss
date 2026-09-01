@@ -293,70 +293,297 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   SECCIÓN REDES SOCIALES: FACEBOOK
+   SECCIÓN REDES SOCIALES: FACEBOOK (CARRUSEL SLIDER)
    ════════════════════════════════════════════════════════════════════════ */
-.facebook-section {
-  padding: 5rem 0;
-  background: #f8f9fa;
+.fb-header-icon-img {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: cover;
+  vertical-align: middle;
+}
+
+.fb-avatar-img {
   width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.fb-badge-img {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.facebook-section {
+  padding: 6rem 0;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  width: 100%;
+  position: relative;
 
   &__container {
-    max-width: 1200px;
+    max-width: 1340px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 3.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
     box-sizing: border-box;
-  }
 
-  &__header {
-    max-width: 650px;
-    margin-bottom: 2.5rem;
-  }
-
-  &__subtitle {
-    font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    line-height: 1.7;
-    color: dimgray;
-    margin: 0;
-
-    strong {
-      color: black;
-      font-weight: 600;
+    @media (max-width: 768px) {
+      padding: 0 1.25rem;
     }
   }
 
-  &__content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
+  &__header {
+    max-width: 700px;
+    margin-bottom: 3.5rem;
+    text-align: center;
   }
 }
 
-.facebook-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  border: 1px solid lightgray;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
+.fb-slider-wrapper {
+  position: relative;
+  width: 100%;
   max-width: 100%;
-  transition: box-shadow 0.3s ease;
+  display: flex;
+  align-items: center;
+}
 
-  &:hover {
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+.fb-slider-track {
+  display: flex;
+  gap: 2.25rem;
+  width: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 1.25rem 0.5rem 2.5rem;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+
+  /* Ocultar barra de desplazamiento en navegadores */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.fb-slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid #e5e7eb;
+  background: #ffffff;
+  color: #1b4332;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+
+  svg {
+    width: 26px;
+    height: 26px;
   }
 
-  iframe {
-    max-width: 100%;
-    border-radius: 12px;
+  &:hover {
+    background: #1b4332;
+    color: #ffffff;
+    border-color: #1b4332;
+    transform: translateY(-50%) scale(1.12);
+    box-shadow: 0 12px 30px rgba(27, 67, 50, 0.3);
+  }
+
+  &--prev {
+    left: -52px;
+
+    @media (max-width: 1024px) {
+      left: -20px;
+    }
+
+    @media (max-width: 640px) {
+      left: -8px;
+    }
+  }
+
+  &--next {
+    right: -52px;
+
+    @media (max-width: 1024px) {
+      right: -20px;
+    }
+
+    @media (max-width: 640px) {
+      right: -8px;
+    }
+  }
+}
+
+/* Tarjetas Estáticas Más Grandes Verticalmente ("A nuestra forma") */
+.fb-card {
+  flex: 0 0 440px;
+  width: 440px;
+  height: 480px;
+  max-width: 85vw;
+  scroll-snap-align: start;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &__header {
+    padding: 1.5rem 1.5rem 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #f1f3f5;
+  }
+
+  &__author {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+    box-shadow: 0 4px 10px rgba(27, 67, 50, 0.2);
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__name {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #111827;
+  }
+
+  &__date {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #eef5ff;
+    color: #1877f2;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  /* Cuerpo de la tarjeta: Texto primero y al final la Imagen multimedia con Scrollbar Vertical */
+  &__body {
+    padding: 1.5rem 1.75rem;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+
+    /* Barra de desplazamiento vertical estilizada */
+    &::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+
+      &:hover {
+        background: #94a3b8;
+      }
+    }
+  }
+
+  &__text {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.02rem;
+    line-height: 1.8;
+    color: #374151;
+    margin: 0;
+  }
+
+  &__image-wrap {
+    width: 100%;
+    max-height: 220px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #f1f5f9;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__footer {
+    padding: 1rem 1.5rem 1.25rem;
+    border-top: 1px solid #f1f3f5;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    background: #f8f9fa;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s ease;
+
+    &:hover {
+      background: #1877f2;
+      color: #ffffff;
+      border-color: #1877f2;
+      box-shadow: 0 8px 20px rgba(24, 119, 242, 0.28);
+    }
+  }
+
+  &__btn-icon {
+    width: 16px;
+    height: 16px;
   }
 }
 

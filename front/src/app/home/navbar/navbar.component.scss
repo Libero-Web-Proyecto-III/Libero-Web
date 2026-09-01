@@ -72,9 +72,11 @@
     text-transform: uppercase;
   }
 
-  /* Links */
+  /* Links & Contorno Deslizable Animado */
   &__links {
+    position: relative;
     display: flex;
+    align-items: center;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -83,24 +85,47 @@
     justify-content: center;
   }
 
+  /* Contorno Gris / Indicador Deslizable */
+  &__indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 36px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: 10px;
+    pointer-events: none;
+    box-shadow: 0 0 14px rgba(255, 255, 255, 0.08);
+    transition: opacity 0.25s ease;
+    z-index: 1;
+
+    &.animated {
+      transition: left 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+                  width 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+                  opacity 0.25s ease;
+    }
+  }
+
   &__link {
-    background: none;
+    position: relative;
+    z-index: 2;
+    background: transparent;
     border: none;
     cursor: pointer;
     font-family: 'Inter', sans-serif;
     font-size: 0.875rem;
     font-weight: 500;
-    color: white;
+    color: rgba(255, 255, 255, 0.85);
     padding: 0.5rem 0.9rem;
     border-radius: 8px;
     text-decoration: none;
     display: inline-block;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition: color 0.2s ease;
 
     &:hover,
     &.active {
-      background: rgba(255, 255, 255, 0.15);
       color: white;
+      background: transparent;
     }
   }
 

@@ -10,43 +10,35 @@
         <!-- Slides -->
         <div class="carousel__track">
           @for (slide of slides; track slide.bgClass; let i = $index) {
-            <div
-              class="carousel__slide"
-              [class]="slide.bgClass"
-              [class.active]="currentSlide() === i"
-              [style.background]="slide.gradient"
-            >
-              <div class="carousel__overlay" [style.background]="slide.gradient"></div>
-              <div class="carousel__content">
-                <h1 class="carousel__title">{{ slide.title }}</h1>
-                <p class="carousel__subtitle">{{ slide.subtitle }}</p>
-                <div class="carousel__badge">Libero Cobre · Mocoa, Putumayo</div>
-              </div>
+          <div class="carousel__slide" [class]="slide.bgClass" [class.active]="currentSlide() === i"
+            [style.background]="slide.gradient">
+            <div class="carousel__overlay" [style.background]="slide.gradient"></div>
+            <div class="carousel__content">
+              <h1 class="carousel__title">{{ slide.title }}</h1>
+              <p class="carousel__subtitle">{{ slide.subtitle }}</p>
+              <div class="carousel__badge">Libero Cobre · Mocoa, Putumayo</div>
             </div>
+          </div>
           }
         </div>
 
         <!-- Controles de navegación -->
         <button class="carousel__btn carousel__btn--prev" (click)="prevSlide()" aria-label="Slide anterior">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M15 18l-6-6 6-6"/>
+            <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
         <button class="carousel__btn carousel__btn--next" (click)="nextSlide()" aria-label="Siguiente slide">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M9 18l6-6-6-6"/>
+            <path d="M9 18l6-6-6-6" />
           </svg>
         </button>
 
         <!-- Indicadores (puntos) -->
         <div class="carousel__indicators">
           @for (slide of slides; track slide.bgClass; let i = $index) {
-            <button
-              class="carousel__dot"
-              [class.active]="currentSlide() === i"
-              (click)="goToSlide(i)"
-              [attr.aria-label]="'Ir al slide ' + (i + 1)"
-            ></button>
+          <button class="carousel__dot" [class.active]="currentSlide() === i" (click)="goToSlide(i)"
+            [attr.aria-label]="'Ir al slide ' + (i + 1)"></button>
           }
         </div>
       </div>
@@ -97,27 +89,69 @@
     <section id="facebook" class="facebook-section">
       <div class="facebook-section__container">
         <div class="facebook-section__header">
-          <div class="section-tag">Redes Sociales</div>
-          <h2 class="section-title">Síguenos en Facebook</h2>
-          <p class="facebook-section__subtitle">
-            Mantente al día con las últimas noticias y novedades del <strong>Proyecto Mocoa</strong> en <strong>Libero Cobre</strong>.
-          </p>
+          <h2 class="section-title">Últimas Publicaciones</h2>
         </div>
 
-        <div class="facebook-section__content">
-          <div class="facebook-card">
-            <iframe
-              [src]="facebookUrl"
-              width="500"
-              height="500"
-              style="border:none;overflow:hidden"
-              scrolling="no"
-              frameborder="0"
-              allowfullscreen="true"
-              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-              title="Perfil de Facebook - Libero Cobre"
-            ></iframe>
+        <div class="fb-slider-wrapper">
+          <!-- Botón de navegación Izquierda -->
+          <button class="fb-slider-btn fb-slider-btn--prev" (click)="scrollFbLeft(fbTrack)"
+            aria-label="Deslizar a la izquierda">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+
+          <!-- Track deslizable horizontal -->
+          <div class="fb-slider-track" #fbTrack>
+            @for (post of facebookPosts(); track post.id) {
+            <article class="fb-card">
+              <div class="fb-card__header">
+                <div class="fb-card__author">
+                  <div class="fb-card__avatar">
+                    <img src="facebookicon.jpg" alt="Libero Cobre Avatar" class="fb-avatar-img" />
+                  </div>
+                  <div class="fb-card__meta">
+                    <span class="fb-card__name">Libero Cobre</span>
+                    <span class="fb-card__date">{{ post.created_time | date:'dd MMM yyyy' }}</span>
+                  </div>
+                </div>
+                <div class="fb-card__badge">Facebook</div>
+              </div>
+
+              <!-- Cuerpo de la publicación: Texto de la noticia y al final la imagen multimedia -->
+              <div class="fb-card__body">
+                <p class="fb-card__text">{{ post.message }}</p>
+                @if (post.full_picture) {
+                  <div class="fb-card__image-wrap">
+                    <img [src]="post.full_picture" (error)="onImageError(post)" [alt]="post.message" class="fb-card__image" loading="lazy" />
+                  </div>
+                }
+              </div>
+
+              <div class="fb-card__footer">
+                <a [href]="post.permalink_url" target="_blank" rel="noopener noreferrer" class="fb-card__btn">
+                  <span>Ver en Facebook</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="fb-card__btn-icon">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </a>
+              </div>
+            </article>
+            }
           </div>
+
+          <!-- Botón de navegación Derecha -->
+          <button class="fb-slider-btn fb-slider-btn--next" (click)="scrollFbRight(fbTrack)"
+            aria-label="Deslizar a la derecha">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
         </div>
       </div>
     </section>
@@ -134,7 +168,8 @@
             en el piedemonte amazónico colombiano.
           </p>
           <p>
-            Nuestro proyecto alberga uno de los depósitos de <strong>cobre-molibdeno más significativos de Colombia</strong>,
+            Nuestro proyecto alberga uno de los depósitos de <strong>cobre-molibdeno más significativos de
+              Colombia</strong>,
             con recursos estimados de 1.300 megatoneladas a una ley equivalente de cobre del 0.49%.
             Estos minerales son fundamentales para la <em>transición energética global</em>, siendo el cobre
             el metal esencial en la infraestructura eléctrica, paneles solares y vehículos eléctricos.
@@ -199,10 +234,10 @@
 
         <div class="huellitas-grid">
           @for (item of huellitasItems; track item.title) {
-            <div class="huellitas-card">
-              <h3 class="huellitas-card__title">{{ item.title }}</h3>
-              <p class="huellitas-card__desc">{{ item.desc }}</p>
-            </div>
+          <div class="huellitas-card">
+            <h3 class="huellitas-card__title">{{ item.title }}</h3>
+            <p class="huellitas-card__desc">{{ item.desc }}</p>
+          </div>
           }
         </div>
 
@@ -249,13 +284,8 @@
 
         <div class="map-section__map">
           <div class="map-frame">
-            <iframe
-              [src]="mapUrl"
-              allowfullscreen
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-              title="Ubicación Proyecto Mocoa - Libero Cobre, Putumayo"
-            ></iframe>
+            <iframe [src]="mapUrl" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+              title="Ubicación Proyecto Mocoa - Libero Cobre, Putumayo"></iframe>
             <div class="map-frame__pin">
               <span>Mocoa, Putumayo</span>
             </div>

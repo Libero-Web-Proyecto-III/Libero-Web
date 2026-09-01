@@ -1,38 +1,46 @@
-n<section class="notice">
+<div class="page-wrapper">
+  <app-navbar></app-navbar>
 
-  <!-- Destacada -->
-  <article class="notice__hero">
-    <img [src]="featured.media" [alt]="featured.title" />
-    <div class="notice__hero-text">
-      <span class="tag">Destacada</span>
-      <h1>{{ featured.title }}</h1>
-      <p>{{ featured.content }}</p>
-      <span class="meta">{{ featured.author }} · {{ featured.createdAt | date: 'longDate' }}</span>
-    </div>
-  </article>
+  <main class="main-content">
+    <section class="notice">
 
-  <!-- Grid secundario: pocas noticias, sin saturar -->
-  <div class="notice__grid">
-    <article class="notice__card" *ngFor="let item of news">
-      <img [src]="item.media" [alt]="item.title" />
-      <h2>{{ item.title }}</h2>
-      <p>{{ item.content }}</p>
-      <span class="meta">{{ item.author }} · {{ item.createdAt | date: 'shortDate' }}</span>
-    </article>
-  </div>
-
-  <!-- Videos de la empresa -->
-  <div class="notice__videos">
-    <h2 class="section-title">Videos de la empresa</h2>
-    <div class="notice__videos-grid">
-      <article class="notice__video-card" *ngFor="let video of videos">
-        <div class="thumb">
-          <img [src]="video.media" [alt]="video.title" />
-          <span class="play-icon">▶</span>
+      <!-- Destacada -->
+      <article class="notice__hero">
+        <img [src]="featured.media" [alt]="featured.title" />
+        <div class="notice__hero-text">
+          <span class="tag">Destacada</span>
+          <h1>{{ featured.title }}</h1>
+          <p>{{ featured.content }}</p>
+          <span class="meta">{{ featured.author }} · {{ featured.createdAt | date: 'longDate' }}</span>
         </div>
-        <h3>{{ video.title }}</h3>
       </article>
-    </div>
-  </div>
 
-</section>
+      <!-- Grid secundario: pocas noticias, sin saturar -->
+      <div class="notice__grid">
+        <article class="notice__card" *ngFor="let item of news">
+          <img [src]="item.media" [alt]="item.title" />
+          <h2>{{ item.title }}</h2>
+          <p>{{ item.content }}</p>
+          <span class="meta">{{ item.author }} · {{ item.createdAt | date: 'shortDate' }}</span>
+        </article>
+      </div>
+
+      <!-- Videos de la empresa -->
+      <div class="notice__videos">
+        <h2 class="section-title">Videos de la empresa</h2>
+        <div class="notice__videos-grid">
+          <article class="notice__video-card" *ngFor="let video of videos">
+            <div class="thumb">
+              <img [src]="video.media" [alt]="video.title" />
+              <span class="play-icon">▶</span>
+            </div>
+            <h3>{{ video.title }}</h3>
+          </article>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <app-footer></app-footer>
+</div>

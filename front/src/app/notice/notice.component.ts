@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Publication } from './publication.model';
+import { NavbarComponent } from '../home/navbar/navbar.component';
+import { FooterComponent } from '../home/footer/footer.component';
 
 @Component({
   selector: 'app-notice',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NavbarComponent, FooterComponent],
   templateUrl: './notice.component.html',
   styleUrl: './notice.component.scss'
 })

@@ -1,3 +1,15 @@
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.main-content {
+  flex: 1;
+  padding-top: 70px;
+}
+
 .notice {
   max-width: 1100px;
   margin: 0 auto;

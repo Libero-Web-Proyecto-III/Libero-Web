@@ -1,4 +1,6 @@
 <div class="events-page">
+  <app-navbar></app-navbar>
+
   <!-- Header / Navigation Banner -->
   <header class="page-header">
     <div class="header-container">
@@ -102,6 +104,8 @@
       }
     </div>
   </main>
+
+  <app-footer></app-footer>
 
   <!-- Event Detail & Notification Modal -->
   @if (selectedEventForModal(); as item) {

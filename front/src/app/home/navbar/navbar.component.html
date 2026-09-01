@@ -2,21 +2,26 @@
   <div class="navbar__container">
 
     <!-- Logo -->
-    <div class="navbar__brand">
+    <a class="navbar__brand" [routerLink]="['/']">
       <img class="navbar__logo-img" src="logo.png" alt="Libero Cobre Logo" />
       <div class="navbar__logo-text">
         <span class="navbar__logo-main">Libero Cobre</span>
         <span class="navbar__logo-sub">Mocoa · Putumayo</span>
       </div>
-    </div>
+    </a>
 
     <!-- Desktop Nav Links -->
     <ul class="navbar__links">
-      @for (link of navLinks; track link.fragment) {
+      @for (link of navLinks; track link.path) {
         <li>
-          <button class="navbar__link" (click)="scrollToSection(link.fragment)">
+          <a
+            class="navbar__link"
+            [routerLink]="link.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: link.exact }"
+          >
             {{ link.label }}
-          </button>
+          </a>
         </li>
       }
     </ul>
@@ -46,11 +51,17 @@
   @if (menuOpen()) {
     <div class="navbar__mobile-menu">
       <ul>
-        @for (link of navLinks; track link.fragment) {
+        @for (link of navLinks; track link.path) {
           <li>
-            <button class="navbar__mobile-link" (click)="scrollToSection(link.fragment)">
+            <a
+              class="navbar__mobile-link"
+              [routerLink]="link.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: link.exact }"
+              (click)="closeMenu()"
+            >
               {{ link.label }}
-            </button>
+            </a>
           </li>
         }
       </ul>

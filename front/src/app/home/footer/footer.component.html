@@ -52,12 +52,12 @@
       <div class="footer__col">
         <h3 class="footer__heading">Navegación</h3>
         <ul class="footer__links">
-          @for (link of quickLinks; track link.fragment) {
+          @for (link of quickLinks; track link.path) {
             <li>
-              <button class="footer__link" (click)="scrollToSection(link.fragment)">
+              <a class="footer__link" [routerLink]="link.path">
                 <span class="footer__link-arrow">›</span>
                 {{ link.label }}
-              </button>
+              </a>
             </li>
           }
         </ul>

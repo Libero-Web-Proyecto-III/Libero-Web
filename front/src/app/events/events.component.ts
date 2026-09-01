@@ -1,6 +1,8 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NavbarComponent } from '../home/navbar/navbar.component';
+import { FooterComponent } from '../home/footer/footer.component';
 
 export interface EventItem {
   id: number;
@@ -19,7 +21,7 @@ export interface EventItem {
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarComponent, FooterComponent],
   templateUrl: './events.component.html',
   styleUrl: './events.component.scss'
 })

@@ -22,7 +22,12 @@
     </ul>
 
     <!-- Avatar / Foto de perfil -->
-    <div class="navbar__avatar" aria-label="Perfil de usuario"></div>
+    <button
+      class="navbar__avatar"
+      type="button"
+      aria-label="Ir al login"
+      [routerLink]="['/auth/login']"
+    ></button>
 
     <!-- Hamburger Button -->
     <button

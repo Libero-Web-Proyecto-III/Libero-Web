@@ -53,6 +53,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   // ─── Google Maps ──────────────────────────────────────────────────────────
   mapUrl: SafeResourceUrl;
 
+  // ─── Facebook ─────────────────────────────────────────────────────────────
+  facebookUrl: SafeResourceUrl;
+
   // ─── Estadísticas ──────────────────────────────────────────────────────────
   stats = [
     { value: '1.300', label: 'Mt de Recursos Minerales', icon: '⛏️' },
@@ -94,6 +97,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     const mapSrc =
       'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63872.13867!2d-76.6436!3d1.1490!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e2ef4b2e2d5c5d5%3A0x5ce5c5c5c5c5c5c5!2sMocoa%2C%20Putumayo!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco';
     this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(mapSrc);
+
+    // Facebook Page Plugin URL
+    const fbSrc =
+      'https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FLiberoCobreCol&tabs=timeline&width=500&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true';
+    this.facebookUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fbSrc);
   }
 
   ngOnInit(): void {

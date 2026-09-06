@@ -13,6 +13,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
+import { ProfileMenuComponent } from './profile-menu/profile-menu.component';
 
 export interface NavLink {
   label: string;
@@ -24,7 +25,7 @@ export interface NavLink {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ProfileMenuComponent],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
 })

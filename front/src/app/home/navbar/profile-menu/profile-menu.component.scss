@@ -1,0 +1,200 @@
+:host {
+  display: block;
+}
+
+.profile-menu {
+  font-family: 'Inter', sans-serif;
+}
+
+.profile-menu__identity strong {
+  font-family: 'Outfit', sans-serif;
+}
+
+.profile-menu {
+  position: relative;
+}
+
+.profile-menu__trigger {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  background: #d8d4c9;
+  color: #26352d;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.profile-menu__trigger:hover,
+.profile-menu__trigger:focus-visible {
+  border-color: #d7a65a;
+  outline: none;
+  transform: scale(1.04);
+}
+
+.profile-menu__trigger-avatar,
+.profile-menu__avatar {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #d7a65a, #8b5e35);
+  color: #fff;
+  font-weight: 800;
+}
+
+.profile-menu__trigger-avatar {
+  width: 100%;
+  height: 100%;
+  font-size: 0.9rem;
+}
+
+.profile-menu__trigger-avatar--guest,
+.profile-menu__avatar--guest {
+  background: #9da59d;
+  color: #fff;
+  font-size: 0;
+  position: relative;
+}
+
+.profile-menu__trigger-avatar--guest::before,
+.profile-menu__avatar--guest::before {
+  content: '';
+  position: absolute;
+  top: 22%;
+  width: 28%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.profile-menu__trigger-avatar--guest::after,
+.profile-menu__avatar--guest::after {
+  content: '';
+  position: absolute;
+  bottom: 14%;
+  width: 58%;
+  height: 38%;
+  border-radius: 55% 55% 35% 35%;
+  background: currentColor;
+}
+
+.profile-menu__card {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  z-index: 20;
+  width: min(330px, calc(100vw - 2rem));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: #17221d;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+  color: #fff;
+  animation: profile-menu-enter 0.18s ease-out;
+}
+
+.profile-menu__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.2rem 1.25rem 1rem;
+}
+
+.profile-menu__avatar {
+  flex: 0 0 58px;
+  width: 58px;
+  height: 58px;
+  font-size: 1.35rem;
+}
+
+.profile-menu__identity {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.profile-menu__identity strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-menu__identity span {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.78rem;
+}
+
+.profile-menu__role-label {
+  display: block;
+  padding: 0 1.25rem 0.35rem;
+  color: #d7a65a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.profile-menu__role-select {
+  width: calc(100% - 2.5rem);
+  margin: 0 1.25rem 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: #24342b;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.profile-menu__role-select:focus-visible {
+  border-color: #d7a65a;
+  outline: 2px solid rgba(215, 166, 90, 0.28);
+  outline-offset: 1px;
+}
+
+.profile-menu__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.65rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.profile-menu__actions button {
+  padding: 0.7rem 0.65rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.profile-menu__actions button:hover,
+.profile-menu__actions button:focus-visible {
+  background: rgba(215, 166, 90, 0.16);
+  color: #fff;
+  outline: none;
+}
+
+@keyframes profile-menu-enter {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 480px) {
+  .profile-menu__card {
+    position: fixed;
+    top: 4.5rem;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+  }
+}

@@ -13,14 +13,34 @@ $c-white: #ffffff;
 
 $wrapper-max: 1160px;
 $radius: 6px;
-$transition: all 0.25s ease-in-out;
+$ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+$ease-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);
+
+/* --- ANIMACIONES GLOBALES --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(15, 15, 15, 0.3); }
+  70% { box-shadow: 0 0 0 8px rgba(15, 15, 15, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(15, 15, 15, 0); }
+}
 
 .grayscaled-corporate {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Outfit', sans-serif;
   color: $c-gray-900;
   background-color: $c-white;
   line-height: 1.65;
   padding-top: 70px;
+  scroll-behavior: smooth;
 
   .wrapper {
     max-width: $wrapper-max;
@@ -28,7 +48,6 @@ $transition: all 0.25s ease-in-out;
     padding: 0 24px;
   }
 
-  /* --- TIPOGRAFÍA Y ENCABEZADOS --- */
   h1, h2, h3, h4 {
     color: $c-black;
     font-weight: 700;
@@ -41,17 +60,24 @@ $transition: all 0.25s ease-in-out;
     color: $c-gray-700;
   }
 
-  /* --- BOTONES --- */
+  /* --- BOTONES INTERACTIVOS --- */
   .btn {
+    position: relative;
     display: inline-block;
     padding: 12px 26px;
     font-size: 0.9rem;
     font-weight: 600;
     text-decoration: none;
     border-radius: $radius;
-    transition: $transition;
+    transition: transform 0.2s $ease-smooth, box-shadow 0.2s $ease-smooth, background-color 0.25s ease, border-color 0.25s ease;
     cursor: pointer;
     letter-spacing: 0.5px;
+    user-select: none;
+    overflow: hidden;
+
+    &:active {
+      transform: scale(0.96) !important;
+    }
   }
 
   .btn-primary {
@@ -62,6 +88,8 @@ $transition: all 0.25s ease-in-out;
     &:hover {
       background-color: $c-gray-800;
       border-color: $c-gray-800;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+      transform: translateY(-2px);
     }
   }
 
@@ -73,6 +101,8 @@ $transition: all 0.25s ease-in-out;
     &:hover {
       background-color: $c-gray-200;
       border-color: $c-black;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
   }
 
@@ -81,6 +111,7 @@ $transition: all 0.25s ease-in-out;
     background-color: $c-gray-100;
     border-bottom: 1px solid $c-gray-300;
     padding: 80px 0 60px;
+    animation: fadeInUp 0.8s $ease-smooth forwards;
   }
 
   .hero-inner {
@@ -97,6 +128,13 @@ $transition: all 0.25s ease-in-out;
     padding: 4px 12px;
     border-radius: 4px;
     margin-bottom: 20px;
+    transition: transform 0.25s ease, background-color 0.25s ease;
+
+    &:hover {
+      transform: scale(1.03);
+      background-color: $c-gray-400;
+      color: $c-black;
+    }
   }
 
   .hero-title {
@@ -147,6 +185,17 @@ $transition: all 0.25s ease-in-out;
   .stat-card {
     border-left: 2px solid $c-gray-600;
     padding-left: 16px;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    cursor: default;
+
+    &:hover {
+      transform: translateX(6px);
+      border-left-color: $c-white;
+
+      .stat-value {
+        color: $c-gray-200;
+      }
+    }
 
     .stat-value {
       display: block;
@@ -154,9 +203,11 @@ $transition: all 0.25s ease-in-out;
       font-weight: 800;
       color: $c-white;
       letter-spacing: -0.5px;
+      transition: color 0.25s ease;
     }
 
     .stat-label {
+      display: block;
       font-size: 0.8rem;
       color: $c-gray-400;
       text-transform: uppercase;
@@ -164,7 +215,7 @@ $transition: all 0.25s ease-in-out;
     }
   }
 
-  /* --- MAIN CONTENT & SECTIONS --- */
+  /* --- CONTENIDO PRINCIPAL --- */
   .main-content {
     padding: 70px 24px;
   }
@@ -208,18 +259,20 @@ $transition: all 0.25s ease-in-out;
     margin: 0;
   }
 
-  /* --- TARJETAS GENERALES --- */
+  /* --- TARJETAS CON FEEDBACK ELEVADO --- */
   .card {
+    position: relative;
     background-color: $c-white;
     border: 1px solid $c-gray-300;
     border-radius: $radius;
     padding: 36px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    transition: $transition;
+    transition: transform 0.3s $ease-smooth, box-shadow 0.3s $ease-smooth, border-color 0.3s ease;
 
     &:hover {
+      transform: translateY(-5px);
       border-color: $c-gray-500;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.08);
     }
   }
 
@@ -234,9 +287,15 @@ $transition: all 0.25s ease-in-out;
     padding: 4px 10px;
     border-radius: 4px;
     margin-bottom: 16px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    .card:hover & {
+      background-color: $c-black;
+      color: $c-white;
+    }
   }
 
-  /* --- GRID ABOUT (TRAYECTORIA) --- */
+  /* --- TRAYECTORIA --- */
   .grid-about {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
@@ -253,6 +312,12 @@ $transition: all 0.25s ease-in-out;
     background-color: $c-gray-100;
     border-left: 3px solid $c-black;
     border-radius: 0 $radius $radius 0;
+    transition: transform 0.25s ease, background-color 0.25s ease;
+
+    &:hover {
+      transform: translateX(4px);
+      background-color: $c-gray-200;
+    }
 
     p {
       margin: 0;
@@ -262,12 +327,17 @@ $transition: all 0.25s ease-in-out;
     }
   }
 
-  /* --- TIMELINE --- */
+  /* --- TIMELINE INTERACTIVA --- */
   .timeline-card {
     background-color: $c-gray-100;
     border: 1px solid $c-gray-300;
     border-radius: $radius;
     padding: 36px;
+    transition: border-color 0.3s ease;
+
+    &:hover {
+      border-color: $c-gray-500;
+    }
   }
 
   .timeline-list {
@@ -291,6 +361,7 @@ $transition: all 0.25s ease-in-out;
     position: relative;
     padding-left: 28px;
     margin-bottom: 24px;
+    transition: transform 0.25s ease;
 
     &:last-child {
       margin-bottom: 0;
@@ -306,6 +377,17 @@ $transition: all 0.25s ease-in-out;
       border-radius: 50%;
       background-color: $c-black;
       border: 2px solid $c-gray-100;
+      transition: transform 0.25s $ease-out-back, background-color 0.25s ease;
+    }
+
+    &:hover {
+      transform: translateX(4px);
+
+      &::before {
+        transform: scale(1.35);
+        background-color: $c-gray-700;
+        box-shadow: 0 0 0 3px rgba(15, 15, 15, 0.15);
+      }
     }
   }
 
@@ -333,7 +415,7 @@ $transition: all 0.25s ease-in-out;
     }
   }
 
-  /* --- GRID 2 COLUMNAS (MISIÓN / VISIÓN) --- */
+  /* --- MISIÓN / VISIÓN & FEATURES --- */
   .grid-2-equal {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -358,6 +440,12 @@ $transition: all 0.25s ease-in-out;
       letter-spacing: 1px;
       border-radius: 4px;
       margin-bottom: 20px;
+      transition: transform 0.25s $ease-out-back, background-color 0.25s ease;
+    }
+
+    &:hover .icon-circle {
+      transform: scale(1.08);
+      background-color: $c-black;
     }
 
     h3 {
@@ -374,14 +462,20 @@ $transition: all 0.25s ease-in-out;
       color: $c-gray-700;
       font-size: 0.9rem;
       margin-bottom: 8px;
+      transition: transform 0.2s ease, color 0.2s ease;
 
       &:last-child {
         margin-bottom: 0;
       }
+
+      &:hover {
+        transform: translateX(4px);
+        color: $c-black;
+      }
     }
   }
 
-  /* --- POLÍTICAS DE PRIVACIDAD --- */
+  /* --- PRIVACIDAD --- */
   .privacy-container {
     background-color: $c-gray-100;
     border: 1px solid $c-gray-300;
@@ -402,6 +496,16 @@ $transition: all 0.25s ease-in-out;
   .privacy-item {
     position: relative;
     padding-left: 48px;
+    transition: transform 0.25s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+
+      .privacy-num {
+        color: $c-black;
+        transform: scale(1.1);
+      }
+    }
 
     .privacy-num {
       position: absolute;
@@ -411,6 +515,7 @@ $transition: all 0.25s ease-in-out;
       font-weight: 800;
       color: $c-gray-400;
       line-height: 1;
+      transition: color 0.25s ease, transform 0.25s $ease-out-back;
     }
 
     h4 {
@@ -434,27 +539,21 @@ $transition: all 0.25s ease-in-out;
     font-size: 0.85rem;
     color: $c-gray-700;
     text-align: center;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+
+    &:hover {
+      border-color: $c-gray-500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
   }
 
-  /* --- FOOTER --- */
-  .about-footer {
-    background-color: $c-gray-900;
-    color: $c-gray-400;
-    padding: 40px 0;
-    border-top: 1px solid $c-gray-800;
-    text-align: center;
-
-    .footer-title {
-      color: $c-white;
-      font-weight: 600;
-      font-size: 0.95rem;
-      margin-bottom: 6px;
-    }
-
-    .footer-sub {
-      font-size: 0.8rem;
-      color: $c-gray-500;
-      margin: 0;
+  /* --- ACCESIBILIDAD --- */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 }

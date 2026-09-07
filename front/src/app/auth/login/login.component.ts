@@ -11,7 +11,7 @@ import { RouterLink, Router } from '@angular/router';
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
-  // Propiedades públicas del formulario y estado de la interfaz
+  // Estado completo utilizado por el formulario de inicio de sesión y sus mensajes visuales.
   public LoginForm: FormGroup;
   public IsLoading: boolean = false;
   public ShowPassword: boolean = false;
@@ -23,7 +23,7 @@ export class LoginComponent {
     private FormBuilderService: FormBuilder,
     private RouterService: Router
   ) {
-    // Configuración del grupo de controles y reglas de validación del Login
+    // Define los campos del login y las validaciones que deben cumplir antes del envío.
     this.LoginForm = this.FormBuilderService.group({
       UserEmail: ['', [Validators.required, Validators.email]],
       UserPassword: ['', [Validators.required, Validators.minLength(6)]],
@@ -38,7 +38,7 @@ export class LoginComponent {
 
   // Procesamiento y envío del formulario de inicio de sesión
   public OnSubmit(): void {
-    // Validación previa de campos antes de procesar
+    // Valida el formulario y simula el procesamiento frontend del inicio de sesión.
     if (this.LoginForm.invalid) {
       this.LoginForm.markAllAsTouched();
       return;

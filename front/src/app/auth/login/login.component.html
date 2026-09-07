@@ -1,4 +1,5 @@
 <div class="auth-container">
+  <!-- Contenedor principal del login y elementos visuales de la pantalla. -->
   <!-- Botón minimalista de navegación al inicio / dashboard -->
   <a routerLink="/" class="back-btn" aria-label="Volver al inicio">
     <svg xmlns="http://www.w3.org/2000/svg" class="back-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -12,6 +13,7 @@
   <div class="auth-glow auth-glow-2"></div>
 
   <div class="auth-card">
+    <!-- Encabezado de bienvenida e identidad visual de la aplicación. -->
     <div class="auth-header">
       <div class="brand-badge">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="brand-icon">
@@ -23,6 +25,7 @@
       <p class="auth-subtitle">Ingresa tus credenciales para acceder a tu cuenta</p>
     </div>
 
+    <!-- Mensajes reactivos que informan el resultado del envío del formulario. -->
     <div *ngIf="SuccessMessage" class="alert alert-success">
       <svg xmlns="http://www.w3.org/2000/svg" class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -37,6 +40,7 @@
       <span>{{ ErrorMessage }}</span>
     </div>
 
+    <!-- Formulario reactivo conectado a LoginForm y al método OnSubmit. -->
     <form [formGroup]="LoginForm" (ngSubmit)="OnSubmit()" class="auth-form" novalidate>
       <!-- Campo de Correo Electrónico -->
       <div class="form-group">
@@ -61,7 +65,7 @@
         </div>
       </div>
 
-      <!-- Campo de Contraseña -->
+      <!-- Campo de contraseña con validación y control de visibilidad. -->
       <div class="form-group">
         <div class="label-row">
           <label for="user-password" class="form-label">Contraseña</label>
@@ -97,7 +101,7 @@
         </div>
       </div>
 
-      <!-- Mantener sesión iniciada -->
+      <!-- Preferencia visual para mantener la sesión iniciada. -->
       <div class="checkbox-group">
         <label class="checkbox-container">
           <input type="checkbox" formControlName="RememberMe" />
@@ -106,7 +110,7 @@
         </label>
       </div>
 
-      <!-- Botón de Iniciar Sesión -->
+      <!-- Envía el formulario y refleja el estado de carga del login. -->
       <button type="submit" class="submit-btn" [disabled]="IsLoading">
         <span *ngIf="!IsLoading">Iniciar sesión</span>
         <span *ngIf="IsLoading" class="spinner-wrapper">
@@ -116,6 +120,7 @@
       </button>
     </form>
 
+    <!-- Enlace de navegación hacia la pantalla de registro. -->
     <div class="auth-footer">
       <p>¿No tienes una cuenta? <a routerLink="/auth/register" class="auth-link">Crear cuenta</a></p>
     </div>

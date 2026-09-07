@@ -1,4 +1,5 @@
 <div class="profile-menu">
+  <!-- Avatar que abre o cierra la tarjeta dinámica del perfil. -->
   <button
     class="profile-menu__trigger"
     type="button"
@@ -12,7 +13,9 @@
   </button>
 
   @if (isOpen()) {
+    <!-- Tarjeta única cuyo contenido cambia según el rol seleccionado. -->
     <section class="profile-menu__card" aria-label="Menú de perfil">
+      <!-- Datos del perfil actual y avatar correspondiente al rol. -->
       <div class="profile-menu__summary">
         <div class="profile-menu__avatar" [class.profile-menu__avatar--guest]="selectedRole() === 'Invitado'">
           {{ currentProfile().initials }}
@@ -26,6 +29,7 @@
         </div>
       </div>
 
+      <!-- Selector temporal que actualiza el estado del perfil en tiempo real. -->
       <label class="profile-menu__role-label" for="profile-role">ROL</label>
       <select
         id="profile-role"
@@ -38,13 +42,17 @@
         <option value="Administrador">Administrador</option>
       </select>
 
+      <!-- Acciones condicionadas al rol actual del perfil. -->
       <div class="profile-menu__actions">
         @if (selectedRole() === 'Invitado') {
+          <!-- Acciones disponibles para el estado invitado. -->
           <button type="button" (click)="goToLogin()">Iniciar sesión</button>
           <button type="button" (click)="goToRegister()">Registrarse</button>
         } @else {
+          <!-- Acciones disponibles para usuarios registrados. -->
           <button type="button" (click)="requestProfile()">Ver perfil</button>
           @if (selectedRole() === 'Administrador') {
+            <!-- Administración visible únicamente para el rol administrador. -->
             <button type="button" (click)="requestAdministration()">Administración</button>
           }
           <button type="button" (click)="signOut()">Cerrar sesión</button>

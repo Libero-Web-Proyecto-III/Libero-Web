@@ -2,27 +2,49 @@
   <div class="navbar__container">
 
     <!-- Logo -->
-    <div class="navbar__brand">
+    <a class="navbar__brand" [routerLink]="['/']">
       <img class="navbar__logo-img" src="logo.png" alt="Libero Cobre Logo" />
       <div class="navbar__logo-text">
         <span class="navbar__logo-main">Libero Cobre</span>
         <span class="navbar__logo-sub">Mocoa · Putumayo</span>
       </div>
-    </div>
+    </a>
 
-    <!-- Desktop Nav Links -->
-    <ul class="navbar__links">
-      @for (link of navLinks; track link.fragment) {
+    <!-- Desktop Nav Links con Contorno Animado Deslizable -->
+    <ul class="navbar__links" #navContainer (mouseleave)="onMouseLeaveLinks()">
+      <!-- Borde/Contorno Gris Deslizable -->
+      <div
+        class="navbar__indicator"
+        [class.animated]="isAnimated()"
+        [style.left.px]="indicatorStyle().left"
+        [style.width.px]="indicatorStyle().width"
+        [style.opacity]="indicatorStyle().opacity"
+      ></div>
+
+      @for (link of navLinks; track link.path; let idx = $index) {
         <li>
-          <button class="navbar__link" (click)="scrollToSection(link.fragment)">
+          <a
+            #navLinkEl
+            class="navbar__link"
+            [routerLink]="link.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: link.exact }"
+            (mouseenter)="onMouseEnterLink(idx)"
+            (click)="onClickLink(idx)"
+          >
             {{ link.label }}
-          </button>
+          </a>
         </li>
       }
     </ul>
 
     <!-- Avatar / Foto de perfil -->
-    <div class="navbar__avatar" aria-label="Perfil de usuario"></div>
+    <button
+      class="navbar__avatar"
+      type="button"
+      aria-label="Ir al login"
+      [routerLink]="['/auth/login']"
+    ></button>
 
     <!-- Hamburger Button -->
     <button
@@ -41,11 +63,17 @@
   @if (menuOpen()) {
     <div class="navbar__mobile-menu">
       <ul>
-        @for (link of navLinks; track link.fragment) {
+        @for (link of navLinks; track link.path) {
           <li>
-            <button class="navbar__mobile-link" (click)="scrollToSection(link.fragment)">
+            <a
+              class="navbar__mobile-link"
+              [routerLink]="link.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: link.exact }"
+              (click)="closeMenu()"
+            >
               {{ link.label }}
-            </button>
+            </a>
           </li>
         }
       </ul>

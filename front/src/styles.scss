@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap');
 
-* {
 /* Global reset — elimina los márgenes y padding por defecto del navegador */
 
 *,
@@ -33,6 +32,4 @@ html, body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #a1a1aa;
-}
-
 }

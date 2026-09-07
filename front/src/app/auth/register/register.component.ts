@@ -11,7 +11,7 @@ import { RouterLink, Router } from '@angular/router';
   styleUrls: ['./register.component.scss'],
 })
 export class RegisterComponent {
-  // Propiedades públicas del formulario y estados de visibilidad e interfaz
+  // Estado completo utilizado por el formulario de registro y sus mensajes visuales.
   public RegisterForm: FormGroup;
   public IsLoading: boolean = false;
   public ShowPassword: boolean = false;
@@ -24,7 +24,7 @@ export class RegisterComponent {
     private FormBuilderService: FormBuilder,
     private RouterService: Router
   ) {
-    // Configuración de controles y regla de coincidencia de contraseñas
+    // Define los campos del registro y aplica la validación de coincidencia de contraseñas.
     this.RegisterForm = this.FormBuilderService.group(
       {
         FullName: ['', [Validators.required, Validators.minLength(3)]],
@@ -39,6 +39,7 @@ export class RegisterComponent {
 
   // Validador personalizado para comprobar la coincidencia de las contraseñas
   private PasswordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    // Comprueba que la contraseña y su confirmación tengan el mismo valor.
     const password = control.get('UserPassword')?.value;
     const confirmPassword = control.get('ConfirmPassword')?.value;
 
@@ -61,7 +62,7 @@ export class RegisterComponent {
 
   // Procesamiento y envío del formulario de registro de usuario
   public OnSubmit(): void {
-    // Validación previa de campos antes del envío
+    // Valida el formulario y simula el registro frontend antes de volver al login.
     if (this.RegisterForm.invalid) {
       this.RegisterForm.markAllAsTouched();
       return;

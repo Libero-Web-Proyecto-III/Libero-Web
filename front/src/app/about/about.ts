@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavbarComponent } from '../home/navbar/navbar.component';
-import { FooterComponent } from '../home/footer/footer.component';
+import { NavbarComponent } from '../common/navbar/navbar.component';
+import { FooterComponent } from '../common/footer/footer.component';
 
 @Component({
   selector: 'app-about',

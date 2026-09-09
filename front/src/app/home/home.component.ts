@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
-import { NavbarComponent } from './navbar/navbar.component';
-import { FooterComponent } from './footer/footer.component';
+import { NavbarComponent } from '../common/navbar/navbar.component';
+import { FooterComponent } from '../common/footer/footer.component';
 
 interface CarouselSlide {
   title: string;

@@ -22,6 +22,10 @@
             <br>006581</br>
             <img src="https://img.shields.io/badge/Resalte-006581?style=for-the-badge" alt="006581">
         </td>
+        <td align="center">
+            <br>0080A3</br>
+            <img src="https://img.shields.io/badge/Delineados-0080A3?style=for-the-badge" alt="0080A3">
+        </td>
     </tr>
     <tr>
         <td align="center">
@@ -33,3 +37,17 @@
             <img src="https://img.shields.io/badge/Profundidad-F5FDFF?style=for-the-badge" alt="F5FDFF">
         </td>
     </tr>
+</table>
+
+
+---
+
+
+### Fuentes
+
+
+Importar con https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap
+
+- Outfit - Titulos
+- Inter - Contenido
+- Sans-Serif - Fallback

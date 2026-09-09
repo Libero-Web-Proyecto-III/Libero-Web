@@ -9,33 +9,27 @@
     </tr>
     <tr>
         <td align="center">
-            <br>D86E00</br>
-            <a href="">
-                <img src="https://img.shields.io/badge/Principal-D86E00?style=for-the-badge" alt="D86E00">
-            </a>
-        </td>
-    </tr>
-    <tr>
-        <td align="center">
             <br>D84E18</br>
-            <a href="https://github.com/Libero-Web-Proyecto-III/Libero-Web">
-                <img src="https://img.shields.io/badge/Contraste-D84E18?style=for-the-badge" alt="D84E18">
-            </a>
+            <img src="https://img.shields.io/badge/Principal-D84E18?style=for-the-badge" alt="D84E18">
+        </td>
+        <td align="center">
+            <br>D86E00</br>
+            <img src="https://img.shields.io/badge/Complementario-D86E00?style=for-the-badge" alt="D86E00">
         </td>
     </tr>
     <tr>
         <td align="center">
             <br>006581</br>
-            <a href="https://github.com/Libero-Web-Proyecto-III/Libero-Web">
-                <img src="https://img.shields.io/badge/Resalte-006581?style=for-the-badge" alt="006581">
-            </a>
+            <img src="https://img.shields.io/badge/Resalte-006581?style=for-the-badge" alt="006581">
         </td>
     </tr>
-        <tr>
+    <tr>
+        <td align="center">
+            <br>E4EBED</br>
+            <img src="https://img.shields.io/badge/Base-E4EBED?style=for-the-badge">
+        </td>
         <td align="center">
             <br>F5FDFF</br>
-            <a href="https://github.com/Libero-Web-Proyecto-III/Libero-Web">
-                <img src="https://img.shields.io/badge/Base-F5FDFF?style=for-the-badge" alt="F5FDFF">
-            </a>
+            <img src="https://img.shields.io/badge/Profundidad-F5FDFF?style=for-the-badge" alt="F5FDFF">
         </td>
     </tr>

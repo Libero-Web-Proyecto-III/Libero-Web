@@ -1,5 +1,5 @@
 <div class="profile-menu">
-  <!-- Avatar que abre o cierra la tarjeta dinámica del perfil. -->
+  <!-- Avatar que abre o cierra la tarjeta dinámica del perfil -->
   <button
     class="profile-menu__trigger"
     type="button"
@@ -7,53 +7,40 @@
     [attr.aria-expanded]="isOpen()"
     (click)="toggleMenu()"
   >
-    <span class="profile-menu__trigger-avatar" [class.profile-menu__trigger-avatar--guest]="selectedRole() === 'Invitado'">
-      {{ currentProfile().initials }}
+    <span class="profile-menu__trigger-avatar" [class.profile-menu__trigger-avatar--guest]="!isLoggedIn()">
+      {{ initials() }}
     </span>
   </button>
 
   @if (isOpen()) {
-    <!-- Tarjeta única cuyo contenido cambia según el rol seleccionado. -->
+    <!-- Tarjeta del perfil conectado dinámicamente con AuthService -->
     <section class="profile-menu__card" aria-label="Menú de perfil">
-      <!-- Datos del perfil actual y avatar correspondiente al rol. -->
+      <!-- Datos del perfil actual y avatar correspondiente -->
       <div class="profile-menu__summary">
-        <div class="profile-menu__avatar" [class.profile-menu__avatar--guest]="selectedRole() === 'Invitado'">
-          {{ currentProfile().initials }}
+        <div class="profile-menu__avatar" [class.profile-menu__avatar--guest]="!isLoggedIn()">
+          {{ initials() }}
         </div>
         <div class="profile-menu__identity">
-          <strong>{{ currentProfile().name }}</strong>
-          @if (currentProfile().email) {
-            <span>{{ currentProfile().email }}</span>
+          <strong>{{ isLoggedIn() ? currentUser()?.username : 'Usuario invitado' }}</strong>
+          @if (isLoggedIn() && currentUser()?.email) {
+            <span>{{ currentUser()?.email }}</span>
           }
-          <span>ROL: {{ currentProfile().role }}</span>
+          <span class="profile-menu__badge">ROL: {{ roleDisplayName() }}</span>
         </div>
       </div>
 
-      <!-- Selector temporal que actualiza el estado del perfil en tiempo real. -->
-      <label class="profile-menu__role-label" for="profile-role">ROL</label>
-      <select
-        id="profile-role"
-        class="profile-menu__role-select"
-        [value]="selectedRole()"
-        (change)="selectRole($event)"
-      >
-        <option value="Invitado">Invitado</option>
-        <option value="Usuario">Usuario</option>
-        <option value="Administrador">Administrador</option>
-      </select>
-
-      <!-- Acciones condicionadas al rol actual del perfil. -->
+      <!-- Acciones condicionadas a la sesión activa (Invitado vs Logueado) -->
       <div class="profile-menu__actions">
-        @if (selectedRole() === 'Invitado') {
-          <!-- Acciones disponibles para el estado invitado. -->
+        @if (!isLoggedIn()) {
+          <!-- Acciones para usuario no logueado (Invitado) -->
           <button type="button" (click)="goToLogin()">Iniciar sesión</button>
           <button type="button" (click)="goToRegister()">Registrarse</button>
         } @else {
-          <!-- Acciones disponibles para usuarios registrados. -->
+          <!-- Acciones para usuario autenticado -->
           <button type="button" (click)="requestProfile()">Ver perfil</button>
-          @if (selectedRole() === 'Administrador') {
-            <!-- Administración visible únicamente para el rol administrador. -->
-            <button type="button" (click)="requestAdministration()">Administración</button>
+          @if (isAdmin()) {
+            <!-- Panel habilitado únicamente para Administradores -->
+            <button type="button" (click)="requestAdministration()">Panel de Administración</button>
           }
           <button type="button" (click)="signOut()">Cerrar sesión</button>
         }

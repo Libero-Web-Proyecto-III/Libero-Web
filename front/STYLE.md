@@ -48,6 +48,6 @@
 
 Importar con https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap
 
-- Outfit - Titulos
-- Inter - Contenido
-- Sans-Serif - Fallback
+- **Outfit** - Titulos
+- **Inter** - Contenido
+- **Sans-Serif** - Fallback

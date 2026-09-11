@@ -117,7 +117,7 @@
         </div>
         <div *ngIf="RegisterForm.get('UserPassword')?.invalid && RegisterForm.get('UserPassword')?.touched" class="field-error">
           <span *ngIf="RegisterForm.get('UserPassword')?.errors?.['required']">La contraseña es requerida.</span>
-          <span *ngIf="RegisterForm.get('UserPassword')?.errors?.['minlength']">La contraseña debe tener al menos 6 caracteres.</span>
+          <span *ngIf="RegisterForm.get('UserPassword')?.errors?.['minlength']">La contraseña debe tener al menos 8 caracteres.</span>
         </div>
       </div>
 

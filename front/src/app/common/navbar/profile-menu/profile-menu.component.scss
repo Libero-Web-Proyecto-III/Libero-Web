@@ -132,31 +132,14 @@
   font-size: 0.78rem;
 }
 
-.profile-menu__role-label {
-  display: block;
-  padding: 0 1.25rem 0.35rem;
-  color: #d7a65a;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-}
-
-.profile-menu__role-select {
-  width: calc(100% - 2.5rem);
-  margin: 0 1.25rem 1rem;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
-  background: #24342b;
-  color: #fff;
-  font: inherit;
-  cursor: pointer;
-}
-
-.profile-menu__role-select:focus-visible {
-  border-color: #d7a65a;
-  outline: 2px solid rgba(215, 166, 90, 0.28);
-  outline-offset: 1px;
+.profile-menu__badge {
+  display: inline-block;
+  margin-top: 0.2rem;
+  color: #d7a65a !important;
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .profile-menu__actions {

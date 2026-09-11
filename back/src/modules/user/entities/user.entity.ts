@@ -6,10 +6,13 @@ import { EventEntity } from "src/modules/event/entities/event.entity";
 import { PublicationEntity } from "src/modules/publication/entities/publication.entity";
 import { RolEntity } from "src/modules/rol/entities/rol.entity";
 import { TagEntity } from "src/modules/tag/entities/tag.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, FindOptionsRelations } from "typeorm";
 
 
-export const UserEntityRelations = [ 'tag', 'rol' ]
+export const UserEntityRelations: FindOptionsRelations<UserEntity> = {
+    tag: true,
+    rol: true,
+};
 
 @Entity('user')
 export class UserEntity extends BaseEntity {

@@ -1,4 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap');
+
+:root {
+  /* Paleta de colores oficial (front/STYLE.md) */
+  --color-primary: #D86E00;         /* Principal - Cobre cálido */
+  --color-contrast: #D84E18;        /* Contraste - Cobre rojizo */
+  --color-highlight: #006581;       /* Resalte - Azul turquesa */
+  --color-base: #F5FDFF;            /* Base - Blanco hielo (Light Background) */
+
+  /* Variaciones derivadas y transparencias */
+  --color-primary-hover: #b85c00;
+  --color-primary-active: #964b00;
+  --color-primary-light: rgba(216, 110, 0, 0.1);
+  --color-primary-glow: rgba(216, 110, 0, 0.2);
+  
+  --color-contrast-hover: #bd4011;
+  --color-contrast-light: rgba(216, 78, 24, 0.1);
+  
+  --color-highlight-hover: #004d63;
+  --color-highlight-light: rgba(0, 101, 129, 0.1);
+  --color-highlight-glow: rgba(0, 101, 129, 0.2);
+
+  /* Superficies claras para modo claro */
+  --color-bg-light: #F5FDFF;
+  --color-card-light: #ffffff;
+  --color-text-main: #0f172a;
+  --color-text-muted: #64748b;
+  --color-border-light: #e2e8f0;
+
+  /* Estados */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+}
 
 /* Global reset — elimina los márgenes y padding por defecto del navegador */
 
@@ -12,24 +44,24 @@
 
 html, body {
   height: 100%;
-  background-color: #ffffff;
-  color: #09090b;
+  background-color: var(--color-base, #F5FDFF);
+  color: var(--color-text-main, #0f172a);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Grayscale scrollbar styling */
+/* Scrollbar styling claro */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #ffffff;
+  background: var(--color-base, #F5FDFF);
 }
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+  background: var(--color-primary);
 }

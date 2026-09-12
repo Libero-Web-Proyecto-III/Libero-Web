@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, MoreThan, Repository } from 'typeorm';
 import { EventEntity } from './entities/event.entity';
@@ -7,6 +7,7 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { GetAllEventQueryDto } from './dto/get-event-query.dto';
 import { EventStatus } from './enum/eventStatus.enum';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { enumRol } from 'src/common/enums/rol.enum';
 
 @Injectable()
 export class EventService {
@@ -15,12 +16,12 @@ export class EventService {
     private readonly EventRepository: Repository<EventEntity>,
   ) { }
 
-  async create(createEventDto: CreateEventDto, organizer: UserEntity): Promise<EventEntity> {
+  async create(createEventDto: CreateEventDto, organizer: UserEntity & { id?: number }): Promise<EventEntity> {
     const newEvent = this.EventRepository.create({
       ...createEventDto,
       startDate: new Date(createEventDto.startDate),
       endDate: new Date(createEventDto.endDate),
-      organizer,
+      organizer: { index: organizer.id } as UserEntity,
     });
     return this.EventRepository.save(newEvent);
   }
@@ -35,7 +36,7 @@ export class EventService {
 
     const events = await this.EventRepository.find({
       where,
-      relations: { organizer: true },
+      relations: { organizer: { rol: true } },
       order: { startDate: 'ASC' },
     });
 
@@ -49,7 +50,7 @@ export class EventService {
     uuid: async (uuid: string): Promise<EventEntity> => {
       const event = await this.EventRepository.findOne({
         where: { uuid },
-        relations: { organizer: true },
+        relations: { organizer: { rol: true } },
       });
 
       if (!event) throw new NotFoundException('No se encontró este evento por UUID');
@@ -62,8 +63,15 @@ export class EventService {
     return this.EventRepository.save({ index: event.index, ...updateEventDto });
   }
 
-  async remove(uuid: string): Promise<void> {
+  async remove(uuid: string, requester: { role: string }): Promise<void> {
     const event = await this.findOneBy.uuid(uuid);
+    const canDelete = requester.role === enumRol.ADMIN ||
+      (requester.role === enumRol.MOD && event.organizer?.rol?.name === enumRol.ADMIN);
+
+    if (!canDelete) {
+      throw new ForbiddenException('No tienes permiso para eliminar este evento');
+    }
+
     await this.EventRepository.remove(event);
   }
 }

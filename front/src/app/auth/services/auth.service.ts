@@ -1,129 +1,66 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
 
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginRequest {
-  identifier: string;
-  password: string;
-}
-
-export interface AuthResponse<T = any> {
+export interface AuthResponse {
   success: boolean;
   message: string;
-  data?: T;
+  data: {
+    accessToken: string;
+    user: { id: number; username: string; email: string; role: string };
+  };
 }
 
-export interface UserSession {
-  id: number;
-  username: string;
-  email: string;
-  role: string;
+interface RegisterResponse {
+  success: boolean;
+  message: string;
 }
 
-export interface LoginData {
-  accessToken: string;
-  user: UserSession;
-}
+type AuthUser = AuthResponse['data']['user'];
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:3000/auth';
+  readonly currentUser = signal<AuthUser | null>(this.readUser());
+  readonly isLoggedIn = computed(() => this.currentUser() !== null && this.getToken() !== null);
+  readonly isAdmin = computed(() => this.currentUser()?.role === 'admin');
 
-  // Estado reactivo del usuario logueado en la sesión activa (null = Invitado)
-  public readonly currentUser = signal<UserSession | null>(this.getInitialUser());
-  public readonly isLoggedIn = computed(() => this.currentUser() !== null);
-  public readonly isAdmin = computed(() => this.currentUser()?.role?.toLowerCase() === 'admin');
-
-  constructor(private http: HttpClient) {}
-
-  /**
-   * Obtiene el usuario guardado inicialmente en localStorage
-   */
-  private getInitialUser(): UserSession | null {
-    const userStr = localStorage.getItem('currentUser');
-    if (!userStr) return null;
-    try {
-      return JSON.parse(userStr);
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Envía la solicitud de registro al backend NestJS
-   */
-  public register(data: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  /**
-   * Envía las credenciales de inicio de sesión al backend NestJS
-   */
-  public login(credentials: LoginRequest): Observable<AuthResponse<LoginData>> {
-    return this.http.post<AuthResponse<LoginData>>(`${this.apiUrl}/login`, credentials).pipe(
-      tap((response) => {
-        if (response.success && response.data?.accessToken) {
-          this.saveSession(response.data.accessToken, response.data.user);
-        }
+  login(payload: { identifier: string; password: string }): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, payload).pipe(
+      tap(response => {
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('authUser', JSON.stringify(response.data.user));
+        this.currentUser.set(response.data.user);
       }),
-      catchError(this.handleError)
     );
   }
 
-  /**
-   * Guarda el token de acceso y los datos de usuario en localStorage y actualiza la señal
-   */
-  private saveSession(accessToken: string, user: UserSession): void {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    this.currentUser.set(user);
+  register(payload: { username: string; email: string; password: string }): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, payload);
   }
 
-  /**
-   * Cierra la sesión activa borrando el almacenamiento local y volviendo a estado Invitado
-   */
-  public logout(): void {
+  logout(): void {
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('currentUser');
+    localStorage.removeItem('authUser');
     this.currentUser.set(null);
   }
 
-  /**
-   * Retorna el token almacenado
-   */
-  public getToken(): string | null {
+  getToken(): string | null {
     return localStorage.getItem('accessToken');
   }
 
-  /**
-   * Manejo centralizado de errores HTTP retornados por NestJS
-   */
-  private handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'Ocurrió un error inesperado al conectar con el servidor.';
+  getUser(): { id: number; username: string; email: string; role: string } | null {
+    return this.currentUser();
+  }
 
-    if (error.error) {
-      if (typeof error.error.message === 'string') {
-        errorMessage = error.error.message;
-      } else if (Array.isArray(error.error.message)) {
-        errorMessage = error.error.message.join('. ');
-      } else if (error.error.error) {
-        errorMessage = error.error.error;
-      }
-    } else if (error.status === 0) {
-      errorMessage = 'No se pudo conectar con el servidor backend (NestJS en http://localhost:3000). Asegúrate de que esté en ejecución.';
-    }
+  hasManagementRole(): boolean {
+    const role = this.getUser()?.role;
+    return role === 'mod' || role === 'admin';
+  }
 
-    return throwError(() => new Error(errorMessage));
+  private readUser(): AuthUser | null {
+    const value = localStorage.getItem('authUser');
+    return value ? JSON.parse(value) as AuthUser : null;
   }
 }

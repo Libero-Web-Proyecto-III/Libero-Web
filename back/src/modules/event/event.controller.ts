@@ -10,6 +10,9 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { GetAllEventQueryDto } from './dto/get-event-query.dto';
 import { EventEntity } from './entities/event.entity';
+import { PRIVATE } from 'src/common/decorator/private.decorator';
+import { ROLES } from 'src/common/decorator/roles.decorator';
+import { enumRol } from 'src/common/enums/rol.enum';
 
 @ApiTags('Events')
 @Controller('events')
@@ -39,6 +42,8 @@ export class EventController {
   }
 
   @Post()
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   @ApiOperation({
     summary: 'Crear un evento',
     description: 'Crea un nuevo evento. Únicamente el moderador puede publicar eventos.',
@@ -50,6 +55,8 @@ export class EventController {
   }
 
   @Patch(':uuid')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   @ApiOperation({
     summary: 'Actualizar un evento',
     description: 'Modifica los datos de un evento existente, identificado por su UUID.',
@@ -62,6 +69,8 @@ export class EventController {
   }
 
   @Delete(':uuid')
+  @PRIVATE()
+  @ROLES([enumRol.MOD, enumRol.ADMIN])
   @ApiOperation({
     summary: 'Eliminar un evento',
     description: 'Elimina un evento existente de forma permanente.',
@@ -69,7 +78,7 @@ export class EventController {
   @ApiParam({ name: 'uuid', description: 'UUID del evento', example: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' })
   @ApiResponse({ status: 200, description: 'Evento eliminado' })
   @ApiResponse({ status: 404, description: 'Evento no encontrado' })
-  remove(@Param('uuid') uuid: string) {
-    return this.eventService.remove(uuid);
+  remove(@Param('uuid') uuid: string, @Req() req: any) {
+    return this.eventService.remove(uuid, req.user);
   }
 }

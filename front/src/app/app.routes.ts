@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { About } from './about/about';
 import { AppComponent } from './app';
 import { NoticeComponent } from './notice/notice.component';
+import { adminGuard } from './admin/admin.guard';
 
 export const routes: Routes = [
   {
@@ -19,5 +20,10 @@ export const routes: Routes = [
     },
     { path: 'about', component: About },
     { path: 'noticias', component: NoticeComponent },
+    {
+      path: 'admin',
+      canActivate: [adminGuard],
+      loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent),
+    },
     { path: '**', redirectTo: '' },
 ];

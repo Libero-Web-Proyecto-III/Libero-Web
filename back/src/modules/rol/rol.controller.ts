@@ -2,6 +2,9 @@ import { Controller, Get, Param } from '@nestjs/common';
 import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { RolService } from './rol.service';
 import { RolEntity } from './entities/rol.entity';
+import { PRIVATE } from 'src/common/decorator/private.decorator';
+import { ROLES } from 'src/common/decorator/roles.decorator';
+import { enumRol } from 'src/common/enums/rol.enum';
 
 @ApiTags('Rol')
 @Controller('rol')
@@ -9,6 +12,8 @@ export class RolController {
   constructor(private readonly rolService: RolService) {}
 
   @Get(':name')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   @ApiOperation({
     summary: 'Obtener un rol por nombre',
     description: 'Devuelve el rol registrado usando su nombre exacto.',

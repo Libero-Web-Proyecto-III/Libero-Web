@@ -1,0 +1,60 @@
+<main class="admin-page">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Control de acceso</p>
+      <h1>Panel de administración</h1>
+      <p>Sesión: {{ authService.getUser()?.username }} · Rol: {{ authService.getUser()?.role }}</p>
+    </div>
+    <div class="admin-header__actions">
+      <a routerLink="/" class="home-button">Volver al inicio</a>
+      <button type="button" (click)="authService.logout()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <p *ngIf="message" class="message success">{{ message }}</p>
+  <p *ngIf="error" class="message error">{{ error }}</p>
+
+  <section *ngIf="authService.isAdmin()" class="creation-grid">
+    <form [formGroup]="publicationForm" (ngSubmit)="createPublication()" class="admin-card">
+      <h2>Nueva publicación</h2>
+      <label for="publication-title">Título</label>
+      <input id="publication-title" formControlName="title" />
+      <label for="publication-content">Contenido</label>
+      <textarea id="publication-content" formControlName="content"></textarea>
+      <button type="submit" [disabled]="publicationForm.invalid">Publicar</button>
+    </form>
+
+    <form [formGroup]="eventForm" (ngSubmit)="createEvent()" class="admin-card">
+      <h2>Nuevo evento</h2>
+      <label for="event-title">Título</label>
+      <input id="event-title" formControlName="title" />
+      <label for="event-description">Descripción</label>
+      <textarea id="event-description" formControlName="description"></textarea>
+      <label for="event-start">Inicio</label>
+      <input id="event-start" type="datetime-local" formControlName="startDate" />
+      <label for="event-end">Fin</label>
+      <input id="event-end" type="datetime-local" formControlName="endDate" />
+      <button type="submit" [disabled]="eventForm.invalid">Crear evento</button>
+    </form>
+  </section>
+
+  <section class="lists-grid">
+    <article class="admin-card">
+      <h2>Publicaciones</h2>
+      <p *ngIf="!publications.length">No hay publicaciones.</p>
+      <div *ngFor="let publication of publications" class="list-row">
+        <span>{{ publication.title }} <small>({{ publication.author?.rol?.name || 'sin rol' }})</small></span>
+        <button type="button" (click)="deletePublication(publication.uuid)">Eliminar</button>
+      </div>
+    </article>
+
+    <article class="admin-card">
+      <h2>Eventos</h2>
+      <p *ngIf="!events.length">No hay eventos.</p>
+      <div *ngFor="let event of events" class="list-row">
+        <span>{{ event.title }} <small>({{ event.organizer?.rol?.name || 'sin rol' }})</small></span>
+        <button type="button" (click)="deleteEvent(event.uuid)">Eliminar</button>
+      </div>
+    </article>
+  </section>
+</main>

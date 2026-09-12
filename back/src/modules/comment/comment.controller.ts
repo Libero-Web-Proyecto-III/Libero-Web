@@ -13,6 +13,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { GetCommentQueryDto } from './dto/get-comment-query.dto';
 import { CommentEntity } from './entities/comment.entity';
+import { PRIVATE } from 'src/common/decorator/private.decorator';
 
 // NOTA: igual que en publication.controller.ts, se usa @Req() req.user
 // como autor. Cuando el equipo tenga listo el módulo de autenticación
@@ -96,6 +97,7 @@ export class CommentController {
   }
 
   @Post()
+  @PRIVATE()
   @ApiOperation({
     summary: 'Crear un comentario en una publicación',
     description:
@@ -133,6 +135,7 @@ export class CommentController {
   }
 
   @Patch(':uuid')
+  @PRIVATE()
   @ApiOperation({
     summary: 'Editar un comentario (solo el autor puede hacerlo)',
     description:
@@ -182,6 +185,7 @@ export class CommentController {
   }
 
   @Delete(':uuid')
+  @PRIVATE()
   @ApiOperation({
     summary: 'Eliminar (soft delete) un comentario (solo el autor)',
     description:

@@ -9,7 +9,6 @@ import { RolModule } from './modules/rol/rol.module';
 import { UserModule } from './modules/user/user.module';
 import { PublicationModule } from './modules/publication/publication.module';
 import { EventModule } from './modules/event/event.module';
-import { FacebookModule } from './modules/facebook/facebook.module';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
@@ -31,7 +30,7 @@ import { CommentModule } from './modules/comment/comment.module';
 
     TagModule, RolModule,
     UserModule, PublicationModule, ReactionModule,
-    EventModule, AuthModule, CommentModule, FacebookModule
+    EventModule, AuthModule, CommentModule
 ],
   controllers: [AppController],
   providers: [

@@ -5,12 +5,15 @@ import { GetAllQueryDto } from 'src/common/dto/get-all.dto';
 import { PRIVATE } from 'src/common/decorator/private.decorator';
 import { ApiBadRequestResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
+import { ROLES } from 'src/common/decorator/roles.decorator';
+import { enumRol } from 'src/common/enums/rol.enum';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   @ApiOperation({ summary: 'Lista a todos los usuarios por paginación' })
   @ApiOkResponse({ description: 'Listado de usuarios obtenida correctamente', type: [UserEntity] })
   @Get()
@@ -22,6 +25,8 @@ export class UserController {
   @ApiOkResponse({ description: 'Usuario creado con exito', type: UserEntity })
   @ApiBadRequestResponse({ description: 'No se pudo crear usuario, revisa el BODY de la petición', schema: { example: 'Ya existe un usuario con ese nombre' } })
   @Post()
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   post(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto)
   }

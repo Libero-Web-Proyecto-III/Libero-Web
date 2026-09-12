@@ -12,7 +12,7 @@ import { AuthService } from '../services/auth.service';
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
-  // Estado completo utilizado por el formulario de inicio de sesión y sus mensajes visuales.
+  // Propiedades públicas del formulario y estado de la interfaz
   public LoginForm: FormGroup;
   public IsLoading: boolean = false;
   public ShowPassword: boolean = false;
@@ -23,13 +23,12 @@ export class LoginComponent {
   constructor(
     private FormBuilderService: FormBuilder,
     private RouterService: Router,
-    private RouteService: ActivatedRoute,
     private AuthService: AuthService
   ) {
-    // Define los campos del login y las validaciones que deben cumplir antes del envío.
+    // Configuración del grupo de controles y reglas de validación del Login
     this.LoginForm = this.FormBuilderService.group({
-      UserEmail: ['', [Validators.required]],
-      UserPassword: ['', [Validators.required]],
+      UserEmail: ['', [Validators.required, Validators.email]],
+      UserPassword: ['', [Validators.required, Validators.minLength(6)]],
       RememberMe: [false],
     });
   }
@@ -41,6 +40,7 @@ export class LoginComponent {
 
   // Procesamiento y envío del formulario de inicio de sesión
   public OnSubmit(): void {
+    // Validación previa de campos antes de procesar
     if (this.LoginForm.invalid) {
       this.LoginForm.markAllAsTouched();
       return;
@@ -51,25 +51,21 @@ export class LoginComponent {
     this.ErrorMessage = null;
     this.SuccessMessage = null;
 
-    const payload = {
+    this.AuthService.login({
       identifier: this.LoginForm.value.UserEmail,
       password: this.LoginForm.value.UserPassword,
-    };
-
-    // Envío HTTP real al backend NestJS (POST http://localhost:3000/auth/login)
-    this.AuthService.login(payload).subscribe({
-      next: (response) => {
+    }).subscribe({
+      next: response => {
         this.IsLoading = false;
         this.SuccessMessage = response.message || '¡Inicio de sesión exitoso! Redirigiendo...';
-        const returnUrl = this.RouteService.snapshot.queryParams['returnUrl'] || '/';
         setTimeout(() => {
-          this.RouterService.navigateByUrl(returnUrl);
-        }, 1200);
+          this.RouterService.navigate(['/']);
+        }, 1500);
       },
-      error: (err: Error) => {
+      error: () => {
         this.IsLoading = false;
-        this.ErrorMessage = err.message;
+        this.ErrorMessage = 'Correo o contraseña incorrectos.';
       },
     });
   }
-}
+}

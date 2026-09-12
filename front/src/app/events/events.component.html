@@ -93,9 +93,14 @@
                   </svg>
                 </button>
               } @else {
-                <button class="cta-btn subscribed-btn" (click)="openModal(event); $event.stopPropagation()">
-                  ✓ NOTIFICACIÓN ACTIVADA
-                </button>
+                <div class="subscribed-actions">
+                  <span class="active-badge" (click)="openModal(event); $event.stopPropagation()">
+                    ✓ Notificado
+                  </span>
+                  <button class="cta-btn unsubscribe-card-btn" (click)="removeSubscription(event); $event.stopPropagation()">
+                    ✕ Quitar notificación
+                  </button>
+                </div>
               }
             </div>
           </div>
@@ -122,6 +127,15 @@
           </div>
 
           <div class="modal-body">
+            @if (notificationError()) {
+              <div class="modal-error-alert">
+                <svg xmlns="http://www.w3.org/2000/svg" class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+                <span>{{ notificationError() }}</span>
+              </div>
+            }
+
             <div class="modal-image-box">
               <img [src]="item.imageUrl" [alt]="item.title" />
             </div>
@@ -145,18 +159,33 @@
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="modal-cancel-btn" (click)="closeModal()">Cerrar</button>
-            <button type="button" class="modal-confirm-btn" (click)="confirmSubscription()">
-              {{ item.isSubscribed ? 'Notificación Activada' : 'Notificarme Evento' }}
-            </button>
+            <button type="button" class="modal-cancel-btn" (click)="closeModal()" [disabled]="isNotifying()">Cerrar</button>
+            @if (!item.isSubscribed) {
+              <button type="button" class="modal-confirm-btn" [disabled]="isNotifying()" (click)="confirmSubscription()">
+                @if (isNotifying()) {
+                  <span class="btn-spinner"></span>
+                  Enviando notificación...
+                } @else {
+                  🔔 Notificarme Evento
+                }
+              </button>
+            } @else {
+              <button type="button" class="modal-unsubscribe-btn" [disabled]="isNotifying()" (click)="removeSubscription()">
+                ✕ Quitar Notificación
+              </button>
+            }
           </div>
         } @else {
           <div class="booking-success-state">
             <div class="success-icon">✓</div>
-            <h3>¡Notificación Activada!</h3>
-            <p>Recibirás recordatorios y avisos para el evento:</p>
+            <h3>¡Notificación Enviada al Correo!</h3>
+            <p>Hemos enviado un correo con todos los detalles del evento a:</p>
+            <p class="email-highlight">{{ notificationSuccessEmail() }}</p>
             <p class="event-name-highlight">"{{ item.title }}"</p>
-            <p class="subtext">Te avisaremos con suficiente antelación antes de que comience.</p>
+            <p class="subtext">Recibirás los avisos y recordatorios para este evento con suficiente antelación.</p>
+            <button type="button" class="modal-confirm-btn" style="margin-top: 1.5rem;" (click)="closeModal()">
+              Entendido
+            </button>
           </div>
         }
 

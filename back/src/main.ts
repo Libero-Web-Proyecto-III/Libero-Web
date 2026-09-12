@@ -23,8 +23,14 @@ async function bootstrap() {
 
 
 
+  ////////// CORS /////////////
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
   ////////// USE ///////////////
-  app.use( cors() );
   app.use( json({ limit: '10mb' }) );
   app.use( urlencoded({ extended: true, limit: '10mb' }) );
   app.set('trust proxy', 'loopback');

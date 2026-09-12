@@ -352,6 +352,51 @@
       color: #71717a;
     }
   }
+
+  .subscribed-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .active-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #166534;
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 0.5rem 0.85rem;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #dcfce7;
+      }
+    }
+
+    .unsubscribe-card-btn {
+      background-color: #ffffff;
+      border: 1px solid #fca5a5;
+      color: #dc2626;
+      padding: 0.65rem 1.1rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #fef2f2;
+        border-color: #ef4444;
+        color: #991b1b;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+      }
+    }
+  }
 }
 
 /* ==========================================================================
@@ -483,6 +528,25 @@
   justify-content: flex-end;
   gap: 1rem;
 
+  .modal-error-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+
+    .alert-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+  }
+
   .modal-cancel-btn {
     padding: 0.75rem 1.5rem;
     background: transparent;
@@ -491,12 +555,21 @@
     border-radius: 4px;
     cursor: pointer;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: #f4f4f5;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 
   .modal-confirm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     padding: 0.75rem 1.75rem;
     background-color: #000000;
     border: none;
@@ -504,10 +577,53 @@
     font-weight: 800;
     border-radius: 4px;
     cursor: pointer;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       opacity: 0.9;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: #71717a;
+    }
+
+    .btn-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+
+  .modal-unsubscribe-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    background-color: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #e11d48;
+    font-weight: 800;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background-color: #ffe4e6;
+      border-color: #fda4af;
+      color: #be123c;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.15);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 }
@@ -541,6 +657,18 @@
     margin-bottom: 0.4rem;
   }
 
+  .email-highlight {
+    display: inline-block;
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    color: #09090b;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    margin: 0.35rem 0 0.85rem;
+  }
+
   .event-name-highlight {
     font-size: 1.1rem;
     font-weight: 700;
@@ -559,6 +687,10 @@
     justify-content: center;
     margin-top: 1.25rem;
   }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Animations */

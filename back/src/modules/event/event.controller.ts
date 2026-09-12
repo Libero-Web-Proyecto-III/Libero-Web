@@ -1,20 +1,55 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req, Res } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiParam,
   ApiResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { GetAllEventQueryDto } from './dto/get-event-query.dto';
 import { EventEntity } from './entities/event.entity';
+import { PRIVATE } from '../../common/decorator/private.decorator';
+import { NotifyEventDto } from './dto/notify-event.dto';
 
 @ApiTags('Events')
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
+
+  @Get('preview/last-email')
+  @ApiOperation({
+    summary: 'Previsualizar el último correo generado',
+    description: 'Devuelve el diseño HTML corporativo del último correo generado para probarlo visualmente en el navegador.',
+  })
+  previewLastEmail(@Res() res: any) {
+    const html = this.eventService.getLastEmailHtml();
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    if (!html) {
+      return res.send(`
+        <body style="background: #111; color: #eee; font-family: sans-serif; text-align: center; padding: 50px;">
+          <h2>🔔 Ningún correo generado todavía en esta sesión</h2>
+          <p>Presiona <strong>"Notificarme Evento"</strong> en el frontend (<a href="http://localhost:4200/eventos" style="color: #d7a65a;">http://localhost:4200/eventos</a>) y luego recarga esta pestaña para ver el diseño exacto generado.</p>
+        </body>
+      `);
+    }
+    return res.send(html);
+  }
+
+  @PRIVATE()
+  @ApiBearerAuth()
+  @Post('notify')
+  @ApiOperation({
+    summary: 'Notificar evento por correo al usuario',
+    description: 'Envía un correo electrónico al usuario autenticado con la información del evento usando Nodemailer.',
+  })
+  @ApiResponse({ status: 200, description: 'Notificación enviada correctamente' })
+  @ApiResponse({ status: 401, description: 'Usuario no autenticado' })
+  notifyEvent(@Body() notifyEventDto: NotifyEventDto, @Req() req: any) {
+    return this.eventService.notifyEvent(notifyEventDto, req.user);
+  }
 
   @Get()
   @ApiOperation({

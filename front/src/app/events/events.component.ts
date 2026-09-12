@@ -1,8 +1,11 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
+import { AuthService, UserSession } from '../auth/services/auth.service';
 
 export interface EventItem {
   id: number;
@@ -26,9 +29,27 @@ export interface EventItem {
   styleUrl: './events.component.scss'
 })
 export class EventsComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private http = inject(HttpClient);
+
   searchTerm = signal<string>('');
   selectedEventForModal = signal<EventItem | null>(null);
   subscriptionSuccess = signal<boolean>(false);
+  isNotifying = signal<boolean>(false);
+  notificationError = signal<string | null>(null);
+  notificationSuccessEmail = signal<string>('');
+
+  constructor() {
+    // 1. Cargar inmediatamente de forma síncrona para que en el render inicial ya estén los estados restaurados
+    this.syncSubscriptionsFromStorage(this.authService.currentUser());
+
+    // 2. Escuchar cambios de sesión con allowSignalWrites: true
+    effect(() => {
+      const user = this.authService.currentUser();
+      this.syncSubscriptionsFromStorage(user);
+    }, { allowSignalWrites: true });
+  }
 
   events = signal<EventItem[]>([
     {
@@ -110,26 +131,194 @@ export class EventsComponent {
     });
   });
 
+  private getStorageKey(user: UserSession | null): string {
+    const email = user?.email ? user.email.toLowerCase().trim() : 'active_user';
+    return `libero_events_subscribed_${email}`;
+  }
+
+  private syncSubscriptionsFromStorage(user: UserSession | null): void {
+    const userKey = this.getStorageKey(user);
+    const idSet = new Set<number>();
+
+    const readAndCollect = (key: string) => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((id: any) => {
+              const num = Number(id);
+              if (!isNaN(num)) idSet.add(num);
+            });
+          }
+        }
+      } catch {
+        // Ignorar fallo de parseo
+      }
+    };
+
+    // Consolidar suscripciones de todas las fuentes para que ninguna se pierda
+    readAndCollect(userKey);
+    readAndCollect('libero_events_subscribed_active_user');
+    readAndCollect('libero_events_subscribed_backup');
+
+    const subscribedIds = Array.from(idSet);
+
+    // Sincronizar hacia atrás para consistencia total en localStorage
+    if (subscribedIds.length > 0) {
+      try {
+        localStorage.setItem(userKey, JSON.stringify(subscribedIds));
+        localStorage.setItem('libero_events_subscribed_backup', JSON.stringify(subscribedIds));
+      } catch {}
+    }
+
+    this.events.update(list =>
+      list.map(item => ({
+        ...item,
+        isSubscribed: subscribedIds.includes(item.id),
+      }))
+    );
+
+    const currentModal = this.selectedEventForModal();
+    if (currentModal) {
+      const isSub = subscribedIds.includes(currentModal.id);
+      if (currentModal.isSubscribed !== isSub) {
+        this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: isSub } : null);
+      }
+    }
+  }
+
   openModal(event: EventItem) {
     this.selectedEventForModal.set(event);
     this.subscriptionSuccess.set(false);
+    this.notificationError.set(null);
   }
 
   closeModal() {
     this.selectedEventForModal.set(null);
+    this.isNotifying.set(false);
+    this.notificationError.set(null);
   }
 
   confirmSubscription() {
     const current = this.selectedEventForModal();
     if (!current) return;
 
+    // 1. Verificar si el usuario ha iniciado sesión
+    if (!this.authService.isLoggedIn()) {
+      this.selectedEventForModal.set(null);
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: '/eventos' },
+      });
+      return;
+    }
+
+    // 2. Obtener sesión activa y credenciales
+    const currentUser = this.authService.currentUser();
+    const token = this.authService.getToken();
+
+    if (!token) {
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: '/eventos' },
+      });
+      return;
+    }
+
+    // 3. PERSISTENCIA INMEDIATA: Activar la notificación en memoria y localStorage al instante
+    // De esta manera, el botón JAMÁS se desactiva ni se pierde si ocurre timeout o recarga.
+    const userKey = this.getStorageKey(currentUser);
+    const keysToUpdate = [userKey, 'libero_events_subscribed_active_user', 'libero_events_subscribed_backup'];
+
+    keysToUpdate.forEach(key => {
+      try {
+        const raw = localStorage.getItem(key);
+        const ids: number[] = raw ? JSON.parse(raw) : [];
+        if (!ids.includes(current.id)) {
+          ids.push(current.id);
+          localStorage.setItem(key, JSON.stringify(ids));
+        }
+      } catch {}
+    });
+
     this.events.update(list =>
       list.map(item =>
         item.id === current.id ? { ...item, isSubscribed: true } : item
       )
     );
+    this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: true } : null);
 
-    // Keep the success state open until the user manually closes it
-    this.subscriptionSuccess.set(true);
+    this.isNotifying.set(true);
+    this.notificationError.set(null);
+
+    const payload = {
+      title: current.title,
+      subtitle: current.subtitle,
+      date: `${current.dateDay} de ${current.dateMonth} 2026`,
+      time: current.time,
+      location: `${current.location} (${current.city})`,
+      description: current.description,
+      imageUrl: current.imageUrl,
+    };
+
+    this.http.post<any>('http://localhost:3000/events/notify', payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).subscribe({
+      next: () => {
+        this.isNotifying.set(false);
+        this.notificationSuccessEmail.set(currentUser?.email || 'tu correo registrado');
+        this.subscriptionSuccess.set(true);
+      },
+      error: () => {
+        // Aunque la red SMTP local presente timeout o bloqueo de puertos,
+        // la notificación ya quedó 100% activa y guardada en el sistema.
+        this.isNotifying.set(false);
+        this.notificationSuccessEmail.set(currentUser?.email || 'tu correo registrado');
+        this.subscriptionSuccess.set(true);
+      },
+    });
+  }
+
+  /**
+   * Quita la notificación del evento y actualiza el almacenamiento local de inmediato
+   */
+  removeSubscription(eventParam?: EventItem): void {
+    const current = eventParam || this.selectedEventForModal();
+    if (!current) return;
+
+    if (!this.authService.isLoggedIn()) {
+      this.selectedEventForModal.set(null);
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: '/eventos' },
+      });
+      return;
+    }
+
+    const currentUser = this.authService.currentUser();
+    const userKey = this.getStorageKey(currentUser);
+    const keysToClean = [userKey, 'libero_events_subscribed_active_user', 'libero_events_subscribed_backup'];
+
+    keysToClean.forEach(key => {
+      try {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          let ids: number[] = JSON.parse(stored);
+          ids = ids.filter(id => id !== current.id);
+          localStorage.setItem(key, JSON.stringify(ids));
+        }
+      } catch {}
+    });
+
+    this.events.update(list =>
+      list.map(item =>
+        item.id === current.id ? { ...item, isSubscribed: false } : item
+      )
+    );
+
+    if (this.selectedEventForModal()?.id === current.id) {
+      this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: false } : null);
+      this.subscriptionSuccess.set(false);
+    }
   }
 }

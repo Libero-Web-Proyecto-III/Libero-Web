@@ -83,9 +83,27 @@ export class UserService {
       return user;
     },
 
+    id: async (index: number): Promise<UserEntity> => {
+      const user = await this.UserRepository.findOne({
+        where: { index },
+        relations: UserEntityRelations as FindOptionsRelations<UserEntity>
+      });
+
+      if (!user) throw new NotFoundException('No se encontró este usuario por ID');
+
+      return user;
+    },
+
   };
 
   findOrNull = {
+
+    id: async (index: number): Promise<UserEntity | null> => {
+      return await this.UserRepository.findOne({
+        where: { index },
+        relations: UserEntityRelations as FindOptionsRelations<UserEntity>
+      });
+    },
 
     uuid: async (uuid: string): Promise<UserEntity | null> => {
       return await this.UserRepository.findOne({

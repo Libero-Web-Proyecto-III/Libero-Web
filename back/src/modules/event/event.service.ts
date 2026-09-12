@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, MoreThan, Repository } from 'typeorm';
 import { EventEntity } from './entities/event.entity';
@@ -7,13 +7,37 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { GetAllEventQueryDto } from './dto/get-event-query.dto';
 import { EventStatus } from './enum/eventStatus.enum';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { MailService } from '../mail/mail.service';
+import { NotifyEventDto } from './dto/notify-event.dto';
 
 @Injectable()
 export class EventService {
   constructor(
     @InjectRepository(EventEntity)
     private readonly EventRepository: Repository<EventEntity>,
+    private readonly mailService: MailService,
   ) { }
+
+  async notifyEvent(dto: NotifyEventDto, user: any): Promise<{ success: boolean; message: string }> {
+    const targetEmail = user?.email;
+    if (!targetEmail) {
+      throw new BadRequestException('No se pudo identificar el correo electrónico del usuario para enviar la notificación.');
+    }
+
+    return this.mailService.sendEventNotification(targetEmail, user.username, {
+      title: dto.title,
+      subtitle: dto.subtitle,
+      date: dto.date,
+      time: dto.time,
+      location: dto.location,
+      description: dto.description,
+      imageUrl: dto.imageUrl,
+    });
+  }
+
+  getLastEmailHtml(): string {
+    return this.mailService.getLastEmailHtml();
+  }
 
   async create(createEventDto: CreateEventDto, organizer: UserEntity): Promise<EventEntity> {
     const newEvent = this.EventRepository.create({

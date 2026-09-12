@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -23,6 +23,7 @@ export class LoginComponent {
   constructor(
     private FormBuilderService: FormBuilder,
     private RouterService: Router,
+    private RouteService: ActivatedRoute,
     private AuthService: AuthService
   ) {
     // Define los campos del login y las validaciones que deben cumplir antes del envío.
@@ -60,9 +61,10 @@ export class LoginComponent {
       next: (response) => {
         this.IsLoading = false;
         this.SuccessMessage = response.message || '¡Inicio de sesión exitoso! Redirigiendo...';
+        const returnUrl = this.RouteService.snapshot.queryParams['returnUrl'] || '/';
         setTimeout(() => {
-          this.RouterService.navigate(['/']);
-        }, 1500);
+          this.RouterService.navigateByUrl(returnUrl);
+        }, 1200);
       },
       error: (err: Error) => {
         this.IsLoading = false;

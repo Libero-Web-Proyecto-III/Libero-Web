@@ -16,6 +16,7 @@ import { JwtAuthGuard } from './common/guard/jwt-auth.guard';
 import { RolesGuard } from './common/guard/roles.guard';
 import { ReactionModule } from './modules/reaction/reaction.module';
 import { CommentModule } from './modules/comment/comment.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 
 @Module({
@@ -25,6 +26,12 @@ import { CommentModule } from './modules/comment/comment.module';
       isGlobal: true,
       envFilePath: '.env'
     }),
+
+    ThrottlerModule.forRoot([{
+      ttl: 60_000,
+      limit: 45,
+      skipIf: () => false
+    }]),
 
     DatabaseModule,
 
@@ -36,6 +43,10 @@ import { CommentModule } from './modules/comment/comment.module';
   providers: [
     AppService,
     
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

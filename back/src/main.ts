@@ -6,6 +6,7 @@ import cors from "cors";
 import { json, urlencoded } from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -13,6 +14,22 @@ async function bootstrap() {
 
   //////////// CORS /////////////
 
+  const CORS_config = {
+    origin: [
+      /\.liberocobre\.online$/,
+      'https://liberocobre.online',
+      'http://localhost:81',
+      'http://127.0.0.1:81',
+      'http://127.0.0.1:3000'
+    ],
+    credentials: true,
+    allowedHeaders: [ 'Content-Type', 'Authorization', 'Accept' ],
+    maxAge: 3_600,
+    optionsSuccessStatus: 200,
+    methods: [ 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS' ],
+  }
+
+  app.enableCors(CORS_config);
 
   ///////// GLOBAL ///////////
   app.useGlobalPipes( new ValidationPipe({
@@ -24,10 +41,11 @@ async function bootstrap() {
 
 
   ////////// USE ///////////////
-  app.use( cors() );
+
   app.use( json({ limit: '10mb' }) );
   app.use( urlencoded({ extended: true, limit: '10mb' }) );
   app.set('trust proxy', 'loopback');
+  app.use( helmet() );
 
 
   //// SWAGGER / SCALAR ////////

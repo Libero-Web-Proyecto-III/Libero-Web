@@ -1,0 +1,50 @@
+<div class="profile-menu">
+  <!-- Avatar que abre o cierra la tarjeta dinámica del perfil -->
+  <button
+    class="profile-menu__trigger"
+    type="button"
+    aria-label="Abrir menú de perfil"
+    [attr.aria-expanded]="isOpen()"
+    (click)="toggleMenu()"
+  >
+    <span class="profile-menu__trigger-avatar" [class.profile-menu__trigger-avatar--guest]="!isLoggedIn()">
+      {{ initials() }}
+    </span>
+  </button>
+
+  @if (isOpen()) {
+    <!-- Tarjeta del perfil conectado dinámicamente con AuthService -->
+    <section class="profile-menu__card" aria-label="Menú de perfil">
+      <!-- Datos del perfil actual y avatar correspondiente -->
+      <div class="profile-menu__summary">
+        <div class="profile-menu__avatar" [class.profile-menu__avatar--guest]="!isLoggedIn()">
+          {{ initials() }}
+        </div>
+        <div class="profile-menu__identity">
+          <strong>{{ isLoggedIn() ? currentUser()?.username : 'Usuario invitado' }}</strong>
+          @if (isLoggedIn() && currentUser()?.email) {
+            <span>{{ currentUser()?.email }}</span>
+          }
+          <span class="profile-menu__badge">ROL: {{ roleDisplayName() }}</span>
+        </div>
+      </div>
+
+      <!-- Acciones condicionadas a la sesión activa (Invitado vs Logueado) -->
+      <div class="profile-menu__actions">
+        @if (!isLoggedIn()) {
+          <!-- Acciones para usuario no logueado (Invitado) -->
+          <button type="button" (click)="goToLogin()">Iniciar sesión</button>
+          <button type="button" (click)="goToRegister()">Registrarse</button>
+        } @else {
+          <!-- Acciones para usuario autenticado -->
+          <button type="button" (click)="requestProfile()">Ver perfil</button>
+          @if (isAdmin()) {
+            <!-- Panel habilitado únicamente para Administradores -->
+            <button type="button" (click)="requestAdministration()">Panel de Administración</button>
+          }
+          <button type="button" (click)="signOut()">Cerrar sesión</button>
+        }
+      </div>
+    </section>
+  }
+</div>

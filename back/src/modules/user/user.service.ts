@@ -116,6 +116,13 @@ export class UserService {
 
   };
 
+  async findByIdentifier(identifier: string): Promise<UserEntity | null> {
+    return await this.UserRepository.findOne({
+      where: [{ name: identifier }, { email: identifier }],
+      relations: UserEntityRelations as FindOptionsRelations<UserEntity>,
+    });
+  }
+
   async create(createUserDto: CreateUserDto): Promise<UserEntity> {
 
     const { name, password, rol, tag, ...newData } = createUserDto;

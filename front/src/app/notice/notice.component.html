@@ -1,38 +1,146 @@
-<section class="notice">
+<div class="notice-page">
+  <app-navbar></app-navbar>
 
-  <!-- Destacada -->
-  <article class="notice__hero">
-    <img [src]="featured.media" [alt]="featured.title" />
-    <div class="notice__hero-text">
-      <span class="tag">Destacada</span>
-      <h1>{{ featured.title }}</h1>
-      <p>{{ featured.content }}</p>
-      <span class="meta">{{ featured.author }} · {{ featured.createdAt | date: 'longDate' }}</span>
+  <main class="notice-container">
+    <div class="results-bar">
+      <span class="results-count">
+        MOSTRANDO <strong>{{ news().length }}</strong> NOTICIA(S)
+      </span>
     </div>
-  </article>
 
-  <!-- Grid secundario: pocas noticias, sin saturar -->
-  <div class="notice__grid">
-    <article class="notice__card" *ngFor="let item of news">
-      <img [src]="item.media" [alt]="item.title" />
-      <h2>{{ item.title }}</h2>
-      <p>{{ item.content }}</p>
-      <span class="meta">{{ item.author }} · {{ item.createdAt | date: 'shortDate' }}</span>
-    </article>
-  </div>
+    <div class="notice-list">
+      @for (item of news(); track item.uuid) {
+        <article class="notice-card" (click)="openModal(item.uuid)">
 
-  <!-- Videos de la empresa -->
-  <div class="notice__videos">
-    <h2 class="section-title">Videos de la empresa</h2>
-    <div class="notice__videos-grid">
-      <article class="notice__video-card" *ngFor="let video of videos">
-        <div class="thumb">
-          <img [src]="video.media" [alt]="video.title" />
-          <span class="play-icon">▶</span>
+          <div class="card-image-wrapper">
+            @if (item.media[0].type === 'video') {
+              <img [src]="item.media[0].poster" [alt]="item.title" class="card-img" />
+              <span class="play-badge">▶</span>
+            } @else {
+              <img [src]="item.media[0].url" [alt]="item.title" class="card-img" />
+            }
+            <div class="card-img-overlay"></div>
+          </div>
+
+          <div class="card-content">
+            <div class="card-meta">
+              <span>{{ item.author }}</span>
+              <span>·</span>
+              <span>{{ item.createdAt | date: 'longDate' }}</span>
+            </div>
+
+            <h2 class="card-title">{{ item.title }}</h2>
+            <p class="card-description">{{ item.content }}</p>
+
+            <div class="card-footer">
+              <div class="reaction-preview">
+                <span>👍 {{ item.likes }}</span>
+                <span>👎 {{ item.dislikes }}</span>
+                <span class="comment-count">💬 {{ item.comments.length }}</span>
+              </div>
+
+              <button class="cta-btn" (click)="openModal(item.uuid); $event.stopPropagation()">
+                LEER MÁS
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+        </article>
+      }
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+
+  @if (selectedForModal(); as item) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="closeModal()">✕</button>
+
+        <div class="modal-media">
+          @if (item.media[0].type === 'video') {
+            <video controls [poster]="item.media[0].poster">
+              <source [src]="item.media[0].url" type="video/mp4" />
+            </video>
+          } @else {
+            <img [src]="item.media[0].url" [alt]="item.title" />
+          }
         </div>
-        <h3>{{ video.title }}</h3>
-      </article>
-    </div>
-  </div>
 
-</section>
+        <div class="modal-header">
+          <span class="modal-meta">{{ item.author }} · {{ item.createdAt | date: 'longDate' }}</span>
+          <h2 class="modal-title">{{ item.title }}</h2>
+        </div>
+
+        <p class="modal-content-text">{{ item.content }}</p>
+
+        <div class="reaction-bar">
+          <button
+            class="reaction-btn"
+            [class.active]="item.userReaction === 'like'"
+            (click)="toggleReaction(item.uuid, 'like')"
+          >
+            👍 <span>{{ item.likes }}</span>
+          </button>
+          <button
+            class="reaction-btn"
+            [class.active]="item.userReaction === 'dislike'"
+            (click)="toggleReaction(item.uuid, 'dislike')"
+          >
+            👎 <span>{{ item.dislikes }}</span>
+          </button>
+        </div>
+
+        <section class="comments-section">
+          <h3 class="comments-title">Comentarios ({{ item.comments.length }})</h3>
+
+          <div class="comment-form">
+            <textarea
+              placeholder="Escribe un comentario..."
+              [ngModel]="newCommentDraft()"
+              (ngModelChange)="newCommentDraft.set($event)"
+            ></textarea>
+            <button class="submit-comment-btn" (click)="addComment(item.uuid)">Comentar</button>
+          </div>
+
+          @if (item.comments.length === 0) {
+            <p class="no-comments">Sé el primero en comentar esta noticia.</p>
+          }
+
+          <div class="comments-list">
+            @for (comment of item.comments; track comment.uuid) {
+              <div class="comment-item">
+                <div class="comment-avatar">{{ comment.author.charAt(0) }}</div>
+                <div class="comment-body">
+                  <div class="comment-head">
+                    <span class="comment-author">{{ comment.author }}</span>
+                    <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
+                  </div>
+                  <p class="comment-text">{{ comment.content }}</p>
+                  <div class="comment-reactions">
+                    <button
+                      [class.active]="comment.userReaction === 'like'"
+                      (click)="toggleCommentReaction(item.uuid, comment.uuid, 'like')"
+                    >
+                      👍 {{ comment.likes }}
+                    </button>
+                    <button
+                      [class.active]="comment.userReaction === 'dislike'"
+                      (click)="toggleCommentReaction(item.uuid, comment.uuid, 'dislike')"
+                    >
+                      👎 {{ comment.dislikes }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+    </div>
+  }
+</div>

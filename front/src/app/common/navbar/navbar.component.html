@@ -1,0 +1,77 @@
+<nav class="navbar" [class.scrolled]="scrolled()">
+  <div class="navbar__container">
+
+    <!-- Logo -->
+    <a class="navbar__brand" [routerLink]="['/']">
+      <img class="navbar__logo-img" src="logo.png" alt="Libero Cobre Logo" />
+      <div class="navbar__logo-text">
+        <span class="navbar__logo-main">Libero Cobre</span>
+        <span class="navbar__logo-sub">Mocoa · Putumayo</span>
+      </div>
+    </a>
+
+    <!-- Desktop Nav Links con Contorno Animado Deslizable -->
+    <ul class="navbar__links" #navContainer (mouseleave)="onMouseLeaveLinks()">
+      <!-- Borde/Contorno Gris Deslizable -->
+      <div
+        class="navbar__indicator"
+        [class.animated]="isAnimated()"
+        [style.left.px]="indicatorStyle().left"
+        [style.width.px]="indicatorStyle().width"
+        [style.opacity]="indicatorStyle().opacity"
+      ></div>
+
+      @for (link of navLinks; track link.path; let idx = $index) {
+        <li>
+          <a
+            #navLinkEl
+            class="navbar__link"
+            [routerLink]="link.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: link.exact }"
+            (mouseenter)="onMouseEnterLink(idx)"
+            (click)="onClickLink(idx)"
+          >
+            {{ link.label }}
+          </a>
+        </li>
+      }
+    </ul>
+
+    <!-- Perfil y selector temporal de rol frontend -->
+    <app-profile-menu></app-profile-menu>
+
+    <!-- Hamburger Button -->
+    <button
+      class="navbar__hamburger"
+      [class.open]="menuOpen()"
+      (click)="toggleMenu()"
+      aria-label="Abrir menú de navegación"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  @if (menuOpen()) {
+    <div class="navbar__mobile-menu">
+      <ul>
+        @for (link of navLinks; track link.path) {
+          <li>
+            <a
+              class="navbar__mobile-link"
+              [routerLink]="link.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: link.exact }"
+              (click)="closeMenu()"
+            >
+              {{ link.label }}
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</nav>

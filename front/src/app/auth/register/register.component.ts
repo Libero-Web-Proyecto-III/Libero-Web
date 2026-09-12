@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -11,7 +12,7 @@ import { RouterLink, Router } from '@angular/router';
   styleUrls: ['./register.component.scss'],
 })
 export class RegisterComponent {
-  // Propiedades públicas del formulario y estados de visibilidad e interfaz
+  // Estado completo utilizado por el formulario de registro y sus mensajes visuales.
   public RegisterForm: FormGroup;
   public IsLoading: boolean = false;
   public ShowPassword: boolean = false;
@@ -22,14 +23,16 @@ export class RegisterComponent {
   // Constructor: Inyección de servicios e inicialización de validaciones de Registro
   constructor(
     private FormBuilderService: FormBuilder,
-    private RouterService: Router
+    private RouterService: Router,
+    private AuthService: AuthService
   ) {
-    // Configuración de controles y regla de coincidencia de contraseñas
+    // Define los campos del registro y aplica la validación de coincidencia de contraseñas.
+    // La contraseña requiere mínimo 8 caracteres para coincidir con el DTO del backend.
     this.RegisterForm = this.FormBuilderService.group(
       {
         FullName: ['', [Validators.required, Validators.minLength(3)]],
         UserEmail: ['', [Validators.required, Validators.email]],
-        UserPassword: ['', [Validators.required, Validators.minLength(6)]],
+        UserPassword: ['', [Validators.required, Validators.minLength(8)]],
         ConfirmPassword: ['', [Validators.required]],
         AcceptTerm: [false, [Validators.requiredTrue]],
       },
@@ -39,6 +42,7 @@ export class RegisterComponent {
 
   // Validador personalizado para comprobar la coincidencia de las contraseñas
   private PasswordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    // Comprueba que la contraseña y su confirmación tengan el mismo valor.
     const password = control.get('UserPassword')?.value;
     const confirmPassword = control.get('ConfirmPassword')?.value;
 
@@ -61,7 +65,6 @@ export class RegisterComponent {
 
   // Procesamiento y envío del formulario de registro de usuario
   public OnSubmit(): void {
-    // Validación previa de campos antes del envío
     if (this.RegisterForm.invalid) {
       this.RegisterForm.markAllAsTouched();
       return;
@@ -72,14 +75,25 @@ export class RegisterComponent {
     this.ErrorMessage = null;
     this.SuccessMessage = null;
 
-    // Simulación del proceso de registro con redirección al Login
-    setTimeout(() => {
-      this.IsLoading = false;
-      this.SuccessMessage = '¡Registro exitoso! Redirigiendo al inicio de sesión...';
-      console.log('Payload de registro:', this.RegisterForm.value);
-      setTimeout(() => {
-        this.RouterService.navigate(['/auth/login']);
-      }, 1500);
-    }, 1200);
+    const payload = {
+      username: this.RegisterForm.value.FullName,
+      email: this.RegisterForm.value.UserEmail,
+      password: this.RegisterForm.value.UserPassword,
+    };
+
+    // Envío HTTP real al backend NestJS (POST http://localhost:3000/auth/register)
+    this.AuthService.register(payload).subscribe({
+      next: (response) => {
+        this.IsLoading = false;
+        this.SuccessMessage = response.message || '¡Registro exitoso! Redirigiendo al inicio de sesión...';
+        setTimeout(() => {
+          this.RouterService.navigate(['/auth/login']);
+        }, 1500);
+      },
+      error: (err: Error) => {
+        this.IsLoading = false;
+        this.ErrorMessage = err.message;
+      },
+    });
   }
-}
+}

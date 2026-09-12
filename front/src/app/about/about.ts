@@ -1,8 +1,12 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { NavbarComponent } from '../common/navbar/navbar.component';
+import { FooterComponent } from '../common/footer/footer.component';
 
 @Component({
   selector: 'app-about',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, NavbarComponent, FooterComponent],
   templateUrl: './about.html',
   styleUrl: './about.scss',
 })

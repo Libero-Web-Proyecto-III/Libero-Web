@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -11,7 +12,7 @@ import { RouterLink, Router } from '@angular/router';
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
-  // Propiedades públicas del formulario y estado de la interfaz
+  // Estado completo utilizado por el formulario de inicio de sesión y sus mensajes visuales.
   public LoginForm: FormGroup;
   public IsLoading: boolean = false;
   public ShowPassword: boolean = false;
@@ -21,12 +22,13 @@ export class LoginComponent {
   // Constructor: Inyección de servicios e inicialización de validaciones
   constructor(
     private FormBuilderService: FormBuilder,
-    private RouterService: Router
+    private RouterService: Router,
+    private AuthService: AuthService
   ) {
-    // Configuración del grupo de controles y reglas de validación del Login
+    // Define los campos del login y las validaciones que deben cumplir antes del envío.
     this.LoginForm = this.FormBuilderService.group({
-      UserEmail: ['', [Validators.required, Validators.email]],
-      UserPassword: ['', [Validators.required, Validators.minLength(6)]],
+      UserEmail: ['', [Validators.required]],
+      UserPassword: ['', [Validators.required]],
       RememberMe: [false],
     });
   }
@@ -38,7 +40,6 @@ export class LoginComponent {
 
   // Procesamiento y envío del formulario de inicio de sesión
   public OnSubmit(): void {
-    // Validación previa de campos antes de procesar
     if (this.LoginForm.invalid) {
       this.LoginForm.markAllAsTouched();
       return;
@@ -49,11 +50,24 @@ export class LoginComponent {
     this.ErrorMessage = null;
     this.SuccessMessage = null;
 
-    // Simulación de la operación de autenticación con el servidor
-    setTimeout(() => {
-      this.IsLoading = false;
-      this.SuccessMessage = '¡Inicio de sesión exitoso! Redirigiendo...';
-      console.log('Payload de inicio de sesión:', this.LoginForm.value);
-    }, 1200);
+    const payload = {
+      identifier: this.LoginForm.value.UserEmail,
+      password: this.LoginForm.value.UserPassword,
+    };
+
+    // Envío HTTP real al backend NestJS (POST http://localhost:3000/auth/login)
+    this.AuthService.login(payload).subscribe({
+      next: (response) => {
+        this.IsLoading = false;
+        this.SuccessMessage = response.message || '¡Inicio de sesión exitoso! Redirigiendo...';
+        setTimeout(() => {
+          this.RouterService.navigate(['/']);
+        }, 1500);
+      },
+      error: (err: Error) => {
+        this.IsLoading = false;
+        this.ErrorMessage = err.message;
+      },
+    });
   }
-}
+}

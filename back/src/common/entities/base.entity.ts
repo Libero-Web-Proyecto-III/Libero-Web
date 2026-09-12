@@ -1,9 +1,9 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Generated, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Generated, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 export class BaseEntity {
 
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
     index: number;
 
     @Column({

@@ -45,7 +45,7 @@
 
     <!-- Vertical List of Full Horizontal Width Event Cards -->
     <div class="events-list">
-      @for (event of filteredEvents(); track event.id) {
+      @for (event of filteredEvents(); track event.uuid) {
         <article class="event-card" (click)="openModal(event)">
           
           <!-- Image Section -->

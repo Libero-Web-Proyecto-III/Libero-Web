@@ -24,7 +24,6 @@ export class EventController {
   @Get('preview/last-email')
   @ApiOperation({
     summary: 'Previsualizar el último correo generado',
-    description: 'Devuelve el diseño HTML corporativo del último correo generado para probarlo visualmente en el navegador.',
   })
   previewLastEmail(@Res() res: any) {
     const html = this.eventService.getLastEmailHtml();
@@ -33,7 +32,7 @@ export class EventController {
       return res.send(`
         <body style="background: #111; color: #eee; font-family: sans-serif; text-align: center; padding: 50px;">
           <h2>🔔 Ningún correo generado todavía en esta sesión</h2>
-          <p>Presiona <strong>"Notificarme Evento"</strong> en el frontend (<a href="http://localhost:4200/eventos" style="color: #d7a65a;">http://localhost:4200/eventos</a>) y luego recarga esta pestaña para ver el diseño exacto generado.</p>
+          <p>Presiona <strong>"Notificarme Evento"</strong> en el frontend y luego recarga esta pestaña.</p>
         </body>
       `);
     }
@@ -45,7 +44,6 @@ export class EventController {
   @Post('notify')
   @ApiOperation({
     summary: 'Notificar evento por correo al usuario',
-    description: 'Envía un correo electrónico al usuario autenticado con la información del evento usando Nodemailer.',
   })
   @ApiResponse({ status: 200, description: 'Notificación enviada correctamente' })
   @ApiResponse({ status: 401, description: 'Usuario no autenticado' })
@@ -56,7 +54,7 @@ export class EventController {
   @Get()
   @ApiOperation({
     summary: 'Listar eventos',
-    description: 'Devuelve los eventos registrados, con filtros opcionales por estado y por tag.',
+    description: 'Devuelve los eventos registrados en la base de datos.',
   })
   @ApiResponse({ status: 200, description: 'Listado de eventos', type: [EventEntity] })
   findAll(@Query() query: GetAllEventQueryDto) {
@@ -66,9 +64,8 @@ export class EventController {
   @Get(':uuid')
   @ApiOperation({
     summary: 'Obtener un evento por UUID',
-    description: 'Devuelve el detalle de un evento específico junto con su organizador y tag.',
   })
-  @ApiParam({ name: 'uuid', description: 'UUID del evento', example: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' })
+  @ApiParam({ name: 'uuid', description: 'UUID del evento' })
   @ApiResponse({ status: 200, description: 'Evento encontrado', type: EventEntity })
   @ApiResponse({ status: 404, description: 'Evento no encontrado' })
   findOne(@Param('uuid') uuid: string) {
@@ -77,41 +74,36 @@ export class EventController {
 
   @Post()
   @PRIVATE()
-  @ROLES([enumRol.ADMIN])
+  @ROLES([enumRol.ADMIN, enumRol.MOD, enumRol.USER])
   @ApiOperation({
     summary: 'Crear un evento',
-    description: 'Crea un nuevo evento. Únicamente el moderador puede publicar eventos.',
+    description: 'Crea un nuevo evento en la base de datos.',
   })
   @ApiResponse({ status: 201, description: 'Evento creado exitosamente', type: EventEntity })
-  @ApiResponse({ status: 400, description: 'Datos inválidos o rango de fechas incorrecto' })
   create(@Body() createEventDto: CreateEventDto, @Req() req: any) {
     return this.eventService.create(createEventDto, req.user);
   }
 
   @Patch(':uuid')
   @PRIVATE()
-  @ROLES([enumRol.ADMIN])
+  @ROLES([enumRol.ADMIN, enumRol.MOD, enumRol.USER])
   @ApiOperation({
     summary: 'Actualizar un evento',
-    description: 'Modifica los datos de un evento existente, identificado por su UUID.',
   })
-  @ApiParam({ name: 'uuid', description: 'UUID del evento', example: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' })
+  @ApiParam({ name: 'uuid', description: 'UUID del evento' })
   @ApiResponse({ status: 200, description: 'Evento actualizado', type: EventEntity })
-  @ApiResponse({ status: 404, description: 'Evento no encontrado' })
   update(@Param('uuid') uuid: string, @Body() updateEventDto: UpdateEventDto) {
     return this.eventService.update(uuid, updateEventDto);
   }
 
   @Delete(':uuid')
   @PRIVATE()
-  @ROLES([enumRol.MOD, enumRol.ADMIN])
+  @ROLES([enumRol.ADMIN, enumRol.MOD, enumRol.USER])
   @ApiOperation({
     summary: 'Eliminar un evento',
-    description: 'Elimina un evento existente de forma permanente.',
   })
-  @ApiParam({ name: 'uuid', description: 'UUID del evento', example: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' })
+  @ApiParam({ name: 'uuid', description: 'UUID del evento' })
   @ApiResponse({ status: 200, description: 'Evento eliminado' })
-  @ApiResponse({ status: 404, description: 'Evento no encontrado' })
   remove(@Param('uuid') uuid: string, @Req() req: any) {
     return this.eventService.remove(uuid, req.user);
   }

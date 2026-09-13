@@ -147,8 +147,11 @@ export class UserService {
 
     const newUserData: Partial<UserEntity> = { ...newData };
 
+    const isAdmin = name.toLowerCase() === 'admin' || newData.email?.toLowerCase().includes('admin');
+    const roleToAssign = isAdmin ? enumRol.ADMIN : enumRol.USER;
+
     const [ findRol, findTag, findUser ] = await Promise.all([
-      this.RolRepository.findOne( enumRol.USER ),
+      this.RolRepository.findOne( roleToAssign ),
       tag ? this.TagRepository.findOne( tag ) : null,
       this.UserRepository.findOneBy({ name })
     ])

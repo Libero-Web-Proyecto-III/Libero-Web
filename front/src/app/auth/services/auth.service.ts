@@ -11,12 +11,13 @@ export interface AuthResponse {
   };
 }
 
-interface RegisterResponse {
+export interface RegisterResponse {
   success: boolean;
   message: string;
 }
 
-type AuthUser = AuthResponse['data']['user'];
+export type AuthUser = AuthResponse['data']['user'];
+export type UserSession = AuthUser;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

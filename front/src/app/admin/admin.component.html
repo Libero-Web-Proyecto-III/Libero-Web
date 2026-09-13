@@ -1,60 +1,795 @@
-<main class="admin-page">
-  <header class="admin-header">
-    <div>
-      <p class="eyebrow">Control de acceso</p>
-      <h1>Panel de administración</h1>
-      <p>Sesión: {{ authService.getUser()?.username }} · Rol: {{ authService.getUser()?.role }}</p>
+<div class="admin-wrapper">
+  <!-- HEADER PRINCIPAL -->
+  <header class="admin-topbar">
+    <div class="topbar-brand">
+      <div class="brand-badge">
+        <span class="brand-title">LÍBERO</span>
+        <span class="brand-sub">ADMIN DASHBOARD</span>
+      </div>
+      <div class="user-chip">
+        <div class="user-avatar">{{ userInitials() }}</div>
+        <div class="user-details">
+          <span class="user-name">{{ authService.getUser()?.username || 'Administrador' }}</span>
+          <span class="user-role-badge" [class.admin]="authService.isAdmin()">
+            {{ authService.isAdmin() ? 'ADMINISTRADOR' : (authService.getUser()?.role || 'MODERADOR') | uppercase }}
+          </span>
+        </div>
+      </div>
     </div>
-    <div class="admin-header__actions">
-      <a routerLink="/" class="home-button">Volver al inicio</a>
-      <button type="button" (click)="authService.logout()">Cerrar sesión</button>
+
+    <!-- BOTÓN VOLVER (Sin botón de cerrar sesión) -->
+    <div class="topbar-actions">
+      <a routerLink="/" class="return-home-btn" title="Volver al portal principal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        <span>Volver a la Web</span>
+      </a>
     </div>
   </header>
 
-  <p *ngIf="message" class="message success">{{ message }}</p>
-  <p *ngIf="error" class="message error">{{ error }}</p>
+  <!-- BARRA DE PESTAÑAS (TABS) -->
+  <nav class="admin-nav-tabs" aria-label="Navegación del Administrador">
+    <div class="tabs-container">
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'home'"
+        (click)="setTab('home')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </button>
 
-  <section *ngIf="authService.isAdmin()" class="creation-grid">
-    <form [formGroup]="publicationForm" (ngSubmit)="createPublication()" class="admin-card">
-      <h2>Nueva publicación</h2>
-      <label for="publication-title">Título</label>
-      <input id="publication-title" formControlName="title" />
-      <label for="publication-content">Contenido</label>
-      <textarea id="publication-content" formControlName="content"></textarea>
-      <button type="submit" [disabled]="publicationForm.invalid">Publicar</button>
-    </form>
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'events'"
+        (click)="setTab('events')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+          <line x1="16" x2="16" y1="2" y2="6"/>
+          <line x1="8" x2="8" y1="2" y2="6"/>
+          <line x1="3" x2="21" y1="10" y2="10"/>
+        </svg>
+        <span>Eventos</span>
+        <span class="tab-badge">{{ activeEvents().length }}</span>
+      </button>
 
-    <form [formGroup]="eventForm" (ngSubmit)="createEvent()" class="admin-card">
-      <h2>Nuevo evento</h2>
-      <label for="event-title">Título</label>
-      <input id="event-title" formControlName="title" />
-      <label for="event-description">Descripción</label>
-      <textarea id="event-description" formControlName="description"></textarea>
-      <label for="event-start">Inicio</label>
-      <input id="event-start" type="datetime-local" formControlName="startDate" />
-      <label for="event-end">Fin</label>
-      <input id="event-end" type="datetime-local" formControlName="endDate" />
-      <button type="submit" [disabled]="eventForm.invalid">Crear evento</button>
-    </form>
-  </section>
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'news'"
+        (click)="setTab('news')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+          <path d="M18 14h-8"/>
+          <path d="M15 18h-5"/>
+          <path d="M10 6h8v4h-8V6Z"/>
+        </svg>
+        <span>Noticias</span>
+        <span class="tab-badge" *ngIf="publications.length">{{ publications.length }}</span>
+      </button>
 
-  <section class="lists-grid">
-    <article class="admin-card">
-      <h2>Publicaciones</h2>
-      <p *ngIf="!publications.length">No hay publicaciones.</p>
-      <div *ngFor="let publication of publications" class="list-row">
-        <span>{{ publication.title }} <small>({{ publication.author?.rol?.name || 'sin rol' }})</small></span>
-        <button type="button" (click)="deletePublication(publication.uuid)">Eliminar</button>
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'users'"
+        (click)="setTab('users')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>Usuarios</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'settings'"
+        (click)="setTab('settings')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span>Configuración</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MENSAJES Y NOTIFICACIONES -->
+  <div class="feedback-container" *ngIf="message || error">
+    <div *ngIf="message" class="alert-box success">
+      <div class="alert-icon">✓</div>
+      <div class="alert-text">{{ message }}</div>
+      <button class="alert-close" (click)="clearAlerts()">✕</button>
+    </div>
+    <div *ngIf="error" class="alert-box error">
+      <div class="alert-icon">⚠</div>
+      <div class="alert-text">{{ error }}</div>
+      <button class="alert-close" (click)="clearAlerts()">✕</button>
+    </div>
+  </div>
+
+  <!-- CONTENIDO DINÁMICO POR PESTAÑA -->
+  <main class="admin-content-area">
+
+    <!-- ====================================================================
+         1. PESTAÑA HOME (RESUMEN GENERAL)
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'home'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Panel General de Control</h2>
+        <p>Bienvenido al centro de administración de Líbero. Gestiona contenidos, eventos y configuraciones globales.</p>
       </div>
-    </article>
 
-    <article class="admin-card">
-      <h2>Eventos</h2>
-      <p *ngIf="!events.length">No hay eventos.</p>
-      <div *ngFor="let event of events" class="list-row">
-        <span>{{ event.title }} <small>({{ event.organizer?.rol?.name || 'sin rol' }})</small></span>
-        <button type="button" (click)="deleteEvent(event.uuid)">Eliminar</button>
+      <!-- Métricas / KPIs rápidos -->
+      <div class="kpi-grid">
+        <div class="kpi-card" (click)="setTab('events')">
+          <div class="kpi-icon-wrap events-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Eventos Activos</span>
+            <span class="kpi-value">{{ activeEvents().length }}</span>
+          </div>
+          <span class="kpi-action">Gestionar →</span>
+        </div>
+
+        <div class="kpi-card" (click)="setTab('news')">
+          <div class="kpi-icon-wrap news-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Noticias & Artículos</span>
+            <span class="kpi-value">{{ publications.length }}</span>
+          </div>
+          <span class="kpi-action">Gestionar →</span>
+        </div>
+
+        <div class="kpi-card" (click)="setTab('users')">
+          <div class="kpi-icon-wrap users-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Control de Usuarios</span>
+            <span class="kpi-value">Módulo Activo</span>
+          </div>
+          <span class="kpi-action">Ver roles →</span>
+        </div>
+
+        <div class="kpi-card" (click)="setTab('settings')">
+          <div class="kpi-icon-wrap settings-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Configuración</span>
+            <span class="kpi-value">Ajustes</span>
+          </div>
+          <span class="kpi-action">Configurar →</span>
+        </div>
       </div>
-    </article>
-  </section>
-</main>
+
+      <!-- Panel de Accesos Rápidos y Resumen -->
+      <div class="quick-overview-grid">
+        <div class="card overview-card">
+          <div class="card-header">
+            <h3>Acciones Rápidas</h3>
+          </div>
+          <div class="card-body quick-actions-list">
+            <button class="action-tile" (click)="setTab('events')">
+              <span class="tile-icon">+</span>
+              <div class="tile-content">
+                <strong>Publicar Nuevo Evento</strong>
+                <small>Crear fecha, horarios y lugar para la comunidad</small>
+              </div>
+            </button>
+            <button class="action-tile" (click)="setTab('news')">
+              <span class="tile-icon">+</span>
+              <div class="tile-content">
+                <strong>Redactar Noticia / Artículo</strong>
+                <small>Publicar comunicado o editorial en el portal</small>
+              </div>
+            </button>
+            <button class="action-tile" (click)="setTab('users')">
+              <span class="tile-icon">👥</span>
+              <div class="tile-content">
+                <strong>Supervisar Usuarios</strong>
+                <small>Ver registros y asignar permisos</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="card overview-card">
+          <div class="card-header">
+            <h3>Estado del Sistema</h3>
+          </div>
+          <div class="card-body system-status">
+            <div class="status-item">
+              <span class="status-dot online"></span>
+              <div class="status-info">
+                <strong>API Backend</strong>
+                <small>Conectado (http://localhost:3000)</small>
+              </div>
+            </div>
+            <div class="status-item">
+              <span class="status-dot online"></span>
+              <div class="status-info">
+                <strong>Sesión Administrativa</strong>
+                <small>{{ authService.getUser()?.email }}</small>
+              </div>
+            </div>
+            <div class="status-item">
+              <span class="status-dot info"></span>
+              <div class="status-info">
+                <strong>Privilegios</strong>
+                <small>{{ authService.isAdmin() ? 'Acceso Total (Admin)' : 'Gestión Moderador' }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         2. PESTAÑA EVENTOS (FORMULARIO + VISTAS PREVIAS + ACTIVOS + PASADOS)
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'events'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Gestión Integral de Eventos</h2>
+        <p>Crea nuevos eventos para el portal con previsualización en vivo de la tarjeta y su vista detallada.</p>
+      </div>
+
+      <!-- SECCIÓN SUPERIOR: FORMULARIO + VISTAS PREVIAS DUALES -->
+      <div class="events-editor-layout">
+        
+        <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+        <div class="card form-card-box">
+          <div class="card-header form-card-header">
+            <div>
+              <h3>Nuevo Evento</h3>
+              <p class="card-header-desc">Ingresa los datos para publicarlo en la cartelera</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <form [formGroup]="eventForm" (ngSubmit)="createEvent()">
+              
+              <!-- Título -->
+              <div class="form-group">
+                <label for="evt-title">Título del Evento *</label>
+                <input 
+                  id="evt-title" 
+                  type="text" 
+                  formControlName="title" 
+                  [class.input-invalid]="isFieldInvalid('title')"
+                  placeholder="Ej. SINFONÍA NOCTURNA: GALA Y MÚSICA EN VIVO" 
+                />
+                <span class="field-error-msg" *ngIf="isFieldInvalid('title')">* El título es obligatorio (mínimo 3 caracteres)</span>
+              </div>
+
+              <!-- Subtítulo -->
+              <div class="form-group">
+                <label for="evt-subtitle">Subtítulo / Temática *</label>
+                <input 
+                  id="evt-subtitle" 
+                  type="text" 
+                  formControlName="subtitle" 
+                  [class.input-invalid]="isFieldInvalid('subtitle')"
+                  placeholder="Ej. Una velada inmersiva con la Orquesta Filarmónica Contemporánea" 
+                />
+                <span class="field-error-msg" *ngIf="isFieldInvalid('subtitle')">* El subtítulo es obligatorio</span>
+              </div>
+
+              <!-- Fila: Día, Mes, Horario -->
+              <div class="form-row form-row-3">
+                <div class="form-group">
+                  <label for="evt-day">Día *</label>
+                  <input 
+                    id="evt-day" 
+                    type="text" 
+                    maxlength="2" 
+                    formControlName="dateDay" 
+                    [class.input-invalid]="isFieldInvalid('dateDay')"
+                    placeholder="Ej. 28" 
+                  />
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('dateDay')">* Día requerido</span>
+                </div>
+
+                <div class="form-group">
+                  <label for="evt-month">Mes *</label>
+                  <select id="evt-month" formControlName="dateMonth">
+                    <option value="ENE">ENE (Enero)</option>
+                    <option value="FEB">FEB (Febrero)</option>
+                    <option value="MAR">MAR (Marzo)</option>
+                    <option value="ABR">ABR (Abril)</option>
+                    <option value="MAY">MAY (Mayo)</option>
+                    <option value="JUN">JUN (Junio)</option>
+                    <option value="JUL">JUL (Julio)</option>
+                    <option value="AGO">AGO (Agosto)</option>
+                    <option value="SEP">SEP (Septiembre)</option>
+                    <option value="OCT">OCT (Octubre)</option>
+                    <option value="NOV">NOV (Noviembre)</option>
+                    <option value="DIC">DIC (Diciembre)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="evt-time">Horario *</label>
+                  <input 
+                    id="evt-time" 
+                    type="text" 
+                    formControlName="time" 
+                    [class.input-invalid]="isFieldInvalid('time')"
+                    placeholder="Ej. 20:30 - 23:30 HRS" 
+                  />
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('time')">* Horario requerido</span>
+                </div>
+              </div>
+
+              <!-- Fila: Recinto / Ubicación y Sala / Ciudad -->
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label for="evt-loc">Lugar / Recinto *</label>
+                  <input 
+                    id="evt-loc" 
+                    type="text" 
+                    formControlName="location" 
+                    [class.input-invalid]="isFieldInvalid('location')"
+                    placeholder="Ej. Gran Teatro Metropolitano" 
+                  />
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('location')">* Lugar obligatorio</span>
+                </div>
+                <div class="form-group">
+                  <label for="evt-city">Sala / Ciudad *</label>
+                  <input 
+                    id="evt-city" 
+                    type="text" 
+                    formControlName="city" 
+                    [class.input-invalid]="isFieldInvalid('city')"
+                    placeholder="Ej. Sala Principal" 
+                  />
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('city')">* Sala requerida</span>
+                </div>
+              </div>
+
+              <!-- Imagen URL -->
+              <div class="form-group">
+                <label for="evt-img">URL de Imagen de Portada *</label>
+                <input 
+                  id="evt-img" 
+                  type="url" 
+                  formControlName="imageUrl" 
+                  [class.input-invalid]="isFieldInvalid('imageUrl')"
+                  placeholder="https://images.unsplash.com/..." 
+                />
+                <span class="field-error-msg" *ngIf="isFieldInvalid('imageUrl')">* URL obligatoria</span>
+              </div>
+
+              <!-- Descripción -->
+              <div class="form-group">
+                <label for="evt-desc">Descripción Completa *</label>
+                <textarea 
+                  id="evt-desc" 
+                  formControlName="description" 
+                  rows="4" 
+                  [class.input-invalid]="isFieldInvalid('description')"
+                  placeholder="Describe la experiencia, programa, invitados especiales y dinámicas del evento..."
+                ></textarea>
+                <span class="field-error-msg" *ngIf="isFieldInvalid('description')">* Descripción obligatoria (mínimo 10 caracteres)</span>
+              </div>
+
+              <!-- Botón Crear -->
+              <div class="form-actions">
+                <button type="submit" class="btn-primary-publish" [disabled]="isLoading">
+                  <svg *ngIf="!isLoading" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>{{ isLoading ? 'Guardando en Base de Datos...' : 'Publicar Evento en Catálogo' }}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: VISTAS PREVIAS EN VIVO (TARJETA + TARJETA ABIERTA) -->
+        <div class="previews-column">
+
+          <!-- VISTA PREVIA 1: TARJETA DEL CATÁLOGO -->
+          <div class="preview-block">
+            <div class="preview-label">
+              <span class="badge-number">1</span>
+              <span>Vista Previa: Tarjeta en Catálogo (Lista)</span>
+            </div>
+
+            <div class="preview-card-wrapper">
+              <article class="mock-event-card">
+                <!-- Imagen con overlay y fecha flotante -->
+                <div class="mock-image-wrapper">
+                  <img [src]="livePreview().imageUrl" [alt]="livePreview().title" class="mock-img" />
+                  <div class="mock-img-overlay"></div>
+                  <div class="mock-date-badge">
+                    <span class="mock-date-day">{{ livePreview().dateDay }}</span>
+                    <span class="mock-date-month">{{ livePreview().dateMonth }}</span>
+                  </div>
+                </div>
+
+                <!-- Contenido -->
+                <div class="mock-card-content">
+                  <div class="mock-card-meta">
+                    <div class="meta-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <span>{{ livePreview().time }}</span>
+                    </div>
+                    <div class="meta-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>{{ livePreview().location }} · {{ livePreview().city }}</span>
+                    </div>
+                  </div>
+
+                  <h4 class="mock-card-title">{{ livePreview().title }}</h4>
+                  <p class="mock-card-subtitle">{{ livePreview().subtitle }}</p>
+                  <p class="mock-card-desc">{{ livePreview().description }}</p>
+
+                  <div class="mock-card-footer">
+                    <div class="mock-cta-btn">
+                      <span>VER EVENTO</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- VISTA PREVIA 2: TARJETA ABIERTA (MODAL DE DETALLE) -->
+          <div class="preview-block">
+            <div class="preview-label">
+              <span class="badge-number">2</span>
+              <span>Vista Previa: Tarjeta Abierta (Modal de Detalle)</span>
+            </div>
+
+            <div class="preview-modal-wrapper">
+              <div class="mock-modal-card">
+                <button type="button" class="mock-modal-close" disabled>✕</button>
+
+                <div class="mock-modal-header">
+                  <span class="mock-modal-badge">DETALLES DEL EVENTO</span>
+                  <h4 class="mock-modal-title">{{ livePreview().title }}</h4>
+                  <p class="mock-modal-subtitle">{{ livePreview().subtitle }}</p>
+                </div>
+
+                <div class="mock-modal-body">
+                  <div class="mock-modal-img-box">
+                    <img [src]="livePreview().imageUrl" [alt]="livePreview().title" />
+                  </div>
+
+                  <div class="mock-modal-details-table">
+                    <div class="detail-row">
+                      <span class="lbl">Fecha:</span>
+                      <span class="val">{{ livePreview().dateDay }} de {{ livePreview().dateMonth }} 2026</span>
+                    </div>
+                    <div class="detail-row">
+                      <span class="lbl">Horario:</span>
+                      <span class="val">{{ livePreview().time }}</span>
+                    </div>
+                    <div class="detail-row">
+                      <span class="lbl">Ubicación:</span>
+                      <span class="val">{{ livePreview().location }} ({{ livePreview().city }})</span>
+                    </div>
+                  </div>
+
+                  <p class="mock-modal-desc">{{ livePreview().description }}</p>
+                </div>
+
+                <div class="mock-modal-footer">
+                  <button type="button" class="mock-btn-close">Cerrar</button>
+                  <button type="button" class="mock-btn-notify">🔔 Notificarme Evento</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ==================================================================
+           SECCIÓN INFERIOR: GESTIÓN DE EVENTOS (FILTRO ACTIVOS / VENCIDOS)
+           ================================================================== -->
+      <div class="events-management-section">
+        <div class="section-title-bar">
+          <div class="filter-toggle-group">
+            <button 
+              type="button" 
+              class="filter-toggle-btn" 
+              [class.active]="eventFilter() === 'active'"
+              (click)="eventFilter.set('active')">
+              <span>Activos</span>
+              <span class="filter-badge">{{ activeEvents().length }}</span>
+            </button>
+            <button 
+              type="button" 
+              class="filter-toggle-btn" 
+              [class.active]="eventFilter() === 'past'"
+              (click)="eventFilter.set('past')">
+              <span>Vencidos</span>
+              <span class="filter-badge">{{ pastEvents().length }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- LISTA DE EVENTOS ACTIVOS -->
+        <div *ngIf="eventFilter() === 'active'">
+          <div *ngIf="!activeEvents().length" class="empty-events-state">
+            <p>No hay eventos activos publicados actualmente. ¡Usa el formulario superior para crear uno!</p>
+          </div>
+
+          <div *ngIf="activeEvents().length" class="large-events-grid">
+            <article *ngFor="let item of activeEvents()" class="admin-event-card-large">
+              <!-- Imagen lateral -->
+              <div class="event-image-side">
+                <img [src]="item.imageUrl" [alt]="item.title" />
+                <div class="date-chip-floating">
+                  <span class="d-day">{{ item.dateDay }}</span>
+                  <span class="d-month">{{ item.dateMonth }}</span>
+                </div>
+              </div>
+
+              <!-- Información central -->
+              <div class="event-info-main">
+                <div class="meta-row">
+                  <span class="meta-info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {{ item.time }}
+                  </span>
+                  <span class="meta-info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ item.location }} ({{ item.city }})
+                  </span>
+                </div>
+
+                <h4 class="event-title-text">{{ item.title }}</h4>
+                <p class="event-subtitle-text">{{ item.subtitle }}</p>
+                <p class="event-desc-text">{{ item.description }}</p>
+
+                <!-- Barra de herramientas de administración -->
+                <div class="admin-action-bar">
+                  <button type="button" class="btn-action-view" (click)="openEventModal(item)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>Ver Tarjeta Abierta</span>
+                  </button>
+
+                  <button type="button" class="btn-action-archive" (click)="moveToPast(item)" title="Marcar como vencido">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                    <span>Mover a Vencidos</span>
+                  </button>
+
+                  <button type="button" class="btn-action-delete" (click)="deleteEvent(item)" title="Eliminar evento definitivamente">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <!-- LISTA DE EVENTOS VENCIDOS -->
+        <div *ngIf="eventFilter() === 'past'">
+          <div *ngIf="!pastEvents().length" class="empty-events-state">
+            <p>No hay eventos vencidos o desactivados actualmente.</p>
+          </div>
+
+          <div *ngIf="pastEvents().length" class="large-events-grid">
+            <article *ngFor="let item of pastEvents()" class="admin-event-card-large past-card">
+              <!-- Imagen lateral -->
+              <div class="event-image-side past-img-side">
+                <img [src]="item.imageUrl" [alt]="item.title" />
+                <div class="date-chip-floating past-chip">
+                  <span class="d-day">{{ item.dateDay }}</span>
+                  <span class="d-month">{{ item.dateMonth }}</span>
+                </div>
+              </div>
+
+              <!-- Información central -->
+              <div class="event-info-main">
+                <div class="meta-row">
+                  <span class="meta-info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {{ item.time }}
+                  </span>
+                  <span class="meta-info-item">
+                    {{ item.location }} · {{ item.city }}
+                  </span>
+                </div>
+
+                <h4 class="event-title-text past-title">{{ item.title }}</h4>
+                <p class="event-subtitle-text">{{ item.subtitle }}</p>
+                <p class="event-desc-text">{{ item.description }}</p>
+
+                <!-- Barra de herramientas de administración -->
+                <div class="admin-action-bar">
+                  <button type="button" class="btn-action-view" (click)="openEventModal(item)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>Ver Detalle</span>
+                  </button>
+
+                  <button type="button" class="btn-action-reactivate" (click)="restoreToActive(item)" title="Reactivar y mover a eventos activos">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                    <span>Reactivar a Activos</span>
+                  </button>
+
+                  <button type="button" class="btn-action-delete" (click)="deleteEvent(item)" title="Eliminar evento definitivamente">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ====================================================================
+         3. PESTAÑA NOTICIAS
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'news'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Gestión de Noticias y Publicaciones</h2>
+        <p>Publica comunicados, editoriales y artículos para la portada de Líbero.</p>
+      </div>
+
+      <div class="admin-grid-2col">
+        <!-- Formulario de Creación -->
+        <div class="card form-card" *ngIf="authService.isAdmin()">
+          <div class="card-header">
+            <h3>Nueva Publicación</h3>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="publicationForm" (ngSubmit)="createPublication()">
+              <div class="form-group">
+                <label for="publication-title">Título del Artículo *</label>
+                <input id="publication-title" type="text" formControlName="title" placeholder="Ej. Lanzamiento de la nueva edición 2026" />
+              </div>
+
+              <div class="form-group">
+                <label for="publication-content">Cuerpo de la Noticia *</label>
+                <textarea id="publication-content" formControlName="content" rows="6" placeholder="Escribe el contenido completo del artículo..."></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" [disabled]="publicationForm.invalid">
+                  <span>Publicar Noticia</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Listado de Noticias -->
+        <div class="card list-card">
+          <div class="card-header list-header">
+            <h3>Artículos Publicados</h3>
+            <span class="counter-badge">{{ publications.length }}</span>
+          </div>
+          <div class="card-body">
+            <div *ngIf="!publications.length" class="empty-state">
+              <p>No hay noticias publicadas aún.</p>
+            </div>
+            <div *ngIf="publications.length" class="items-list">
+              <div *ngFor="let pub of publications" class="item-row">
+                <div class="item-main">
+                  <span class="item-title">{{ pub.title }}</span>
+                  <div class="item-meta">
+                    <span class="meta-tag">{{ pub.author?.name || 'Autor' }}</span>
+                    <small *ngIf="pub.author?.rol?.name">({{ pub.author?.rol?.name }})</small>
+                  </div>
+                </div>
+                <button type="button" class="btn-delete" (click)="deletePublication(pub.uuid)" title="Eliminar publicación">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  <span>Eliminar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         4. PESTAÑA USUARIOS
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'users'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Gestión de Usuarios y Roles</h2>
+        <p>Control de cuentas, asignación de permisos administrativos y supervisión de accesos.</p>
+      </div>
+
+      <div class="card placeholder-card">
+        <div class="placeholder-icon">👥</div>
+        <h3>Módulo de Usuarios</h3>
+        <p>Estructura lista para la gestión detallada de usuarios, asignación de roles y estados de cuenta.</p>
+        <div class="placeholder-actions">
+          <span class="status-pill active">Listo para configurar</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         5. PESTAÑA CONFIGURACIÓN
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'settings'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Configuración del Sistema</h2>
+        <p>Ajustes generales del portal, preferencias de notificaciones y parámetros del sistema.</p>
+      </div>
+
+      <div class="card placeholder-card">
+        <div class="placeholder-icon">⚙️</div>
+        <h3>Módulo de Configuración</h3>
+        <p>Estructura lista para preferencias del sitio, personalización del portal y variables operativas.</p>
+        <div class="placeholder-actions">
+          <span class="status-pill active">Listo para configurar</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================
+       MODAL DE DETALLE INTERACTIVO (TARJETA ABIERTA) PARA EL ADMIN
+       ====================================================================== -->
+  @if (selectedEventDetail(); as item) {
+    <div class="admin-modal-backdrop" (click)="closeEventModal()">
+      <div class="admin-modal-container" (click)="$event.stopPropagation()">
+        <button class="admin-modal-close" (click)="closeEventModal()">✕</button>
+
+        <div class="modal-header-section">
+          <span class="detail-badge-top">VISTA DETALLADA DEL EVENTO</span>
+          <h2 class="modal-main-title">{{ item.title }}</h2>
+          <p class="modal-main-subtitle">{{ item.subtitle }}</p>
+        </div>
+
+        <div class="modal-content-section">
+          <div class="modal-hero-img-box">
+            <img [src]="item.imageUrl" [alt]="item.title" />
+            <div class="modal-date-chip">
+              <span class="d-day">{{ item.dateDay }}</span>
+              <span class="d-month">{{ item.dateMonth }}</span>
+            </div>
+          </div>
+
+          <div class="modal-info-table">
+            <div class="info-row">
+              <span class="info-lbl">Fecha programada:</span>
+              <span class="info-val">{{ item.dateDay }} de {{ item.dateMonth }} 2026</span>
+            </div>
+            <div class="info-row">
+              <span class="info-lbl">Horario:</span>
+              <span class="info-val">{{ item.time }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-lbl">Lugar / Recinto:</span>
+              <span class="info-val">{{ item.location }} · {{ item.city }}</span>
+            </div>
+          </div>
+
+          <div class="modal-description-text">
+            <h5>Descripción del Evento:</h5>
+            <p>{{ item.description }}</p>
+          </div>
+        </div>
+
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-modal-dismiss" (click)="closeEventModal()">Cerrar Vista Previa</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

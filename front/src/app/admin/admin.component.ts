@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/services/auth.service';
 import { SurveyBuilderComponent } from '../survey/components/survey-builder/survey-builder.component';
 import { SurveyResultsComponent } from '../survey/components/survey-results/survey-results.component';
@@ -71,6 +71,7 @@ export class AdminComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly formBuilder = inject(FormBuilder);
   private readonly surveyService = inject(SurveyService);
+  private readonly router = inject(Router);
   readonly authService = inject(AuthService);
 
   private readonly eventsApiUrl = 'http://localhost:3000/events';
@@ -484,12 +485,33 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  // # Este bloque tiene como objetivo cambiar el rol de un usuario, actualizar la sesión en tiempo real si es la cuenta propia y sacar al usuario al Home si perdió privilegios de administración
   changeUserRole(uuid: string, newRole: string): void {
     this.clearAlerts();
+    const currentUser = this.authService.getUser();
+    const targetUser = this.users().find((u) => u.uuid === uuid);
+
     this.http.patch(`${this.usersApiUrl}/${uuid}/role`, { role: newRole }, this.options).subscribe({
       next: () => {
         this.message = 'Rol de usuario actualizado correctamente.';
         this.loadUsers();
+
+        // Verificar si se modificó la cuenta con la que actualmente se tiene la sesión iniciada
+        const isSelf = !!(currentUser && targetUser && (
+          (targetUser.email && currentUser.email && targetUser.email.toLowerCase() === currentUser.email.toLowerCase()) ||
+          (targetUser.uuid === (currentUser as any).uuid)
+        ));
+
+        if (isSelf) {
+          this.authService.updateCurrentUserRole(newRole);
+
+          // Si el nuevo rol ya no es administrativo ('admin' o 'mod'), redirigir automáticamente fuera del panel al Home
+          if (newRole !== 'admin' && newRole !== 'mod') {
+            this.router.navigate(['/']);
+            return;
+          }
+        }
+
         this.clearAlertsSoon();
       },
       error: (err) => {

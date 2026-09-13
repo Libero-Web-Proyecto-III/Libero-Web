@@ -31,6 +31,16 @@ export class AuthService {
   readonly isLoggedIn = computed(() => this.currentUser() !== null && this.getToken() !== null);
   readonly isAdmin = computed(() => this.currentUser()?.role === 'admin');
 
+  // # Este bloque tiene como objetivo actualizar el rol del usuario autenticado en la sesión activa y localStorage en tiempo real
+  updateCurrentUserRole(newRole: string): void {
+    const user = this.currentUser();
+    if (user) {
+      const updatedUser = { ...user, role: newRole };
+      localStorage.setItem('authUser', JSON.stringify(updatedUser));
+      this.currentUser.set(updatedUser);
+    }
+  }
+
   // # Este bloque tiene como objetivo realizar la petición HTTP de inicio de sesión y guardar la sesión activa
   login(payload: { identifier: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, payload).pipe(

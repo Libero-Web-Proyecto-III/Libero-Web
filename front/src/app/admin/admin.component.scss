@@ -121,17 +121,17 @@
 .return-home-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.15rem;
-  border-radius: 8px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  font-size: 0.875rem;
-  font-weight: 600;
   text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.28);
   backdrop-filter: blur(6px);
-  transition: all 0.25 ease;
+  transition: all 0.2s ease;
 
   svg {
     transition: transform 0.2s ease;
@@ -143,9 +143,10 @@
     color: #1e3a8a;
     border-color: #ffffff;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    transform: scale(1.08);
 
     svg {
-      transform: translateX(-3px);
+      transform: scale(1.1);
       stroke: #1e3a8a;
     }
   }

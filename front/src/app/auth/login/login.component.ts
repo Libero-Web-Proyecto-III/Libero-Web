@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -23,7 +23,7 @@ export class LoginComponent {
   constructor(
     private FormBuilderService: FormBuilder,
     private RouterService: Router,
-    private AuthService: AuthService,
+    private AuthService: AuthService
   ) {
     // Configuración del grupo de controles y reglas de validación del Login
     this.LoginForm = this.FormBuilderService.group({
@@ -57,8 +57,10 @@ export class LoginComponent {
     }).subscribe({
       next: response => {
         this.IsLoading = false;
-        this.SuccessMessage = response.message;
-        setTimeout(() => this.RouterService.navigate([this.AuthService.hasManagementRole() ? '/admin' : '/']), 500);
+        this.SuccessMessage = response.message || '¡Inicio de sesión exitoso! Redirigiendo...';
+        setTimeout(() => {
+          this.RouterService.navigate(['/']);
+        }, 1500);
       },
       error: () => {
         this.IsLoading = false;

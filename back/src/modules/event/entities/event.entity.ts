@@ -4,7 +4,6 @@ import {
   Entity,
   Generated,
   ManyToOne,
-  PrimaryColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   JoinColumn,
@@ -28,17 +27,52 @@ export class EventEntity {
 
   @ApiProperty({
     description: 'Título del evento',
-    example: 'Hackathon UNIP 2026',
+    example: 'SINFONÍA NOCTURNA: GALA Y MÚSICA EN VIVO',
   })
   @Column()
   title: string;
 
-  @ApiProperty({
-    description: 'Descripción del evento',
-    example: 'Evento de 24 horas para desarrollar soluciones tecnológicas en equipo.',
+  @ApiPropertyOptional({
+    description: 'Subtítulo o lema del evento',
+    example: 'Una velada inmersiva con la Orquesta Filarmónica Contemporánea',
   })
-  @Column('text')
-  description: string;
+  @Column({ nullable: true, type: 'varchar', length: 500 })
+  subtitle: string;
+
+  @ApiPropertyOptional({
+    description: 'Día del evento',
+    example: '28',
+  })
+  @Column({ nullable: true, type: 'varchar', length: 10 })
+  dateDay: string;
+
+  @ApiPropertyOptional({
+    description: 'Mes del evento',
+    example: 'AGO',
+  })
+  @Column({ nullable: true, type: 'varchar', length: 10 })
+  dateMonth: string;
+
+  @ApiPropertyOptional({
+    description: 'Horario del evento',
+    example: '20:30 - 23:30 HRS',
+  })
+  @Column({ nullable: true, type: 'varchar', length: 100 })
+  time: string;
+
+  @ApiPropertyOptional({
+    description: 'Lugar o recinto',
+    example: 'Gran Teatro Metropolitano',
+  })
+  @Column({ nullable: true, type: 'varchar', length: 255 })
+  location: string;
+
+  @ApiPropertyOptional({
+    description: 'Sala o ciudad',
+    example: 'Sala Principal',
+  })
+  @Column({ nullable: true, type: 'varchar', length: 255 })
+  city: string;
 
   // # Este bloque guarda opcionalmente la imagen promocional o multimedia del evento en formato Base64 permitiendo contenido extenso (longtext)
   @ApiPropertyOptional({
@@ -49,25 +83,44 @@ export class EventEntity {
   image?: string;
 
   @ApiProperty({
+    description: 'Descripción detallada del evento',
+  })
+  @Column({ type: 'longtext', nullable: true })
+  description: string;
+
+  @ApiPropertyOptional({
+    description: 'URL o base64 de imagen de portada',
+  })
+  @Column({ type: 'longtext', nullable: true })
+  imageUrl: string;
+
+  @ApiPropertyOptional({
+    description: 'Estado del evento: active / past',
+    example: 'active',
+  })
+  @Column({ nullable: true, default: 'active', type: 'varchar', length: 50 })
+  status: string;
+
+  @ApiPropertyOptional({
     description: 'Fecha y hora de inicio',
     example: '2026-09-15T08:00:00.000Z',
   })
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', nullable: true })
   startDate: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Fecha y hora de finalización',
     example: '2026-09-16T08:00:00.000Z',
   })
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', nullable: true })
   endDate: Date;
 
-  @ApiProperty({
-    description: 'Usuario moderador que organiza el evento',
+  @ApiPropertyOptional({
+    description: 'Usuario organizador del evento',
     type: () => UserEntity,
   })
   @JoinColumn({ name: 'organizer' })
-  @ManyToOne(() => UserEntity, (user) => user.events)
+  @ManyToOne(() => UserEntity, (user) => user.events, { nullable: true, onDelete: 'SET NULL' })
   organizer: UserEntity;
 
   @ApiProperty({

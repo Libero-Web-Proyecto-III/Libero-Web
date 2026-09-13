@@ -1,336 +1,1712 @@
-<main class="admin-page">
-  <!-- # Este bloque tiene como objetivo renderizar el encabezado con el logo de la empresa y datos de sesión -->
-  <header class="admin-header">
-    <div class="header-branding">
-      <img src="logo.png" alt="Logo Libero Web" class="admin-logo" />
-      <div>
-        <p class="eyebrow">Control de acceso</p>
-        <h1>Panel de administración</h1>
-        <p>Sesión: {{ authService.getUser()?.username }} · Rol: {{ authService.getUser()?.role }}</p>
+<div class="admin-wrapper">
+  <!-- HEADER PRINCIPAL -->
+  <header class="admin-topbar">
+    <div class="topbar-brand">
+      <div class="brand-badge">
+        <span class="brand-title">LÍBERO</span>
+        <span class="brand-sub">ADMIN DASHBOARD</span>
+      </div>
+      <div class="user-chip">
+        <div class="user-avatar">{{ userInitials() }}</div>
+        <div class="user-details">
+          <span class="user-name">{{ authService.getUser()?.username || 'Administrador' }}</span>
+          <span class="user-role-badge" [class.admin]="authService.isAdmin()">
+            {{ authService.isAdmin() ? 'ADMINISTRADOR' : (authService.getUser()?.role || 'MODERADOR') | uppercase }}
+          </span>
+        </div>
       </div>
     </div>
-    <div class="admin-header__actions">
-      <a routerLink="/" class="home-button">Volver al inicio</a>
-      <button type="button" class="btn-logout" (click)="authService.logout()">Cerrar sesión</button>
+
+    <!-- BOTÓN VOLVER (Sin botón de cerrar sesión) -->
+    <div class="topbar-actions">
+      <a routerLink="/" class="return-home-btn" title="Volver al portal principal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        <span>Volver a la Web</span>
+      </a>
     </div>
   </header>
 
-  <p *ngIf="message" class="message success">{{ message }}</p>
-  <p *ngIf="error" class="message error">{{ error }}</p>
+  <!-- BARRA DE PESTAÑAS (TABS) -->
+  <nav class="admin-nav-tabs" aria-label="Navegación del Administrador">
+    <div class="tabs-container">
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'home'"
+        (click)="setTab('home')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </button>
 
-  <!-- # SECCIÓN DE GESTIÓN DE USUARIOS Y ROLES (ADMIN - RF-05) -->
-  <section *ngIf="authService.isAdmin()" class="admin-section">
-    <article class="admin-card full-width-card">
-      <div class="card-title-bar">
-        <h2>👥 Gestión de Usuarios y Accesos</h2>
-        <span class="badge badge-info">{{ users.length }} usuarios registrados</span>
-      </div>
-      <p class="section-desc">Visualiza a los trabajadores y usuarios registrados. Puedes buscar por nombre o correo (gmail), filtrar por su nivel de acceso o cambiar su rol.</p>
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'events'"
+        (click)="setTab('events')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+          <line x1="16" x2="16" y1="2" y2="6"/>
+          <line x1="8" x2="8" y1="2" y2="6"/>
+          <line x1="3" x2="21" y1="10" y2="10"/>
+        </svg>
+        <span>Eventos</span>
+        <span class="tab-badge">{{ activeEvents().length }}</span>
+      </button>
 
-      <!-- # Este bloque tiene como objetivo proveer controles interactivos de búsqueda y filtrado por rol para los usuarios -->
-      <div class="user-controls-bar">
-        <div class="search-input-group">
-          <input
-            type="text"
-            [(ngModel)]="userSearchTerm"
-            placeholder="🔍 Buscar usuario por nombre o correo (gmail)..."
-            class="search-input"
-          />
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'news'"
+        (click)="setTab('news')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+          <path d="M18 14h-8"/>
+          <path d="M15 18h-5"/>
+          <path d="M10 6h8v4h-8V6Z"/>
+        </svg>
+        <span>Noticias</span>
+        <span class="tab-badge" *ngIf="publications().length">{{ publications().length }}</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'polls'"
+        (click)="setTab('polls')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3v18h18"/>
+          <rect x="7" y="10" width="3" height="8" rx="1"/>
+          <rect x="13" y="5" width="3" height="13" rx="1"/>
+          <rect x="19" y="13" width="2" height="5" rx="1"/>
+        </svg>
+        <span>Encuestas</span>
+        <span class="tab-badge" *ngIf="surveys().length">{{ surveys().length }}</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'users'"
+        (click)="setTab('users')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>Usuarios</span>
+        <span class="tab-badge" *ngIf="users().length">{{ users().length }}</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'settings'"
+        (click)="setTab('settings')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span>Configuración</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MENSAJES Y NOTIFICACIONES -->
+  <div class="feedback-container" *ngIf="message || error">
+    <div *ngIf="message" class="alert-box success">
+      <div class="alert-icon">✓</div>
+      <div class="alert-text">{{ message }}</div>
+      <button class="alert-close" (click)="clearAlerts()">✕</button>
+    </div>
+    <div *ngIf="error" class="alert-box error">
+      <div class="alert-icon">⚠</div>
+      <div class="alert-text">{{ error }}</div>
+      <button class="alert-close" (click)="clearAlerts()">✕</button>
+    </div>
+  </div>
+
+  <!-- CONTENIDO DINÁMICO POR PESTAÑA -->
+  <main class="admin-content-area">
+
+    <!-- ====================================================================
+         1. PESTAÑA HOME (RESUMEN GENERAL)
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'home'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Panel General de Control</h2>
+        <p>Bienvenido al centro de administración de Líbero. Gestiona contenidos, eventos y configuraciones globales.</p>
+      </div>
+
+      <!-- Métricas / KPIs rápidos -->
+      <div class="kpi-grid">
+        <div class="kpi-card" (click)="setTab('events')">
+          <div class="kpi-icon-wrap events-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Eventos Activos</span>
+            <span class="kpi-value">{{ activeEvents().length }}</span>
+          </div>
+          <span class="kpi-action">Gestionar →</span>
         </div>
-        <div class="filter-select-group">
-          <label for="role-filter-select">Filtro rol:</label>
-          <select id="role-filter-select" [(ngModel)]="userRoleFilter" class="filter-select">
-            <option value="all">Todos los roles</option>
-            <option value="admin">Administrador (admin)</option>
-            <option value="mod">Moderador (mod)</option>
-            <option value="user">Usuario (user)</option>
-          </select>
+
+        <div class="kpi-card" (click)="setTab('news')">
+          <div class="kpi-icon-wrap news-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Noticias & Artículos</span>
+            <span class="kpi-value">{{ publications().length }}</span>
+          </div>
+          <span class="kpi-action">Gestionar →</span>
+        </div>
+
+        <div class="kpi-card" (click)="setTab('polls')">
+          <div class="kpi-icon-wrap polls-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8" rx="1"/><rect x="13" y="5" width="3" height="13" rx="1"/><rect x="19" y="13" width="2" height="5" rx="1"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Encuestas</span>
+            <span class="kpi-value">{{ surveys().length ? surveys().length + ' Creadas' : '0 Creadas' }}</span>
+          </div>
+          <span class="kpi-action">Gestionar →</span>
+        </div>
+
+        <div class="kpi-card" (click)="setTab('users')">
+          <div class="kpi-icon-wrap users-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Control de Usuarios</span>
+            <span class="kpi-value">{{ users().length ? users().length + ' Registrados' : 'Módulo Activo' }}</span>
+          </div>
+          <span class="kpi-action">Ver roles →</span>
+        </div>
+
+        <div class="kpi-card" (click)="setTab('settings')">
+          <div class="kpi-icon-wrap settings-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Configuración</span>
+            <span class="kpi-value">Ajustes</span>
+          </div>
+          <span class="kpi-action">Configurar →</span>
         </div>
       </div>
-      
-      <p *ngIf="!users.length" class="empty-msg">No hay usuarios registrados actualmente.</p>
-      <p *ngIf="users.length && !filteredUsers.length" class="empty-msg">No se encontraron usuarios que coincidan con la búsqueda o filtro aplicado.</p>
-      
-      <div *ngIf="filteredUsers.length" class="users-table-wrapper">
-        <table class="users-table">
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Correo Electrónico</th>
-              <th>Rol Actual</th>
-              <th>Cambiar Acceso / Rol</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let userItem of filteredUsers">
-              <td>
-                <strong>{{ userItem.name }}</strong>
-              </td>
-              <td>{{ userItem.email }}</td>
-              <td>
-                <span class="role-badge" [ngClass]="'role-' + (userItem.rol?.name || 'user')">
-                  {{ userItem.rol?.name || 'user' }}
-                </span>
-              </td>
-              <td>
-                <select
-                  [ngModel]="userItem.rol?.name || 'user'"
-                  (ngModelChange)="changeUserRole(userItem.uuid, $event)"
-                  class="role-select"
-                >
-                  <option value="admin">Administrador (admin)</option>
-                  <option value="mod">Moderador (mod)</option>
-                  <option value="user">Usuario Regular (user)</option>
-                </select>
-              </td>
-              <td>
-                <button
-                  type="button"
-                  class="btn-action btn-delete-sm"
-                  (click)="deleteUserAccount(userItem.uuid)"
-                  title="Eliminar usuario"
-                >
-                  🗑️ Eliminar
+
+      <!-- Panel de Accesos Rápidos y Resumen -->
+      <div class="quick-overview-grid">
+        <div class="card overview-card">
+          <div class="card-header">
+            <h3>Acciones Rápidas</h3>
+          </div>
+          <div class="card-body quick-actions-list">
+            <button class="action-tile" (click)="setTab('events')">
+              <span class="tile-icon">+</span>
+              <div class="tile-content">
+                <strong>Publicar Nuevo Evento</strong>
+                <small>Crear fecha, horarios y lugar para la comunidad</small>
+              </div>
+            </button>
+            <button class="action-tile" (click)="setTab('news')">
+              <span class="tile-icon">+</span>
+              <div class="tile-content">
+                <strong>Redactar Noticia / Artículo</strong>
+                <small>Publicar comunicado o editorial en el portal</small>
+              </div>
+            </button>
+            <button class="action-tile" (click)="setTab('users')">
+              <span class="tile-icon">👥</span>
+              <div class="tile-content">
+                <strong>Supervisar Usuarios</strong>
+                <small>Ver registros y asignar permisos</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="card overview-card">
+          <div class="card-header">
+            <h3>Estado del Sistema</h3>
+          </div>
+          <div class="card-body system-status">
+            <div class="status-item">
+              <span class="status-dot online"></span>
+              <div class="status-info">
+                <strong>API Backend</strong>
+                <small>Conectado (http://localhost:3000)</small>
+              </div>
+            </div>
+            <div class="status-item">
+              <span class="status-dot online"></span>
+              <div class="status-info">
+                <strong>Sesión Administrativa</strong>
+                <small>{{ authService.getUser()?.email }}</small>
+              </div>
+            </div>
+            <div class="status-item">
+              <span class="status-dot info"></span>
+              <div class="status-info">
+                <strong>Privilegios</strong>
+                <small>{{ authService.isAdmin() ? 'Acceso Total (Admin)' : 'Gestión Moderador' }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         2. PESTAÑA EVENTOS (FORMULARIO + VISTAS PREVIAS + ACTIVOS + PASADOS)
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'events'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Gestión Integral de Eventos</h2>
+        <p>Crea nuevos eventos para el portal con previsualización en vivo de la tarjeta y su vista detallada.</p>
+      </div>
+
+      <!-- SECCIÓN SUPERIOR: FORMULARIO + VISTAS PREVIAS DUALES -->
+      <div class="events-editor-layout">
+        
+        <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+        <div class="card form-card-box">
+          <div class="card-header form-card-header">
+            <div>
+              <h3>Nuevo Evento</h3>
+              <p class="card-header-desc">Ingresa los datos para publicarlo en la cartelera</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <form [formGroup]="eventForm" (ngSubmit)="createEvent()">
+              
+              <!-- Título -->
+              <div class="form-group">
+                <label for="evt-title">Título del Evento *</label>
+                <input 
+                  id="evt-title" 
+                  type="text" 
+                  formControlName="title" 
+                  [class.input-invalid]="isFieldInvalid('title')"
+                  placeholder="Ej. SINFONÍA NOCTURNA: GALA Y MÚSICA EN VIVO" 
+                />
+                <span class="field-error-msg" *ngIf="isFieldInvalid('title')">* El título es obligatorio (mínimo 3 caracteres)</span>
+              </div>
+
+              <!-- Subtítulo -->
+              <div class="form-group">
+                <label for="evt-subtitle">Subtítulo / Temática *</label>
+                <input 
+                  id="evt-subtitle" 
+                  type="text" 
+                  formControlName="subtitle" 
+                  [class.input-invalid]="isFieldInvalid('subtitle')"
+                  placeholder="Ej. Una velada inmersiva con la Orquesta Filarmónica Contemporánea" 
+                />
+                <span class="field-error-msg" *ngIf="isFieldInvalid('subtitle')">* El subtítulo es obligatorio</span>
+              </div>
+
+              <!-- Fila: Día, Mes, Horario -->
+              <div class="form-row form-row-3">
+                <div class="form-group">
+                  <label for="evt-day">Día *</label>
+                  <input 
+                    id="evt-day" 
+                    type="text" 
+                    maxlength="2" 
+                    formControlName="dateDay" 
+                    [class.input-invalid]="isFieldInvalid('dateDay')"
+                    placeholder="Ej. 28" 
+                  />
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('dateDay')">* Día requerido</span>
+                </div>
+
+                <div class="form-group">
+                  <label for="evt-month">Mes *</label>
+                  <select id="evt-month" formControlName="dateMonth">
+                    <option value="ENE">ENE (Enero)</option>
+                    <option value="FEB">FEB (Febrero)</option>
+                    <option value="MAR">MAR (Marzo)</option>
+                    <option value="ABR">ABR (Abril)</option>
+                    <option value="MAY">MAY (Mayo)</option>
+                    <option value="JUN">JUN (Junio)</option>
+                    <option value="JUL">JUL (Julio)</option>
+                    <option value="AGO">AGO (Agosto)</option>
+                    <option value="SEP">SEP (Septiembre)</option>
+                    <option value="OCT">OCT (Octubre)</option>
+                    <option value="NOV">NOV (Noviembre)</option>
+                    <option value="DIC">DIC (Diciembre)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="evt-time">Horario *</label>
+                  <input 
+                    id="evt-time" 
+                    type="text" 
+                    formControlName="time" 
+                    [class.input-invalid]="isFieldInvalid('time')"
+                    placeholder="Ej. 20:30 - 23:30 HRS" 
+                  />
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('time')">* Horario requerido</span>
+                </div>
+              </div>
+
+              <!-- Fila: Recinto / Ubicación y Sala / Ciudad -->
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label for="evt-loc">Lugar / Recinto *</label>
+                  <input 
+                    id="evt-loc" 
+                    type="text" 
+                    formControlName="location" 
+                    [class.input-invalid]="isFieldInvalid('location')"
+                    placeholder="Ej. Gran Teatro Metropolitano" 
+                  />
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('location')">* Lugar obligatorio</span>
+                </div>
+                <div class="form-group">
+                  <label for="evt-city">Sala / Ciudad *</label>
+                  <input 
+                    id="evt-city" 
+                    type="text" 
+                    formControlName="city" 
+                    [class.input-invalid]="isFieldInvalid('city')"
+                    placeholder="Ej. Sala Principal" 
+                  />
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('city')">* Sala requerida</span>
+                </div>
+              </div>
+
+              <!-- Imagen URL con opción de subir y recortar foto -->
+              <div class="form-group">
+                <div class="form-label-row">
+                  <label for="evt-img">URL de Imagen de Portada *</label>
+                  <div class="upload-badge-wrapper">
+                    <span class="upload-badge-text">o subir una foto</span>
+                    <button type="button" class="btn-subir-foto" (click)="openFilePicker('event')">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span>Subir foto</span>
+                    </button>
+                  </div>
+                </div>
+                <input 
+                  id="evt-img" 
+                  type="text" 
+                  formControlName="imageUrl" 
+                  [class.input-invalid]="isFieldInvalid('imageUrl')"
+                  placeholder="https://images.unsplash.com/... o sube tu foto" 
+                />
+                <span class="field-error-msg" *ngIf="isFieldInvalid('imageUrl')">* URL o foto obligatoria</span>
+              </div>
+
+              <!-- Descripción -->
+              <div class="form-group">
+                <label for="evt-desc">Descripción Completa *</label>
+                <textarea 
+                  id="evt-desc" 
+                  formControlName="description" 
+                  rows="4" 
+                  [class.input-invalid]="isFieldInvalid('description')"
+                  placeholder="Describe la experiencia, programa, invitados especiales y dinámicas del evento..."
+                ></textarea>
+                <span class="field-error-msg" *ngIf="isFieldInvalid('description')">* Descripción obligatoria (mínimo 10 caracteres)</span>
+              </div>
+
+              <!-- Botón Crear -->
+              <div class="form-actions">
+                <button type="submit" class="btn-primary-publish" [disabled]="isLoading">
+                  <svg *ngIf="!isLoading" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>{{ isLoading ? 'Guardando en Base de Datos...' : 'Publicar Evento en Catálogo' }}</span>
                 </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </article>
-  </section>
+              </div>
+            </form>
+          </div>
+        </div>
 
-  <!-- # SECCIÓN DE CONSTRUCTOR DE ENCUESTAS DINÁMICAS (RF-17 - Eduardo) -->
-  <section *ngIf="authService.hasManagementRole()" class="survey-management-section">
-    <app-survey-builder (surveyCreated)="loadSurveys()"></app-survey-builder>
-  </section>
+        <!-- COLUMNA DERECHA: VISTAS PREVIAS EN VIVO (TARJETA + TARJETA ABIERTA) -->
+        <div class="previews-column">
 
-  <!-- # SECCIÓN DE LISTADO DE ENCUESTAS DINÁMICAS Y RESULTADOS CON PAGINACIÓN (RF-17 y RF-18) -->
-  <section *ngIf="authService.hasManagementRole()" class="admin-section">
-    <article class="admin-card full-width-card">
-      <div class="card-title-bar">
-        <h2>🗳️ Encuestas Dinámicas Creadas</h2>
-        <div class="badge-group">
-          <span class="badge badge-primary">{{ surveys.length }} encuestas totales</span>
-          <span *ngIf="surveys.length > 5" class="badge badge-info">Página {{ currentSurveyPage }} de {{ totalSurveyPages }}</span>
+          <!-- VISTA PREVIA 1: TARJETA DEL CATÁLOGO -->
+          <div class="preview-block">
+            <div class="preview-label">
+              <span class="badge-number">1</span>
+              <span>Vista Previa: Tarjeta en Catálogo (Lista)</span>
+            </div>
+
+            <div class="preview-card-wrapper">
+              <article class="mock-event-card">
+                <!-- Imagen con overlay y fecha flotante -->
+                <div class="mock-image-wrapper">
+                  <img [src]="livePreview().imageUrl" [alt]="livePreview().title" class="mock-img" />
+                  <div class="mock-img-overlay"></div>
+                  <div class="mock-date-badge">
+                    <span class="mock-date-day">{{ livePreview().dateDay }}</span>
+                    <span class="mock-date-month">{{ livePreview().dateMonth }}</span>
+                  </div>
+                </div>
+
+                <!-- Contenido -->
+                <div class="mock-card-content">
+                  <div class="mock-card-meta">
+                    <div class="meta-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <span>{{ livePreview().time }}</span>
+                    </div>
+                    <div class="meta-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>{{ livePreview().location }} · {{ livePreview().city }}</span>
+                    </div>
+                  </div>
+
+                  <h4 class="mock-card-title">{{ livePreview().title }}</h4>
+                  <p class="mock-card-subtitle">{{ livePreview().subtitle }}</p>
+                  <p class="mock-card-desc">{{ livePreview().description }}</p>
+
+                  <div class="mock-card-footer">
+                    <div class="mock-cta-btn">
+                      <span>VER EVENTO</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- VISTA PREVIA 2: TARJETA ABIERTA (MODAL DE DETALLE) -->
+          <div class="preview-block">
+            <div class="preview-label">
+              <span class="badge-number">2</span>
+              <span>Vista Previa: Tarjeta Abierta (Modal de Detalle)</span>
+            </div>
+
+            <div class="preview-modal-wrapper">
+              <div class="mock-modal-card">
+                <button type="button" class="mock-modal-close" disabled>✕</button>
+
+                <div class="mock-modal-header">
+                  <span class="mock-modal-badge">DETALLES DEL EVENTO</span>
+                  <h4 class="mock-modal-title">{{ livePreview().title }}</h4>
+                  <p class="mock-modal-subtitle">{{ livePreview().subtitle }}</p>
+                </div>
+
+                <div class="mock-modal-body">
+                  <div class="mock-modal-img-box">
+                    <img [src]="livePreview().imageUrl" [alt]="livePreview().title" />
+                  </div>
+
+                  <div class="mock-modal-details-table">
+                    <div class="detail-row">
+                      <span class="lbl">Fecha:</span>
+                      <span class="val">{{ livePreview().dateDay }} de {{ livePreview().dateMonth }} 2026</span>
+                    </div>
+                    <div class="detail-row">
+                      <span class="lbl">Horario:</span>
+                      <span class="val">{{ livePreview().time }}</span>
+                    </div>
+                    <div class="detail-row">
+                      <span class="lbl">Ubicación:</span>
+                      <span class="val">{{ livePreview().location }} ({{ livePreview().city }})</span>
+                    </div>
+                  </div>
+
+                  <p class="mock-modal-desc">{{ livePreview().description }}</p>
+                </div>
+
+                <div class="mock-modal-footer">
+                  <button type="button" class="mock-btn-close">Cerrar</button>
+                  <button type="button" class="mock-btn-notify">🔔 Notificarme Evento</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <!-- Barra de navegación de páginas superior cuando hay más de 5 encuestas creadas -->
-      <div *ngIf="surveys.length > 5" class="admin-pagination-bar">
-        <button
-          type="button"
-          class="btn-page-nav"
-          [disabled]="currentSurveyPage === 1"
-          (click)="prevSurveyPage()"
-        >
-          ◀ Anterior
-        </button>
-
-        <!-- # Este bloque tiene como objetivo agrupar los botones de navegación numéricos junto al texto del rango de encuestas -->
-        <div class="pagination-center-group">
-          <div class="page-numbers-group">
-            <button
-              *ngFor="let pageNum of surveyPageNumbers"
-              type="button"
-              class="btn-page-number"
-              [class.active]="pageNum === currentSurveyPage"
-              (click)="goToSurveyPage(pageNum)"
-            >
-              {{ pageNum }}
+      <!-- ==================================================================
+           SECCIÓN INFERIOR: GESTIÓN DE EVENTOS (FILTRO ACTIVOS / VENCIDOS)
+           ================================================================== -->
+      <div class="events-management-section">
+        <div class="management-header-row">
+          <!-- Filtro por Estado: Activos / Vencidos -->
+          <div class="filter-toggle-group">
+            <button 
+              type="button" 
+              class="filter-toggle-btn" 
+              [class.active]="eventFilter() === 'active'"
+              (click)="eventFilter.set('active')">
+              <span>Activos</span>
+              <span class="filter-badge">{{ filteredActiveEvents().length }}</span>
+            </button>
+            <button 
+              type="button" 
+              class="filter-toggle-btn" 
+              [class.active]="eventFilter() === 'past'"
+              (click)="eventFilter.set('past')">
+              <span>Vencidos</span>
+              <span class="filter-badge">{{ filteredPastEvents().length }}</span>
             </button>
           </div>
 
-          <span class="pagination-info-text">
-            Encuestas {{ (currentSurveyPage - 1) * surveysPerPage + 1 }} a {{ currentSurveyPage * surveysPerPage > surveys.length ? surveys.length : currentSurveyPage * surveysPerPage }} de {{ surveys.length }}
-          </span>
+          <!-- Buscador y Filtro por Fecha al lado -->
+          <div class="events-search-filter-bar">
+            
+            <!-- Buscador por texto -->
+            <div class="search-input-wrapper">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input 
+                type="text" 
+                [value]="eventSearchQuery()" 
+                (input)="eventSearchQuery.set($any($event.target).value)" 
+                placeholder="Buscar por título, lugar, ciudad..." 
+                class="search-text-input"
+              />
+              <button 
+                *ngIf="eventSearchQuery()" 
+                type="button" 
+                class="clear-search-btn" 
+                (click)="eventSearchQuery.set('')"
+                title="Limpiar búsqueda"
+              >✕</button>
+            </div>
+
+            <!-- Filtro por Fecha / Mes -->
+            <div class="filter-date-wrapper">
+              <svg class="date-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              <select 
+                [value]="eventDateMonthFilter()" 
+                (change)="eventDateMonthFilter.set($any($event.target).value)" 
+                class="filter-date-select"
+              >
+                <option value="all">Filtrar por fecha (Todos los meses)</option>
+                <option value="ENE">Enero (ENE)</option>
+                <option value="FEB">Febrero (FEB)</option>
+                <option value="MAR">Marzo (MAR)</option>
+                <option value="ABR">Abril (ABR)</option>
+                <option value="MAY">Mayo (MAY)</option>
+                <option value="JUN">Junio (JUN)</option>
+                <option value="JUL">Julio (JUL)</option>
+                <option value="AGO">Agosto (AGO)</option>
+                <option value="SEP">Septiembre (SEP)</option>
+                <option value="OCT">Octubre (OCT)</option>
+                <option value="NOV">Noviembre (NOV)</option>
+                <option value="DIC">Diciembre (DIC)</option>
+              </select>
+            </div>
+
+            <!-- Botón de reset de filtros -->
+            <button 
+              *ngIf="eventSearchQuery() || eventDateMonthFilter() !== 'all'" 
+              type="button" 
+              class="btn-reset-filters" 
+              (click)="resetEventFilters()"
+              title="Restablecer filtros"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              <span>Limpiar</span>
+            </button>
+
+          </div>
         </div>
 
-        <button
-          type="button"
-          class="btn-page-nav"
-          [disabled]="currentSurveyPage === totalSurveyPages"
-          (click)="nextSurveyPage()"
-        >
-          Siguiente ▶
-        </button>
+        <!-- LISTA DE EVENTOS ACTIVOS -->
+        <div *ngIf="eventFilter() === 'active'">
+          <div *ngIf="!filteredActiveEvents().length" class="empty-events-state">
+            <p *ngIf="!activeEvents().length">No hay eventos activos publicados actualmente. ¡Usa el formulario superior para crear uno!</p>
+            <p *ngIf="activeEvents().length">No se encontraron eventos activos que coincidan con "{{ eventSearchQuery() || eventDateMonthFilter() }}".</p>
+            <button *ngIf="activeEvents().length && (eventSearchQuery() || eventDateMonthFilter() !== 'all')" class="btn-clean-state" (click)="resetEventFilters()">Ver todos los eventos activos</button>
+          </div>
+
+          <div *ngIf="filteredActiveEvents().length" class="large-events-grid">
+            <article *ngFor="let item of filteredActiveEvents()" class="admin-event-card-large">
+              <!-- Imagen lateral -->
+              <div class="event-image-side">
+                <img [src]="item.imageUrl" [alt]="item.title" />
+                <div class="date-chip-floating">
+                  <span class="d-day">{{ item.dateDay }}</span>
+                  <span class="d-month">{{ item.dateMonth }}</span>
+                </div>
+              </div>
+
+              <!-- Información central -->
+              <div class="event-info-main">
+                <div class="meta-row">
+                  <span class="meta-info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {{ item.time }}
+                  </span>
+                  <span class="meta-info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ item.location }} ({{ item.city }})
+                  </span>
+                </div>
+
+                <h4 class="event-title-text">{{ item.title }}</h4>
+                <p class="event-subtitle-text">{{ item.subtitle }}</p>
+                <p class="event-desc-text">{{ item.description }}</p>
+
+                <!-- Barra de herramientas de administración -->
+                <div class="admin-action-bar">
+                  <button type="button" class="btn-action-view" (click)="openEventModal(item)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>Ver Tarjeta Abierta</span>
+                  </button>
+
+                  <button type="button" class="btn-action-archive" (click)="moveToPast(item)" title="Marcar como vencido">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                    <span>Mover a Vencidos</span>
+                  </button>
+
+                  <button type="button" class="btn-action-delete" (click)="deleteEvent(item)" title="Eliminar evento definitivamente">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <!-- LISTA DE EVENTOS VENCIDOS -->
+        <div *ngIf="eventFilter() === 'past'">
+          <div *ngIf="!filteredPastEvents().length" class="empty-events-state">
+            <p *ngIf="!pastEvents().length">No hay eventos vencidos o desactivados actualmente.</p>
+            <p *ngIf="pastEvents().length">No se encontraron eventos vencidos que coincidan con "{{ eventSearchQuery() || eventDateMonthFilter() }}".</p>
+            <button *ngIf="pastEvents().length && (eventSearchQuery() || eventDateMonthFilter() !== 'all')" class="btn-clean-state" (click)="resetEventFilters()">Ver todos los eventos vencidos</button>
+          </div>
+
+          <div *ngIf="filteredPastEvents().length" class="large-events-grid">
+            <article *ngFor="let item of filteredPastEvents()" class="admin-event-card-large past-card">
+              <!-- Imagen lateral -->
+              <div class="event-image-side past-img-side">
+                <img [src]="item.imageUrl" [alt]="item.title" />
+                <div class="date-chip-floating past-chip">
+                  <span class="d-day">{{ item.dateDay }}</span>
+                  <span class="d-month">{{ item.dateMonth }}</span>
+                </div>
+              </div>
+
+              <!-- Información central -->
+              <div class="event-info-main">
+                <div class="meta-row">
+                  <span class="meta-info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {{ item.time }}
+                  </span>
+                  <span class="meta-info-item">
+                    {{ item.location }} · {{ item.city }}
+                  </span>
+                </div>
+
+                <h4 class="event-title-text past-title">{{ item.title }}</h4>
+                <p class="event-subtitle-text">{{ item.subtitle }}</p>
+                <p class="event-desc-text">{{ item.description }}</p>
+
+                <!-- Barra de herramientas de administración -->
+                <div class="admin-action-bar">
+                  <button type="button" class="btn-action-view" (click)="openEventModal(item)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>Ver Detalle</span>
+                  </button>
+
+                  <button type="button" class="btn-action-reactivate" (click)="restoreToActive(item)" title="Reactivar y mover a eventos activos">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                    <span>Reactivar a Activos</span>
+                  </button>
+
+                  <button type="button" class="btn-action-delete" (click)="deleteEvent(item)" title="Eliminar evento definitivamente">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
       </div>
 
-      <p *ngIf="!surveys.length" class="empty-msg">No hay encuestas creadas. Utiliza el constructor superior para agregar la primera.</p>
+    </section>
 
-      <div class="surveys-grid">
-        <div *ngFor="let survey of paginatedSurveys" class="survey-card-item">
-          <div class="survey-card-header">
-            <div class="survey-info">
-              <h3>{{ survey.title }}</h3>
-              <p class="survey-meta">
-                <span>📋 {{ survey.questions.length || 0 }} preguntas</span> · 
-                <span class="status-pill" [ngClass]="'status-' + (survey.status || 'DRAFT').toLowerCase()">
-                  {{ survey.status }}
-                </span> · 
-                <span>{{ survey.isPublic ? '🌐 Pública' : '🔒 Privada' }}</span>
-                <span *ngIf="survey.status === 'CLOSED' && survey.endDate" class="closed-date-tag">
-                  · 🔒 Encuesta Cerrada el: {{ survey.endDate | date:'dd/MM/yyyy HH:mm' }}
+    <!-- ====================================================================
+         3. PESTAÑA NOTICIAS
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'news'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Gestión de Noticias y Publicaciones</h2>
+        <p>Publica comunicados, editoriales y artículos para la portada de Líbero.</p>
+      </div>
+
+      <div class="admin-grid-2col">
+        <!-- Formulario de Creación -->
+        <div class="card form-card" *ngIf="authService.isAdmin()">
+          <div class="card-header">
+            <h3>Nueva Publicación</h3>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="publicationForm" (ngSubmit)="createPublication()">
+              <div class="form-group">
+                <label for="publication-title">Título del Artículo *</label>
+                <input id="publication-title" type="text" formControlName="title" placeholder="Ej. Lanzamiento de la nueva edición 2026" />
+              </div>
+
+              <div class="form-group">
+                <div class="form-label-row">
+                  <label for="publication-img">URL de Imagen / Portada (Opcional)</label>
+                  <div class="upload-badge-wrapper">
+                    <span class="upload-badge-text">o subir una foto</span>
+                    <button type="button" class="btn-subir-foto" (click)="openFilePicker('publication')">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span>Subir foto</span>
+                    </button>
+                  </div>
+                </div>
+                <input id="publication-img" type="text" formControlName="imageUrl" placeholder="https://... o sube tu foto" />
+              </div>
+
+              <div class="form-group">
+                <label for="publication-content">Cuerpo de la Noticia *</label>
+                <textarea id="publication-content" formControlName="content" rows="5" placeholder="Escribe el contenido completo del artículo..."></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" [disabled]="publicationForm.invalid">
+                  <span>Publicar Noticia</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Listado de Noticias -->
+        <div class="card list-card">
+          <div class="card-header list-header">
+            <h3>Artículos Publicados</h3>
+            <span class="counter-badge">{{ publications().length }}</span>
+          </div>
+          <div class="card-body">
+            <div *ngIf="!publications().length" class="empty-state">
+              <p>No hay noticias publicadas aún.</p>
+            </div>
+            <div *ngIf="publications().length" class="items-list">
+              <div *ngFor="let pub of publications()" class="item-row">
+                <div class="item-main">
+                  <span class="item-title">{{ pub.title }}</span>
+                  <div class="item-meta">
+                    <span class="meta-tag">{{ pub.author?.name || 'Autor' }}</span>
+                    <small *ngIf="pub.author?.rol?.name">({{ pub.author?.rol?.name }})</small>
+                  </div>
+                </div>
+                <button type="button" class="btn-delete" (click)="deletePublication(pub.uuid)" title="Eliminar publicación">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  <span>Eliminar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         4. PESTAÑA ENCUESTAS (CONSTRUCTOR Y RESULTADOS - RF-17 / RF-18)
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'polls'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Gestión de Encuestas y Votaciones</h2>
+        <p>Crea sondeos dinámicos de opinión, habilita o deshabilita encuestas y visualiza estadísticas en tiempo real con gráficos y desglose de participantes.</p>
+      </div>
+
+      <!-- SECCIÓN 1: CONSTRUCTOR DE ENCUESTAS (RF-17) -->
+      <div *ngIf="authService.hasManagementRole()" class="survey-builder-wrapper">
+        <app-survey-builder (surveyCreated)="loadSurveys()"></app-survey-builder>
+      </div>
+
+      <!-- SECCIÓN 2: LISTADO DE ENCUESTAS DINÁMICAS Y RESULTADOS (RF-18) -->
+      <div *ngIf="authService.hasManagementRole()" class="card surveys-list-card">
+        <div class="card-header surveys-header-bar">
+          <div class="surveys-header-title">
+            <h3>🗳️ Encuestas Creadas en el Portal</h3>
+            <div class="badge-group">
+              <span class="counter-badge">{{ surveys().length }} encuestas totales</span>
+              <span *ngIf="surveys().length > 5" class="counter-badge page-badge">Página {{ currentSurveyPage() }} de {{ totalSurveyPages() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body surveys-card-body">
+          <!-- Barra de paginación superior -->
+          <div *ngIf="surveys().length > 5" class="admin-pagination-bar">
+            <button
+              type="button"
+              class="btn-page-nav"
+              [disabled]="currentSurveyPage() === 1"
+              (click)="prevSurveyPage()"
+            >
+              ◀ Anterior
+            </button>
+
+            <div class="pagination-center-group">
+              <div class="page-numbers-group">
+                <button
+                  *ngFor="let pageNum of surveyPageNumbers()"
+                  type="button"
+                  class="btn-page-number"
+                  [class.active]="pageNum === currentSurveyPage()"
+                  (click)="goToSurveyPage(pageNum)"
+                >
+                  {{ pageNum }}
+                </button>
+              </div>
+
+              <span class="pagination-info-text">
+                Encuestas {{ (currentSurveyPage() - 1) * surveysPerPage + 1 }} a {{ currentSurveyPage() * surveysPerPage > surveys().length ? surveys().length : currentSurveyPage() * surveysPerPage }} de {{ surveys().length }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="btn-page-nav"
+              [disabled]="currentSurveyPage() === totalSurveyPages()"
+              (click)="nextSurveyPage()"
+            >
+              Siguiente ▶
+            </button>
+          </div>
+
+          <!-- Estado Vacío -->
+          <div *ngIf="!surveys().length" class="empty-state">
+            <p>No hay encuestas creadas aún. Utiliza el constructor superior para agregar la primera.</p>
+          </div>
+
+          <!-- Grid de Encuestas -->
+          <div *ngIf="surveys().length" class="surveys-grid">
+            <div *ngFor="let survey of paginatedSurveys()" class="survey-card-item">
+              <div class="survey-card-header">
+                <div class="survey-info">
+                  <h4>{{ survey.title }}</h4>
+                  <p class="survey-meta">
+                    <span>📋 {{ survey.questions.length || 0 }} preguntas</span> · 
+                    <span class="status-pill" [ngClass]="'status-' + (survey.status || 'DRAFT').toLowerCase()">
+                      {{ survey.status }}
+                    </span> · 
+                    <span>{{ survey.isPublic ? '🌐 Pública' : '🔒 Privada' }}</span>
+                    <span *ngIf="survey.status === 'CLOSED' && survey.endDate" class="closed-date-tag">
+                      · 🔒 Cerrada el: {{ survey.endDate | date:'dd/MM/yyyy HH:mm' }}
+                    </span>
+                  </p>
+                </div>
+                <div class="survey-actions">
+                  <button
+                    type="button"
+                    class="btn-action btn-view-results"
+                    (click)="toggleSurveyResults(survey.index)"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8" rx="1"/><rect x="13" y="5" width="3" height="13" rx="1"/><rect x="19" y="13" width="2" height="5" rx="1"/></svg>
+                    <span>{{ selectedSurveyResultsId() === survey.index ? 'Ocultar Resultados' : 'Ver Resultados' }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-action btn-toggle-status"
+                    [ngClass]="survey.status === 'PUBLISHED' ? 'btn-disable' : 'btn-enable'"
+                    (click)="toggleSurveyStatus(survey)"
+                  >
+                    <span>{{ survey.status === 'PUBLISHED' ? '🚫 Deshabilitar' : '▶️ Habilitar' }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-action btn-delete-survey"
+                    (click)="deleteSurvey(survey.index)"
+                    title="Eliminar encuesta definitivamente"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tablero visual de resultados y porcentajes (RF-18) -->
+              <div *ngIf="selectedSurveyResultsId() === survey.index" class="results-container-box">
+                <app-survey-results [surveyId]="survey.index"></app-survey-results>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barra de paginación inferior -->
+          <div *ngIf="surveys().length > 5" class="admin-pagination-bar pagination-bottom">
+            <button
+              type="button"
+              class="btn-page-nav"
+              [disabled]="currentSurveyPage() === 1"
+              (click)="prevSurveyPage()"
+            >
+              ◀ Anterior
+            </button>
+
+            <div class="pagination-center-group">
+              <div class="page-numbers-group">
+                <button
+                  *ngFor="let pageNum of surveyPageNumbers()"
+                  type="button"
+                  class="btn-page-number"
+                  [class.active]="pageNum === currentSurveyPage()"
+                  (click)="goToSurveyPage(pageNum)"
+                >
+                  {{ pageNum }}
+                </button>
+              </div>
+
+              <span class="pagination-info-text">
+                Página {{ currentSurveyPage() }} de {{ totalSurveyPages() }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="btn-page-nav"
+              [disabled]="currentSurveyPage() === totalSurveyPages()"
+              (click)="nextSurveyPage()"
+            >
+              Siguiente ▶
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         5. PESTAÑA USUARIOS (GESTIÓN DE ROLES, TAGS Y CUENTAS - RF-05 / ADMIN)
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'users'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Gestión de Usuarios y Accesos</h2>
+        <p>Supervisa a los miembros registrados, clasifícalos con etiquetas personalizadas y administra sus privilegios.</p>
+      </div>
+
+      <!-- ====================================================================
+           CONTENEDOR DE GESTIÓN DE TAGS / ETIQUETAS
+           ==================================================================== -->
+      <div class="card tags-management-card mb-4">
+        <div class="card-header tags-header-row">
+          <div class="tags-header-info">
+            <div class="tags-icon-badge">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </div>
+            <div>
+              <h3>Etiquetas de Usuarios (Tags)</h3>
+              <p class="tags-sub-desc">Crea y administra etiquetas para clasificar miembros (ej. VIP, Staff, Estudiante, etc.).</p>
+            </div>
+          </div>
+
+          <div class="tags-header-actions">
+            <span class="counter-badge">{{ tags().length }} etiquetas</span>
+            <button 
+              type="button" 
+              class="btn-create-tag-trigger" 
+              (click)="openCreateTagModal()"
+              [disabled]="!authService.isAdmin()"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Nueva Etiqueta</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body tags-card-body">
+          <!-- Lista de tags disponibles -->
+          <div *ngIf="!tags().length" class="empty-tags-state">
+            <p>Aún no hay etiquetas creadas. Haz clic en <strong>"Nueva Etiqueta"</strong> para crear la primera.</p>
+          </div>
+
+          <div *ngIf="tags().length" class="tags-pill-cloud">
+            <div 
+              *ngFor="let t of tags()" 
+              class="tag-item-chip"
+              [style.background-color]="t.color + '15'"
+              [style.border-color]="t.color + '55'"
+            >
+              <span class="tag-color-bullet" [style.background-color]="t.color"></span>
+              <span class="tag-name-text" [style.color]="t.color">{{ t.name }}</span>
+              <span class="tag-users-count" [title]="getUserCountForTag(t.id) + ' usuarios con esta etiqueta'">
+                {{ getUserCountForTag(t.id) }}
+              </span>
+              <button 
+                *ngIf="authService.isAdmin()"
+                type="button" 
+                class="tag-delete-btn" 
+                (click)="deleteTag(t.id, t.name)"
+                [title]="'Eliminar etiqueta ' + t.name"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           DIRECTORIO DE CUENTAS REGISTRADAS
+           ==================================================================== -->
+      <div class="card users-management-card">
+        <!-- Header de la tarjeta con conteos y controles -->
+        <div class="card-header users-header-row">
+          <div class="users-header-info">
+            <h3>Directorio de Cuentas Registradas</h3>
+            <span class="counter-badge">{{ users().length }} cuentas en total</span>
+          </div>
+
+          <!-- Barra de controles: Buscador, Filtro por Rol y Filtro por Tag -->
+          <div class="users-search-filter-bar">
+            <!-- Buscador por nombre o email -->
+            <div class="search-input-wrapper">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input 
+                type="text" 
+                [value]="userSearchTerm()" 
+                (input)="userSearchTerm.set($any($event.target).value)" 
+                placeholder="Buscar por nombre, correo o tag..." 
+                class="search-text-input"
+              />
+              <button 
+                *ngIf="userSearchTerm()" 
+                type="button" 
+                class="clear-search-btn" 
+                (click)="userSearchTerm.set('')"
+                title="Limpiar búsqueda"
+              >✕</button>
+            </div>
+
+            <!-- Filtro de Rol -->
+            <div class="filter-role-wrapper">
+              <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <select 
+                [value]="userRoleFilter()" 
+                (change)="userRoleFilter.set($any($event.target).value)" 
+                class="filter-role-select"
+              >
+                <option value="all">Todos los roles</option>
+                <option value="admin">Administrador (admin)</option>
+                <option value="mod">Moderador (mod)</option>
+                <option value="user">Usuario Regular (user)</option>
+              </select>
+            </div>
+
+            <!-- Filtro de Tag -->
+            <div class="filter-tag-wrapper">
+              <svg class="tag-filter-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              <select 
+                [value]="userTagFilter()" 
+                (change)="userTagFilter.set($any($event.target).value)" 
+                class="filter-tag-select"
+              >
+                <option value="all">Todas las etiquetas</option>
+                <option value="none">Sin etiqueta</option>
+                <option *ngFor="let t of tags()" [value]="t.id.toString()">
+                  {{ t.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Botón limpiar filtros -->
+            <button 
+              *ngIf="userSearchTerm() || userRoleFilter() !== 'all' || userTagFilter() !== 'all'" 
+              type="button" 
+              class="btn-reset-filters" 
+              (click)="resetUserFilters()"
+              title="Restablecer filtros"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              <span>Limpiar</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body users-table-body">
+          <!-- Estado vacío -->
+          <div *ngIf="!users().length" class="empty-state">
+            <p>No hay usuarios registrados en el sistema actualmente.</p>
+          </div>
+
+          <div *ngIf="users().length && !filteredUsers().length" class="empty-state">
+            <p>No se encontraron usuarios que coincidan con "{{ userSearchTerm() || userRoleFilter() }}".</p>
+            <button class="btn-clean-state" (click)="resetUserFilters()">Ver todos los usuarios</button>
+          </div>
+
+          <!-- Tabla de usuarios -->
+          <div *ngIf="filteredUsers().length" class="users-table-responsive">
+            <table class="admin-data-table">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Correo Electrónico</th>
+                  <th>Rol Actual</th>
+                  <th>Etiquetas Asignadas</th>
+                  <th>Asignar Rol</th>
+                  <th class="text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let userItem of filteredUsers()">
+                  <!-- Usuario -->
+                  <td>
+                    <div class="user-identity-cell">
+                      <div class="user-avatar-bubble" [class.admin]="(userItem.rol?.name || userItem.role) === 'admin'" [class.mod]="(userItem.rol?.name || userItem.role) === 'mod'">
+                        {{ userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U' }}
+                      </div>
+                      <div class="user-identity-info">
+                        <strong class="user-name-text">{{ userItem.name }}</strong>
+                        <small class="user-uuid-sub">{{ userItem.uuid | slice:0:8 }}...</small>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Correo -->
+                  <td>
+                    <span class="user-email-text">{{ userItem.email }}</span>
+                  </td>
+
+                  <!-- Rol -->
+                  <td>
+                    <span class="role-badge-pill" [ngClass]="'role-' + (userItem.rol?.name || userItem.role || 'user')">
+                      <span class="role-dot"></span>
+                      {{ userItem.rol?.name || userItem.role || 'user' | uppercase }}
+                    </span>
+                  </td>
+
+                  <!-- Etiquetas Asignadas con botón + para gestionar -->
+                  <td>
+                    <div class="user-tags-cell-container">
+                      <div class="user-tags-list-wrapper">
+                        <ng-container *ngIf="getUserTags(userItem).length; else noTagsTpl">
+                          <span 
+                            *ngFor="let t of getUserTags(userItem)" 
+                            class="user-tag-pill"
+                            [style.background-color]="t.color"
+                            [style.color]="getContrastColor(t.color)"
+                            [title]="t.name"
+                          >
+                            <span class="tag-dot" [style.background-color]="getContrastColor(t.color)"></span>
+                            {{ t.name }}
+                          </span>
+                        </ng-container>
+                        <ng-template #noTagsTpl>
+                          <span class="user-no-tag-label">Sin etiquetas</span>
+                        </ng-template>
+                      </div>
+
+                      <!-- Botón + para agregar/editar etiquetas del usuario -->
+                      <button 
+                        type="button" 
+                        class="btn-manage-user-tags"
+                        (click)="openUserTagsModal(userItem)"
+                        [disabled]="!authService.isAdmin()"
+                        [title]="getUserTags(userItem).length ? 'Modificar etiquetas de ' + userItem.name : 'Asignar etiquetas a ' + userItem.name"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span>{{ getUserTags(userItem).length ? 'Editar' : 'Agregar' }}</span>
+                      </button>
+                    </div>
+                  </td>
+
+                  <!-- Asignar Rol -->
+                  <td>
+                    <div class="role-changer-box">
+                      <select
+                        [value]="userItem.rol?.name || userItem.role || 'user'"
+                        (change)="changeUserRole(userItem.uuid, $any($event.target).value)"
+                        class="role-changer-select"
+                        [disabled]="!authService.isAdmin()"
+                      >
+                        <option value="admin">Administrador (admin)</option>
+                        <option value="mod">Moderador (mod)</option>
+                        <option value="user">Usuario Regular (user)</option>
+                      </select>
+                    </div>
+                  </td>
+
+                  <!-- Acciones -->
+                  <td class="text-right">
+                    <button
+                      type="button"
+                      class="btn-delete-user"
+                      (click)="deleteUserAccount(userItem.uuid, userItem.name)"
+                      [disabled]="!authService.isAdmin()"
+                      title="Eliminar cuenta de usuario"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                      <span>Eliminar</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           MODAL 1: ASIGNACIÓN MÚLTIPLE DE TAGS A UN USUARIO
+           ==================================================================== -->
+      <div *ngIf="selectedUserForTags()" class="modal-overlay animate-fade-in" (click)="closeUserTagsModal()">
+        <div class="modal-card user-tags-modal-box animate-scale-up" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <div class="modal-title-wrap">
+              <div class="modal-icon-circle user-tags-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              </div>
+              <div>
+                <h3>Etiquetas de {{ selectedUserForTags()?.name }}</h3>
+                <p>Selecciona las etiquetas que pertenecerán a esta cuenta.</p>
+              </div>
+            </div>
+            <button type="button" class="btn-close-modal" (click)="closeUserTagsModal()">✕</button>
+          </div>
+
+          <div class="modal-body user-tags-modal-content">
+            <!-- Buscador pequeño dentro del modal -->
+            <div class="tags-modal-search-wrapper">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input 
+                type="text" 
+                class="form-control tags-modal-search-input" 
+                placeholder="Buscar etiqueta por nombre..." 
+                [value]="userTagsSearchTerm()"
+                (input)="userTagsSearchTerm.set($any($event.target).value)"
+              />
+              <button 
+                *ngIf="userTagsSearchTerm()" 
+                type="button" 
+                class="clear-search-btn" 
+                (click)="userTagsSearchTerm.set('')"
+                title="Limpiar búsqueda"
+              >✕</button>
+            </div>
+
+            <!-- Toolbar con conteo y acciones rápidas -->
+            <div class="modal-tags-toolbar">
+              <span class="selected-count-badge">
+                <strong>{{ selectedUserTagIds().length }}</strong> de {{ tags().length }} seleccionada{{ selectedUserTagIds().length === 1 ? '' : 's' }}
+              </span>
+              <div class="quick-actions">
+                <button type="button" class="btn-text-action" (click)="selectAllTagsInModal()" *ngIf="filteredModalTags().length">
+                  Seleccionar todas
+                </button>
+                <button type="button" class="btn-text-action" (click)="clearAllTagsInModal()" *ngIf="selectedUserTagIds().length">
+                  Desmarcar todas
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista interactiva de etiquetas -->
+            <div class="modal-tags-list-container">
+              <div *ngIf="!tags().length" class="empty-modal-tags">
+                <p>No existen etiquetas creadas en el sistema todavía. Crea una en la sección superior.</p>
+              </div>
+
+              <div *ngIf="tags().length && !filteredModalTags().length" class="empty-modal-tags">
+                <p>No se encontraron etiquetas con "{{ userTagsSearchTerm() }}".</p>
+              </div>
+
+              <div class="tags-checklist-grid" *ngIf="filteredModalTags().length">
+                <div 
+                  *ngFor="let t of filteredModalTags()" 
+                  class="tag-checkbox-item"
+                  [class.active]="isTagSelected(t.id)"
+                  (click)="toggleTagSelection(t.id)"
+                >
+                  <div class="tag-checkbox-indicator" [class.checked]="isTagSelected(t.id)" [style.background-color]="isTagSelected(t.id) ? t.color : 'transparent'" [style.border-color]="isTagSelected(t.id) ? t.color : '#cbd5e1'">
+                    <svg *ngIf="isTagSelected(t.id)" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" [attr.stroke]="getContrastColor(t.color)" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <span class="tag-pill-sample" [style.background-color]="t.color" [style.color]="getContrastColor(t.color)">
+                    <span class="dot" [style.background-color]="getContrastColor(t.color)"></span>
+                    {{ t.name }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel-modal" (click)="closeUserTagsModal()">Cancelar</button>
+            <button 
+              type="button" 
+              class="btn-submit-tag" 
+              (click)="saveUserTags()"
+              [disabled]="isSavingUserTags()"
+            >
+              <span *ngIf="isSavingUserTags()">Guardando...</span>
+              <span *ngIf="!isSavingUserTags()">Guardar Etiquetas</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           MODAL 2: CREACIÓN DE NUEVA ETIQUETA GLOBAL
+           ==================================================================== -->
+      <div *ngIf="isTagModalOpen()" class="modal-overlay animate-fade-in" (click)="closeCreateTagModal()">
+        <div class="modal-card tag-modal-box animate-scale-up" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <div class="modal-title-wrap">
+              <div class="modal-icon-circle tag-modal-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              </div>
+              <div>
+                <h3>Crear Nueva Etiqueta</h3>
+                <p>Personaliza el texto y color para identificar a los usuarios</p>
+              </div>
+            </div>
+            <button type="button" class="btn-close-modal" (click)="closeCreateTagModal()">✕</button>
+          </div>
+
+          <div class="modal-body tag-modal-content">
+            <!-- Vista previa en tiempo real -->
+            <div class="tag-live-preview-box">
+              <span class="preview-title-label">Vista previa en tiempo real:</span>
+              <div class="tag-preview-badge-container">
+                <span 
+                  class="tag-preview-pill"
+                  [style.background-color]="newTagColor()"
+                  [style.color]="getContrastColor(newTagColor())"
+                >
+                  <span class="tag-preview-dot" [style.background-color]="getContrastColor(newTagColor())"></span>
+                  {{ newTagName() || 'Nombre de la Etiqueta' }}
                 </span>
-              </p>
+              </div>
             </div>
-            <div class="survey-actions">
-              <button
-                type="button"
-                class="btn-action btn-view-results"
-                (click)="toggleSurveyResults(survey.index)"
-              >
-                {{ selectedSurveyResultsId === survey.index ? '✕ Ocultar Resultados' : '📊 Ver Resultados' }}
-              </button>
-              <button
-                type="button"
-                class="btn-action btn-toggle-status"
-                [ngClass]="survey.status === 'PUBLISHED' ? 'btn-disable' : 'btn-enable'"
-                (click)="toggleSurveyStatus(survey)"
-              >
-                {{ survey.status === 'PUBLISHED' ? '🚫 Deshabilitar' : '▶️ Habilitar' }}
-              </button>
-              <button
-                type="button"
-                class="btn-action btn-delete-survey"
-                (click)="deleteSurvey(survey.index)"
-              >
-                🗑️ Eliminar
-              </button>
+
+            <!-- Campo de Texto para Nombre del Tag -->
+            <div class="form-group mb-3">
+              <label class="form-label">
+                Nombre de la Etiqueta <span class="required-star">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control tag-input-name" 
+                placeholder="Ej. VIP, Staff, Estudiante, Prensa, Ponente..." 
+                [value]="newTagName()"
+                (input)="newTagName.set($any($event.target).value)"
+                maxlength="50"
+              />
+            </div>
+
+            <!-- Selector de Color: Ruedita + Código Hexadecimal -->
+            <div class="form-group mb-3">
+              <label class="form-label">Color de la Etiqueta</label>
+              <div class="color-picker-dual-field">
+                <!-- Rueda de color nativa / selector circular -->
+                <div class="color-wheel-wrapper" [style.background-color]="newTagColor()" title="Haz clic para abrir la rueda de colores">
+                  <input 
+                    type="color" 
+                    class="native-color-wheel" 
+                    [value]="newTagColor()"
+                    (input)="newTagColor.set($any($event.target).value)"
+                  />
+                </div>
+                
+                <!-- Input Hexadecimal -->
+                <div class="hex-input-group">
+                  <span class="hex-prefix">#</span>
+                  <input 
+                    type="text" 
+                    class="form-control hex-text-input" 
+                    [value]="newTagColor().replace('#', '')"
+                    (input)="onHexColorInput($event)"
+                    placeholder="7C3AED"
+                    maxlength="7"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Presets de Colores Recomendados -->
+            <div class="form-group">
+              <label class="form-label-sub">Paleta sugerida:</label>
+              <div class="preset-colors-grid">
+                <button 
+                  type="button" 
+                  *ngFor="let color of presetColors" 
+                  class="preset-color-dot"
+                  [class.selected]="newTagColor().toUpperCase() === color.toUpperCase()"
+                  [style.background-color]="color"
+                  (click)="selectPresetColor(color)"
+                  [title]="color"
+                >
+                  <svg *ngIf="newTagColor().toUpperCase() === color.toUpperCase()" class="check-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Tablero visual de resultados y porcentajes (RF-18) -->
-          <div *ngIf="selectedSurveyResultsId === survey.index" class="results-container-box">
-            <app-survey-results [surveyId]="survey.index"></app-survey-results>
-          </div>
-        </div>
-      </div>
-
-      <!-- Barra de navegación de páginas inferior cuando hay más de 5 encuestas creadas -->
-      <div *ngIf="surveys.length > 5" class="admin-pagination-bar pagination-bottom">
-        <button
-          type="button"
-          class="btn-page-nav"
-          [disabled]="currentSurveyPage === 1"
-          (click)="prevSurveyPage()"
-        >
-          ◀ Anterior
-        </button>
-
-        <div class="pagination-center-group">
-          <div class="page-numbers-group">
-            <button
-              *ngFor="let pageNum of surveyPageNumbers"
-              type="button"
-              class="btn-page-number"
-              [class.active]="pageNum === currentSurveyPage"
-              (click)="goToSurveyPage(pageNum)"
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel-modal" (click)="closeCreateTagModal()">Cancelar</button>
+            <button 
+              type="button" 
+              class="btn-submit-tag" 
+              (click)="createTag()" 
+              [disabled]="!newTagName().trim() || isCreatingTag()"
             >
-              {{ pageNum }}
+              <span *ngIf="isCreatingTag()">Guardando...</span>
+              <span *ngIf="!isCreatingTag()">Guardar Etiqueta</span>
             </button>
           </div>
+        </div>
+      </div>
+    </section>
 
-          <span class="pagination-info-text">
-            Página {{ currentSurveyPage }} de {{ totalSurveyPages }}
-          </span>
+    <!-- ====================================================================
+         5. PESTAÑA CONFIGURACIÓN
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'settings'" class="tab-panel animate-fade-in">
+      <div class="section-intro">
+        <h2>Configuración del Sistema</h2>
+        <p>Ajustes generales del portal, preferencias de notificaciones y parámetros del sistema.</p>
+      </div>
+
+      <div class="card placeholder-card">
+        <div class="placeholder-icon">⚙️</div>
+        <h3>Módulo de Configuración</h3>
+        <p>Estructura lista para preferencias del sitio, personalización del portal y variables operativas.</p>
+        <div class="placeholder-actions">
+          <span class="status-pill active">Listo para configurar</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================
+       MODAL DE DETALLE INTERACTIVO (TARJETA ABIERTA) PARA EL ADMIN
+       ====================================================================== -->
+  @if (selectedEventDetail(); as item) {
+    <div class="admin-modal-backdrop" (click)="closeEventModal()">
+      <div class="admin-modal-container" (click)="$event.stopPropagation()">
+        <button class="admin-modal-close" (click)="closeEventModal()">✕</button>
+
+        <div class="modal-header-section">
+          <span class="detail-badge-top">VISTA DETALLADA DEL EVENTO</span>
+          <h2 class="modal-main-title">{{ item.title }}</h2>
+          <p class="modal-main-subtitle">{{ item.subtitle }}</p>
         </div>
 
-        <button
-          type="button"
-          class="btn-page-nav"
-          [disabled]="currentSurveyPage === totalSurveyPages"
-          (click)="nextSurveyPage()"
-        >
-          Siguiente ▶
-        </button>
-      </div>
-    </article>
-  </section>
+        <div class="modal-content-section">
+          <div class="modal-hero-img-box">
+            <img [src]="item.imageUrl" [alt]="item.title" />
+            <div class="modal-date-chip">
+              <span class="d-day">{{ item.dateDay }}</span>
+              <span class="d-month">{{ item.dateMonth }}</span>
+            </div>
+          </div>
 
-  <!-- # CREACIÓN DE PUBLICACIONES Y EVENTOS -->
-  <section *ngIf="authService.isAdmin()" class="creation-grid">
-    <form [formGroup]="publicationForm" (ngSubmit)="createPublication()" class="admin-card">
-      <h2>Nueva publicación</h2>
-      <label for="publication-title">Título</label>
-      <input id="publication-title" formControlName="title" placeholder="Escribe el título..." />
+          <div class="modal-info-table">
+            <div class="info-row">
+              <span class="info-lbl">Fecha programada:</span>
+              <span class="info-val">{{ item.dateDay }} de {{ item.dateMonth }} 2026</span>
+            </div>
+            <div class="info-row">
+              <span class="info-lbl">Horario:</span>
+              <span class="info-val">{{ item.time }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-lbl">Lugar / Recinto:</span>
+              <span class="info-val">{{ item.location }} · {{ item.city }}</span>
+            </div>
+          </div>
 
-      <label for="publication-content">Contenido</label>
-      <textarea id="publication-content" formControlName="content" placeholder="Escribe el contenido..."></textarea>
-
-      <!-- # Campo de subida de imagen para publicación -->
-      <label for="publication-image">Imagen promocional (opcional)</label>
-      <input
-        id="publication-image"
-        type="file"
-        accept="image/*"
-        (change)="onPublicationImageSelected($event)"
-        class="file-input"
-      />
-      <div *ngIf="publicationForm.value.image" class="image-preview-container">
-        <img [src]="publicationForm.value.image" alt="Vista previa publicación" class="img-preview" />
-        <button type="button" class="btn-remove-img" (click)="publicationForm.patchValue({ image: '' })">✕ Quitar imagen</button>
-      </div>
-
-      <button type="submit" [disabled]="publicationForm.invalid">Publicar</button>
-    </form>
-
-    <form [formGroup]="eventForm" (ngSubmit)="createEvent()" class="admin-card">
-      <h2>Nuevo evento</h2>
-      <label for="event-title">Título</label>
-      <input id="event-title" formControlName="title" placeholder="Título del evento..." />
-
-      <label for="event-description">Descripción</label>
-      <textarea id="event-description" formControlName="description" placeholder="Detalles del evento..."></textarea>
-
-      <label for="event-start">Inicio</label>
-      <input id="event-start" type="datetime-local" formControlName="startDate" />
-
-      <label for="event-end">Fin</label>
-      <input id="event-end" type="datetime-local" formControlName="endDate" />
-
-      <!-- # Campo de subida de imagen para evento -->
-      <label for="event-image">Imagen o afiche del evento (opcional)</label>
-      <input
-        id="event-image"
-        type="file"
-        accept="image/*"
-        (change)="onEventImageSelected($event)"
-        class="file-input"
-      />
-      <div *ngIf="eventForm.value.image" class="image-preview-container">
-        <img [src]="eventForm.value.image" alt="Vista previa evento" class="img-preview" />
-        <button type="button" class="btn-remove-img" (click)="eventForm.patchValue({ image: '' })">✕ Quitar imagen</button>
-      </div>
-
-      <button type="submit" [disabled]="eventForm.invalid">Crear evento</button>
-    </form>
-  </section>
-
-  <section class="lists-grid">
-    <article class="admin-card">
-      <h2>Publicaciones</h2>
-      <p *ngIf="!publications.length">No hay publicaciones.</p>
-      <div *ngFor="let publication of publications" class="list-row">
-        <div class="list-row-main">
-          <img *ngIf="publication.media && publication.media.length > 0" [src]="publication.media[0]" alt="Imagen de publicación" class="row-thumb" />
-          <span>{{ publication.title }} <small>({{ publication.author?.rol?.name || 'sin rol' }})</small></span>
+          <div class="modal-description-text">
+            <h5>Descripción del Evento:</h5>
+            <p>{{ item.description }}</p>
+          </div>
         </div>
-        <button type="button" (click)="deletePublication(publication.uuid)">Eliminar</button>
-      </div>
-    </article>
 
-    <article class="admin-card">
-      <h2>Eventos</h2>
-      <p *ngIf="!events.length">No hay eventos.</p>
-      <div *ngFor="let event of events" class="list-row">
-        <div class="list-row-main">
-          <img *ngIf="event.image" [src]="event.image" alt="Imagen de evento" class="row-thumb" />
-          <span>{{ event.title }} <small>({{ event.organizer?.rol?.name || 'sin rol' }})</small></span>
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-modal-dismiss" (click)="closeEventModal()">Cerrar Vista Previa</button>
         </div>
-        <button type="button" (click)="deleteEvent(event.uuid)">Eliminar</button>
       </div>
-    </article>
-  </section>
-</main>
+    </div>
+  }
+
+  <!-- ======================================================================
+       INPUT OCULTO DE ARCHIVO PARA SELECCIÓN DE FOTO
+       ====================================================================== -->
+  <input 
+    id="admin-image-file-input" 
+    type="file" 
+    accept="image/png,image/jpeg,image/webp,image/gif" 
+    style="display: none;" 
+    (change)="onFileSelected($event)" 
+  />
+
+  <!-- ======================================================================
+       MODAL POPUP DE RECORTE INTERACTIVO DE FOTO (ESTILO RED SOCIAL)
+       ====================================================================== -->
+  @if (cropModalOpen()) {
+    <div class="cropper-modal-backdrop" (click)="cancelCrop()">
+      <div class="cropper-modal-container" (click)="$event.stopPropagation()">
+        
+        <!-- Header -->
+        <div class="cropper-modal-header">
+          <div class="cropper-header-title">
+            <div class="cropper-icon-badge">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
+            </div>
+            <div>
+              <h3>Ajustar y Recortar Foto</h3>
+              <p>Arrastra para encuadrar y ajusta el zoom para definir la vista perfecta</p>
+            </div>
+          </div>
+          <button type="button" class="cropper-close-btn" (click)="cancelCrop()" title="Cerrar ventana">✕</button>
+        </div>
+
+        <!-- Cuerpo del Cropper -->
+        <div class="cropper-modal-body">
+          
+          <!-- Viewport Interactivo de Recorte con Canvas Directo -->
+          <div class="cropper-stage-wrapper">
+            <div 
+              class="cropper-viewport" 
+              [class.ratio-16-9]="selectedAspectRatio() === '16:9'"
+              [class.ratio-4-3]="selectedAspectRatio() === '4:3'"
+              [class.ratio-1-1]="selectedAspectRatio() === '1:1'"
+              (mousedown)="onMouseDown($event)"
+              (mousemove)="onMouseMove($event)"
+              (mouseup)="onMouseUp()"
+              (mouseleave)="onMouseUp()"
+              (touchstart)="onTouchStart($event)"
+              (touchmove)="onTouchMove($event)"
+              (touchend)="onTouchEnd()"
+              (wheel)="onWheel($event)"
+            >
+              <!-- Canvas de renderizado en vivo interactivo -->
+              <canvas #cropperCanvas class="cropper-canvas"></canvas>
+
+              <!-- Máscara de recorte y guías de composición / regla de tercios -->
+              <div class="cropper-overlay-mask">
+                <div class="crop-grid-rule rule-h1"></div>
+                <div class="crop-grid-rule rule-h2"></div>
+                <div class="crop-grid-rule rule-v1"></div>
+                <div class="crop-grid-rule rule-v2"></div>
+
+                <!-- Esquinas estéticas de encuadre -->
+                <span class="corner-bracket top-left"></span>
+                <span class="corner-bracket top-right"></span>
+                <span class="corner-bracket bottom-left"></span>
+                <span class="corner-bracket bottom-right"></span>
+              </div>
+            </div>
+
+            <!-- Hint de interacción flotante -->
+            <div class="stage-drag-hint">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+              <span>Arrastra con el ratón para mover · Rueda para zoom</span>
+            </div>
+          </div>
+
+          <!-- Barra de Herramientas de Control -->
+          <div class="cropper-toolbar">
+            
+            <!-- Control de Zoom -->
+            <div class="toolbar-section zoom-control-group">
+              <span class="toolbar-label">Zoom</span>
+              <div class="zoom-slider-row">
+                <button type="button" class="zoom-btn" (click)="adjustZoom(-0.1)" title="Alejar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="3.5" 
+                  step="0.02" 
+                  [value]="zoom()" 
+                  (input)="setZoom($any($event.target).value)" 
+                  class="zoom-range-input" 
+                />
+                <button type="button" class="zoom-btn" (click)="adjustZoom(0.1)" title="Acercar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+                <span class="zoom-val-text">{{ (zoom() * 100).toFixed(0) }}%</span>
+              </div>
+            </div>
+
+            <!-- Proporciones de Aspecto -->
+            <div class="toolbar-section ratio-control-group">
+              <span class="toolbar-label">Formato</span>
+              <div class="ratio-buttons">
+                <button 
+                  type="button" 
+                  class="ratio-pill" 
+                  [class.active]="selectedAspectRatio() === '16:9'"
+                  (click)="setAspectRatio('16:9')"
+                >
+                  16:9 (Cartelera)
+                </button>
+                <button 
+                  type="button" 
+                  class="ratio-pill" 
+                  [class.active]="selectedAspectRatio() === '4:3'"
+                  (click)="setAspectRatio('4:3')"
+                >
+                  4:3 (Estándar)
+                </button>
+                <button 
+                  type="button" 
+                  class="ratio-pill" 
+                  [class.active]="selectedAspectRatio() === '1:1'"
+                  (click)="setAspectRatio('1:1')"
+                >
+                  1:1 (Cuadrado)
+                </button>
+              </div>
+            </div>
+
+            <!-- Rotación y Reajuste -->
+            <div class="toolbar-section extra-actions">
+              <span class="toolbar-label">Ajustes</span>
+              <div class="extra-btn-row">
+                <button type="button" class="action-mini-btn" (click)="rotate90()" title="Girar 90 grados">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                  <span>Rotar 90°</span>
+                </button>
+                <button type="button" class="action-mini-btn" (click)="resetPanAndZoom()" title="Centrar y reajustar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                  <span>Centrar</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Footer del Modal -->
+        <div class="cropper-modal-footer">
+          <button type="button" class="btn-cropper-change" (click)="openFilePicker(cropTarget())">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Elegir otra foto</span>
+          </button>
+
+          <div class="cropper-actions-right">
+            <button type="button" class="btn-cropper-cancel" (click)="cancelCrop()">
+              Cancelar
+            </button>
+            <button type="button" class="btn-cropper-apply" (click)="applyCrop()" [disabled]="cropLoading()">
+              <svg *ngIf="!cropLoading()" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>{{ cropLoading() ? 'Procesando...' : 'Aplicar y Guardar Foto' }}</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

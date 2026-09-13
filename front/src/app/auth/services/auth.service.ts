@@ -12,12 +12,13 @@ export interface AuthResponse {
   };
 }
 
-interface RegisterResponse {
+export interface RegisterResponse {
   success: boolean;
   message: string;
 }
 
-type AuthUser = AuthResponse['data']['user'];
+export type AuthUser = AuthResponse['data']['user'];
+export type UserSession = AuthUser;
 
 // # Este bloque tiene como objetivo gestionar el estado global de autenticación, almacenamiento de tokens JWT e información del usuario
 @Injectable({ providedIn: 'root' })

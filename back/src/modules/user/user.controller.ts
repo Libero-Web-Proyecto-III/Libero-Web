@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Patch, Delete, Body, Query, Param } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserRoleDto, UpdateUserTagDto, UpdateUserTagsDto } from './dto/update-user.dto';
 import { GetAllQueryDto } from 'src/common/dto/get-all.dto';
 import { PRIVATE } from 'src/common/decorator/private.decorator';
 import { ApiBadRequestResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
@@ -73,5 +74,41 @@ export class UserController {
   @Get(':name')
   getOne(@Param('name') name: string) {
     return this.userService.findOneBy.name(name);
+  }
+
+  // # Este bloque tiene como objetivo actualizar el rol de un usuario
+  @Patch(':uuid/role')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
+  @ApiOperation({ summary: 'Actualiza el rol de un usuario' })
+  updateRole(@Param('uuid') uuid: string, @Body() body: UpdateUserRoleDto) {
+    return this.userService.updateRole(uuid, body.role);
+  }
+
+  // # Este bloque tiene como objetivo actualizar el tag asignado a un usuario
+  @Patch(':uuid/tag')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
+  @ApiOperation({ summary: 'Actualiza el tag asignado a un usuario' })
+  updateTag(@Param('uuid') uuid: string, @Body() body: UpdateUserTagDto) {
+    return this.userService.updateTag(uuid, body.tagId ?? null);
+  }
+
+  // # Este bloque tiene como objetivo actualizar las etiquetas asignadas a un usuario
+  @Patch(':uuid/tags')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
+  @ApiOperation({ summary: 'Actualiza las etiquetas asignadas a un usuario' })
+  updateTags(@Param('uuid') uuid: string, @Body() body: UpdateUserTagsDto) {
+    return this.userService.updateTags(uuid, body.tagIds || []);
+  }
+
+  // # Este bloque tiene como objetivo eliminar lógicamente a un usuario por UUID
+  @Delete(':uuid')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
+  @ApiOperation({ summary: 'Elimina lógicamente un usuario por UUID' })
+  remove(@Param('uuid') uuid: string) {
+    return this.userService.delete(uuid);
   }
 }

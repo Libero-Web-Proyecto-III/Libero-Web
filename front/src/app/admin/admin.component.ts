@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -9,11 +9,50 @@ import { SurveyResultsComponent } from '../survey/components/survey-results/surv
 import { SurveyService } from '../survey/services/survey.service';
 import { Survey, SurveyStatusEnum } from '../survey/models/survey.model';
 
-interface Publication { uuid: string; title: string; media?: string[]; author?: { name: string; rol?: { name: string } } }
-interface EventItem { uuid: string; title: string; image?: string; organizer?: { name: string; rol?: { name: string } } }
-interface UserItem { uuid: string; name: string; email: string; rol?: { name: string } }
+export type AdminTab = 'home' | 'events' | 'news' | 'polls' | 'users' | 'settings';
 
-// # Este bloque tiene como objetivo centralizar el panel de administración global con gestión de encuestas, usuarios, publicaciones y eventos
+export interface AdminEventItem {
+  uuid: string;
+  title: string;
+  subtitle: string;
+  dateDay: string;
+  dateMonth: string;
+  time: string;
+  location: string;
+  city: string;
+  description: string;
+  imageUrl: string;
+  status: 'active' | 'past';
+  isSubscribed?: boolean;
+  createdAt?: string;
+}
+
+export interface TagItem {
+  id: number;
+  name: string;
+  color: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface UserItem {
+  uuid: string;
+  name: string;
+  email: string;
+  rol?: { name: string };
+  role?: string;
+  tag?: TagItem | null;
+  tags?: TagItem[];
+}
+
+interface Publication {
+  uuid: string;
+  title: string;
+  content?: string;
+  author?: { name: string; rol?: { name: string } };
+  createdAt?: string;
+}
+
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -30,262 +69,329 @@ interface UserItem { uuid: string; name: string; email: string; rol?: { name: st
 })
 export class AdminComponent implements OnInit {
   private readonly http = inject(HttpClient);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly formBuilder = inject(FormBuilder);
   private readonly surveyService = inject(SurveyService);
   readonly authService = inject(AuthService);
 
+  private readonly eventsApiUrl = 'http://localhost:3000/events';
+  private readonly publicationsApiUrl = 'http://localhost:3000/publications';
+  private readonly usersApiUrl = 'http://localhost:3000/users';
+  private readonly tagsApiUrl = 'http://localhost:3000/tag';
+
+  // Pestaña activa
+  readonly activeTab = signal<AdminTab>('events');
+
+  // Modal para ver tarjeta abierta completa
+  readonly selectedEventDetail = signal<AdminEventItem | null>(null);
+
+  // Formulario de eventos con los campos exactos del catálogo y valores de ejemplo listos
+  readonly eventForm = this.formBuilder.nonNullable.group({
+    title: ['SINFONÍA NOCTURNA: GALA Y MÚSICA EN VIVO', [Validators.required, Validators.minLength(3)]],
+    subtitle: ['Una velada inmersiva con la Orquesta Filarmónica Contemporánea', [Validators.required]],
+    dateDay: ['28', [Validators.required, Validators.maxLength(2)]],
+    dateMonth: ['OCT', [Validators.required]],
+    time: ['20:00 - 23:00 HRS', [Validators.required]],
+    location: ['Gran Teatro Metropolitano', [Validators.required]],
+    city: ['Sala Principal', [Validators.required]],
+    description: ['Disfruta de una experiencia única. Un encuentro exclusivo donde la música, el arte y la cultura se fusionan en un espacio diseñado para inspirar...', [Validators.required, Validators.minLength(10)]],
+    imageUrl: ['https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80', [Validators.required]],
+  });
+
+  // Signal para rastrear cambios en tiempo real del formulario para las vistas previas
+  readonly formValueSignal = signal(this.eventForm.getRawValue());
+
+  // Formulario de Noticias / Publicaciones
   readonly publicationForm = this.formBuilder.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     content: ['', Validators.required],
-    image: [''],
-  });
-  readonly eventForm = this.formBuilder.nonNullable.group({
-    title: ['', Validators.required],
-    description: ['', Validators.required],
-    startDate: ['', Validators.required],
-    endDate: ['', Validators.required],
-    image: [''],
+    imageUrl: [''],
   });
 
-  publications: Publication[] = [];
-  events: EventItem[] = [];
-  surveys: Survey[] = [];
-  users: UserItem[] = [];
-  userSearchTerm = '';
-  userRoleFilter = 'all';
-  selectedSurveyResultsId: number | null = null;
+  // Modal de Recorte de Imagen (Estilo red social / portada)
+  @ViewChild('cropperCanvas') cropperCanvasRef?: ElementRef<HTMLCanvasElement>;
+  loadedImage: HTMLImageElement | null = null;
+  readonly cropModalOpen = signal<boolean>(false);
+  readonly cropTarget = signal<'event' | 'publication'>('event');
+  readonly rawImageSrc = signal<string>('');
+  readonly zoom = signal<number>(1);
+  readonly rotation = signal<number>(0);
+  readonly selectedAspectRatio = signal<'16:9' | '4:3' | '1:1'>('16:9');
+  readonly cropLoading = signal<boolean>(false);
 
-  // # Este bloque tiene como objetivo controlar la paginación del listado de encuestas en el panel de administración (5 encuestas por página)
-  currentSurveyPage = 1;
+  // Coordenadas de desplazamiento y estado de arrastre
+  panX = 0;
+  panY = 0;
+  isDragging = false;
+  dragStartX = 0;
+  dragStartY = 0;
+  dragStartPanX = 0;
+  dragStartPanY = 0;
+
+  // Colecciones de eventos conectados al backend
+  activeEvents = signal<AdminEventItem[]>([]);
+  pastEvents = signal<AdminEventItem[]>([]);
+  readonly eventFilter = signal<'active' | 'past'>('active');
+
+  // Filtros de búsqueda y fecha para eventos
+  readonly eventSearchQuery = signal<string>('');
+  readonly eventDateMonthFilter = signal<string>('all');
+
+  // Listas filtradas reactivas de eventos
+  readonly filteredActiveEvents = computed<AdminEventItem[]>(() => {
+    return this.applyEventFilters(this.activeEvents());
+  });
+
+  readonly filteredPastEvents = computed<AdminEventItem[]>(() => {
+    return this.applyEventFilters(this.pastEvents());
+  });
+
+  private applyEventFilters(events: AdminEventItem[]): AdminEventItem[] {
+    const query = this.eventSearchQuery().trim().toLowerCase();
+    const month = this.eventDateMonthFilter().toUpperCase();
+
+    return events.filter((item) => {
+      const matchesQuery =
+        !query ||
+        item.title?.toLowerCase().includes(query) ||
+        item.subtitle?.toLowerCase().includes(query) ||
+        item.location?.toLowerCase().includes(query) ||
+        item.city?.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query) ||
+        item.dateDay?.toLowerCase().includes(query) ||
+        item.dateMonth?.toLowerCase().includes(query);
+
+      const matchesMonth =
+        month === 'ALL' || !item.dateMonth || item.dateMonth.toUpperCase() === month;
+
+      return matchesQuery && matchesMonth;
+    });
+  }
+
+  resetEventFilters(): void {
+    this.eventSearchQuery.set('');
+    this.eventDateMonthFilter.set('all');
+  }
+
+  // Publicaciones
+  publications = signal<Publication[]>([]);
+
+  // Gestión de Usuarios (RF-05 / Admin)
+  users = signal<UserItem[]>([]);
+  readonly userSearchTerm = signal<string>('');
+  readonly userRoleFilter = signal<string>('all');
+  readonly userTagFilter = signal<string>('all');
+
+  // Gestión de Etiquetas (Tags)
+  tags = signal<TagItem[]>([]);
+  readonly isTagModalOpen = signal<boolean>(false);
+  readonly newTagName = signal<string>('');
+  readonly newTagColor = signal<string>('#7C3AED');
+  readonly isCreatingTag = signal<boolean>(false);
+
+  // Modal de Asignación Múltiple de Tags a un Usuario
+  readonly selectedUserForTags = signal<UserItem | null>(null);
+  readonly selectedUserTagIds = signal<number[]>([]);
+  readonly userTagsSearchTerm = signal<string>('');
+  readonly isSavingUserTags = signal<boolean>(false);
+
+  readonly filteredModalTags = computed<TagItem[]>(() => {
+    const list = this.tags() || [];
+    const term = this.userTagsSearchTerm().trim().toLowerCase();
+    if (!term) return list;
+    return list.filter((t) => t.name.toLowerCase().includes(term));
+  });
+
+  // Paleta de colores predefinidos sugeridos para etiquetas
+  readonly presetColors: string[] = [
+    '#7C3AED', // Morado Intenso
+    '#2563EB', // Azul Cobalto
+    '#0284C7', // Azul Océano
+    '#0D9488', // Teal
+    '#059669', // Esmeralda
+    '#16A34A', // Verde
+    '#D97706', // Ámbar
+    '#EA580C', // Naranja Fuego
+    '#DC2626', // Rojo Carmesí
+    '#DB2777', // Rosa Fucsia
+    '#475569', // Grafito Pizarra
+    '#0F172A', // Medianoche
+  ];
+
+  // Gestión de Encuestas (RF-17 / RF-18)
+  surveys = signal<Survey[]>([]);
+  selectedSurveyResultsId = signal<number | null>(null);
+  currentSurveyPage = signal<number>(1);
   surveysPerPage = 5;
 
-  message = '';
-  error = '';
+  readonly totalSurveyPages = computed(() => {
+    return Math.max(1, Math.ceil(this.surveys().length / this.surveysPerPage));
+  });
 
-  ngOnInit(): void {
-    this.loadContent();
-  }
+  readonly paginatedSurveys = computed(() => {
+    const startIndex = (this.currentSurveyPage() - 1) * this.surveysPerPage;
+    return this.surveys().slice(startIndex, startIndex + this.surveysPerPage);
+  });
 
-  // # Este bloque tiene como objetivo leer y convertir a Base64 la imagen seleccionada para una nueva publicación
-  onPublicationImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.publicationForm.patchValue({ image: reader.result as string });
-        this.cdr.markForCheck();
-      };
-      reader.readAsDataURL(file);
+  readonly surveyPageNumbers = computed(() => {
+    return Array.from({ length: this.totalSurveyPages() }, (_, i) => i + 1);
+  });
+
+  getUserTags(user: UserItem): TagItem[] {
+    const activeTags = this.tags() || [];
+    const activeTagIds = new Set(activeTags.map((t) => t.id));
+
+    if (user.tags && Array.isArray(user.tags)) {
+      if (activeTagIds.size > 0) {
+        return user.tags.filter((t) => t && t.id && activeTagIds.has(t.id));
+      }
+      return user.tags.filter((t) => t && t.id && t.name);
     }
-  }
-
-  // # Este bloque tiene como objetivo leer y convertir a Base64 la imagen seleccionada para un nuevo evento
-  onEventImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.eventForm.patchValue({ image: reader.result as string });
-        this.cdr.markForCheck();
-      };
-      reader.readAsDataURL(file);
+    if (user.tag && user.tag.id && user.tag.name) {
+      if (activeTagIds.size > 0 && !activeTagIds.has(user.tag.id)) {
+        return [];
+      }
+      return [user.tag];
     }
+    return [];
   }
 
-  // # Este bloque tiene como objetivo filtrar dinámicamente el listado de usuarios por término de búsqueda (nombre/correo) y por rol seleccionado de forma reactiva
-  get filteredUsers(): UserItem[] {
-    const list = this.users || [];
-    const filter = (this.userRoleFilter || 'all').toLowerCase();
-    const term = (this.userSearchTerm || '').trim().toLowerCase();
+  readonly filteredUsers = computed<UserItem[]>(() => {
+    const list = this.users() || [];
+    const roleFilter = (this.userRoleFilter() || 'all').toLowerCase();
+    const tagFilter = this.userTagFilter() || 'all';
+    const term = (this.userSearchTerm() || '').trim().toLowerCase();
 
     return list.filter((u) => {
-      const userRole = (u.rol?.name || (u as any).role || 'user').toString().toLowerCase();
-      const matchesRole = filter === 'all' || userRole === filter;
+      const userRole = (u.rol?.name || u.role || 'user').toString().toLowerCase();
+      const matchesRole = roleFilter === 'all' || userRole === roleFilter;
+
+      const userTags = this.getUserTags(u);
+      const matchesTag =
+        tagFilter === 'all' ||
+        (tagFilter === 'none' && userTags.length === 0) ||
+        userTags.some((t) => t.id.toString() === tagFilter);
+
       const matchesSearch =
         !term ||
         (u.name && u.name.toLowerCase().includes(term)) ||
-        (u.email && u.email.toLowerCase().includes(term));
+        (u.email && u.email.toLowerCase().includes(term)) ||
+        userTags.some((t) => t.name.toLowerCase().includes(term));
 
-      return matchesRole && matchesSearch;
+      return matchesRole && matchesTag && matchesSearch;
     });
+  });
+
+  resetUserFilters(): void {
+    this.userSearchTerm.set('');
+    this.userRoleFilter.set('all');
+    this.userTagFilter.set('all');
   }
 
-  private get options() {
-    return { headers: new HttpHeaders({ Authorization: `Bearer ${this.authService.getToken()}` }) };
+  // Mensajes de estado
+  message = '';
+  error = '';
+  isLoading = false;
+
+  isFieldInvalid(name: 'title' | 'subtitle' | 'dateDay' | 'dateMonth' | 'time' | 'location' | 'city' | 'description' | 'imageUrl'): boolean {
+    const control = this.eventForm.controls[name];
+    return control.invalid && (control.touched || control.dirty);
   }
 
-  // # Este bloque tiene como objetivo cargar las publicaciones, eventos, encuestas y lista de usuarios registrados
-  loadContent(): void {
-    this.http.get<{ data: Publication[] }>('http://localhost:3000/publications', this.options).subscribe({
-      next: response => { this.publications = response.data; this.cdr.markForCheck(); },
-      error: () => this.error = 'No fue posible cargar las publicaciones.',
-    });
+  // Vista Previa reactiva que se actualiza al escribir en el formulario
+  readonly livePreview = computed<AdminEventItem>(() => {
+    const val = this.formValueSignal();
+    return {
+      uuid: 'preview-uuid-temp',
+      title: val.title?.trim() || 'TÍTULO DEL EVENTO EN VIVO',
+      subtitle: val.subtitle?.trim() || 'Subtítulo descriptivo o temática del evento para la comunidad',
+      dateDay: val.dateDay?.trim() || '28',
+      dateMonth: val.dateMonth?.trim() || 'OCT',
+      time: val.time?.trim() || '20:00 - 23:00 HRS',
+      location: val.location?.trim() || 'Gran Teatro Metropolitano',
+      city: val.city?.trim() || 'Sala Principal',
+      description: val.description?.trim() || 'Disfruta de una experiencia única. Un encuentro exclusivo donde la música, el arte y la cultura se fusionan en un espacio diseñado para inspirar...',
+      imageUrl: val.imageUrl?.trim() || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
+      status: 'active',
+      isSubscribed: false,
+    };
+  });
 
-    this.http.get<EventItem[]>('http://localhost:3000/events', this.options).subscribe({
-      next: response => { this.events = response; this.cdr.markForCheck(); },
-      error: () => this.error = 'No fue posible cargar los eventos.',
-    });
+  readonly userInitials = computed(() => {
+    const user = this.authService.getUser();
+    if (!user || !user.username) return 'A';
+    return user.username.charAt(0).toUpperCase();
+  });
 
-    this.loadSurveys();
+  ngOnInit(): void {
+    this.loadEvents();
+    this.loadPublications();
     this.loadUsers();
+    this.loadTags();
+    this.loadSurveys();
+
+    // Conectar cambios del formulario al signal reactivo
+    this.eventForm.valueChanges.subscribe(() => {
+      this.formValueSignal.set(this.eventForm.getRawValue());
+    });
   }
 
-  // # Este bloque tiene como objetivo cargar el listado de encuestas dinámicas desde la API y ajustar el límite de página actual
+  setTab(tab: AdminTab): void {
+    this.activeTab.set(tab);
+    this.clearAlerts();
+    if (tab === 'users') {
+      this.loadUsers();
+      this.loadTags();
+    } else if (tab === 'polls') {
+      this.loadSurveys();
+    } else if (tab === 'news') {
+      this.loadPublications();
+    } else if (tab === 'events') {
+      this.loadEvents();
+    }
+  }
+
   loadSurveys(): void {
     this.surveyService.getSurveys().subscribe({
       next: (data) => {
-        this.surveys = data || [];
-        if (this.currentSurveyPage > this.totalSurveyPages) {
-          this.currentSurveyPage = this.totalSurveyPages;
+        this.surveys.set(data || []);
+        if (this.currentSurveyPage() > this.totalSurveyPages()) {
+          this.currentSurveyPage.set(this.totalSurveyPages());
         }
-        this.cdr.markForCheck();
       },
-      error: () => this.error = 'No fue posible cargar las encuestas dinámicas.',
+      error: () => {
+        this.error = 'No fue posible cargar las encuestas dinámicas.';
+      },
     });
   }
 
-  // # Este bloque tiene como objetivo proporcionar la lista segmentada de encuestas para la página actual (5 encuestas por página)
-  get paginatedSurveys(): Survey[] {
-    const startIndex = (this.currentSurveyPage - 1) * this.surveysPerPage;
-    return this.surveys.slice(startIndex, startIndex + this.surveysPerPage);
-  }
-
-  get totalSurveyPages(): number {
-    return Math.max(1, Math.ceil(this.surveys.length / this.surveysPerPage));
-  }
-
-  get surveyPageNumbers(): number[] {
-    return Array.from({ length: this.totalSurveyPages }, (_, i) => i + 1);
-  }
-
   prevSurveyPage(): void {
-    if (this.currentSurveyPage > 1) {
-      this.currentSurveyPage--;
-      this.cdr.markForCheck();
+    if (this.currentSurveyPage() > 1) {
+      this.currentSurveyPage.update(p => p - 1);
     }
   }
 
   nextSurveyPage(): void {
-    if (this.currentSurveyPage < this.totalSurveyPages) {
-      this.currentSurveyPage++;
-      this.cdr.markForCheck();
+    if (this.currentSurveyPage() < this.totalSurveyPages()) {
+      this.currentSurveyPage.update(p => p + 1);
     }
   }
 
   goToSurveyPage(page: number): void {
-    if (page >= 1 && page <= this.totalSurveyPages) {
-      this.currentSurveyPage = page;
-      this.cdr.markForCheck();
+    if (page >= 1 && page <= this.totalSurveyPages()) {
+      this.currentSurveyPage.set(page);
     }
   }
 
-  // # Este bloque tiene como objetivo cargar el listado completo de usuarios registrados para administración (RF-05 / Admin) asegurando actualización de vista en recargas
-  loadUsers(): void {
-    if (!this.authService.getToken()) return;
-    this.http.get<{ data: UserItem[] }>('http://localhost:3000/users?limit=100', this.options).subscribe({
-      next: (res) => {
-        this.users = res.data || [];
-        this.cdr.markForCheck();
-      },
-      error: () => this.error = 'No fue posible cargar el listado de usuarios.',
-    });
-  }
-
-  // # Este bloque tiene como objetivo permitir al Administrador promover o cambiar el rol de un usuario (ej. promover de user a admin)
-  changeUserRole(uuid: string, newRole: string): void {
-    this.http.patch(`http://localhost:3000/users/${uuid}/role`, { role: newRole }, this.options).subscribe({
-      next: () => {
-        this.message = 'Rol de usuario actualizado correctamente.';
-        this.loadUsers();
-      },
-      error: () => this.error = 'No fue posible cambiar el rol del usuario.',
-    });
-  }
-
-  // # Este bloque tiene como objetivo permitir al Administrador eliminar a un usuario registrado
-  deleteUserAccount(uuid: string): void {
-    this.http.delete(`http://localhost:3000/users/${uuid}`, this.options).subscribe({
-      next: () => {
-        this.message = 'Usuario eliminado del sistema.';
-        this.loadUsers();
-      },
-      error: () => this.error = 'No fue posible eliminar al usuario.',
-    });
-  }
-
-  // # Este bloque tiene como objetivo alternar la visualización del tablero de estadísticas de encuestas
   toggleSurveyResults(id: number): void {
-    if (this.selectedSurveyResultsId === id) {
-      this.selectedSurveyResultsId = null;
+    if (this.selectedSurveyResultsId() === id) {
+      this.selectedSurveyResultsId.set(null);
     } else {
-      this.selectedSurveyResultsId = id;
+      this.selectedSurveyResultsId.set(id);
     }
   }
 
-  createPublication(): void {
-    if (!this.authService.isAdmin() || this.publicationForm.invalid) return;
-    const formVal = this.publicationForm.getRawValue();
-    const payload: any = {
-      title: formVal.title,
-      content: formVal.content,
-      media: formVal.image ? [formVal.image] : [],
-    };
-
-    this.http.post('http://localhost:3000/publications', payload, this.options).subscribe({
-      next: () => { this.message = 'Publicación creada con imagen.'; this.publicationForm.reset(); this.loadContent(); },
-      error: () => this.error = 'No fue posible crear la publicación.',
-    });
-  }
-
-  createEvent(): void {
-    if (!this.authService.isAdmin() || this.eventForm.invalid) return;
-    const formVal = this.eventForm.getRawValue();
-    const payload: any = {
-      title: formVal.title,
-      description: formVal.description,
-      startDate: formVal.startDate,
-      endDate: formVal.endDate,
-      image: formVal.image || null,
-    };
-
-    this.http.post('http://localhost:3000/events', payload, this.options).subscribe({
-      next: () => { this.message = 'Evento creado con imagen.'; this.eventForm.reset(); this.loadContent(); },
-      error: () => this.error = 'No fue posible crear el evento.',
-    });
-  }
-
-  deletePublication(uuid: string): void {
-    this.http.delete(`http://localhost:3000/publications/${uuid}`, this.options).subscribe({
-      next: () => { this.message = 'Publicación eliminada.'; this.loadContent(); },
-      error: () => this.error = 'No tienes permiso para eliminar esta publicación.',
-    });
-  }
-
-  deleteEvent(uuid: string): void {
-    this.http.delete(`http://localhost:3000/events/${uuid}`, this.options).subscribe({
-      next: () => { this.message = 'Evento eliminado.'; this.loadContent(); },
-      error: () => this.error = 'No tienes permiso para eliminar este evento.',
-    });
-  }
-
-  deleteSurvey(id: number): void {
-    this.surveyService.deleteSurvey(id).subscribe({
-      next: () => {
-        this.message = 'Encuesta eliminada exitosamente.';
-        if (this.selectedSurveyResultsId === id) {
-          this.selectedSurveyResultsId = null;
-        }
-        this.loadSurveys();
-      },
-      error: () => this.error = 'No tienes permiso para eliminar esta encuesta.',
-    });
-  }
-
-  // # Este bloque tiene como objetivo permitir al Administrador deshabilitar o habilitar una encuesta existente para controlar su visibilidad pública y vigencia
   toggleSurveyStatus(survey: Survey): void {
+    this.clearAlerts();
     const isCurrentlyPublished = survey.status === 'PUBLISHED';
     const newStatus = isCurrentlyPublished ? SurveyStatusEnum.CLOSED : SurveyStatusEnum.PUBLISHED;
     const payload: any = { status: newStatus };
@@ -296,15 +402,729 @@ export class AdminComponent implements OnInit {
     this.surveyService.updateSurvey(survey.index, payload).subscribe({
       next: () => {
         this.message = isCurrentlyPublished
-          ? 'Encuesta deshabilitada correctamente. Ya no estará visible para los usuarios e invitados.'
+          ? 'Encuesta deshabilitada correctamente. Ya no estará visible para los votantes.'
           : 'Encuesta habilitada y publicada nuevamente.';
         this.loadSurveys();
-        this.cdr.markForCheck();
+        this.clearAlertsSoon();
       },
       error: () => {
         this.error = 'No fue posible cambiar el estado de la encuesta.';
-        this.cdr.markForCheck();
       },
     });
   }
+
+  deleteSurvey(id: number): void {
+    this.clearAlerts();
+    if (!confirm('¿Estás seguro de que deseas eliminar definitivamente esta encuesta?')) return;
+    this.surveyService.deleteSurvey(id).subscribe({
+      next: () => {
+        this.message = 'Encuesta eliminada exitosamente.';
+        if (this.selectedSurveyResultsId() === id) {
+          this.selectedSurveyResultsId.set(null);
+        }
+        this.loadSurveys();
+        this.clearAlertsSoon();
+      },
+      error: () => {
+        this.error = 'No tienes permiso para eliminar esta encuesta.';
+      },
+    });
+  }
+
+  clearAlerts(): void {
+    this.message = '';
+    this.error = '';
+  }
+
+  private get options() {
+    const token = this.authService.getToken();
+    return {
+      headers: new HttpHeaders({
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      }),
+    };
+  }
+
+  loadEvents(): void {
+    this.http.get<AdminEventItem[]>(this.eventsApiUrl).subscribe({
+      next: (data) => {
+        if (data && Array.isArray(data)) {
+          this.activeEvents.set(data.filter(e => e.status !== 'past'));
+          this.pastEvents.set(data.filter(e => e.status === 'past'));
+        }
+      },
+      error: () => {
+        this.error = 'No fue posible cargar los eventos desde el servidor.';
+      },
+    });
+  }
+
+  loadPublications(): void {
+    this.isLoading = true;
+    this.http.get<{ data: Publication[] }>(`${this.publicationsApiUrl}?limit=100`, this.options).subscribe({
+      next: response => {
+        this.publications.set(response.data || []);
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      },
+    });
+  }
+
+  loadUsers(): void {
+    if (!this.authService.getToken()) return;
+    this.http.get<{ data: UserItem[] }>(`${this.usersApiUrl}?limit=100`, this.options).subscribe({
+      next: (res) => {
+        this.users.set(res.data || []);
+      },
+      error: () => {
+        this.error = 'No fue posible cargar el listado de usuarios.';
+      },
+    });
+  }
+
+  changeUserRole(uuid: string, newRole: string): void {
+    this.clearAlerts();
+    this.http.patch(`${this.usersApiUrl}/${uuid}/role`, { role: newRole }, this.options).subscribe({
+      next: () => {
+        this.message = 'Rol de usuario actualizado correctamente.';
+        this.loadUsers();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No fue posible cambiar el rol del usuario.';
+      },
+    });
+  }
+
+  deleteUserAccount(uuid: string, userName: string = 'este usuario'): void {
+    this.clearAlerts();
+    if (!confirm(`¿Estás seguro de que deseas eliminar definitivamente a ${userName}?`)) return;
+    this.http.delete(`${this.usersApiUrl}/${uuid}`, this.options).subscribe({
+      next: () => {
+        this.message = 'Usuario eliminado del sistema correctamente.';
+        this.loadUsers();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No fue posible eliminar al usuario.';
+      },
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+   * MÉTODOS DE GESTIÓN DE TAGS / ETIQUETAS
+   * ------------------------------------------------------------------------ */
+  loadTags(): void {
+    this.http.get<TagItem[]>(this.tagsApiUrl).subscribe({
+      next: (data) => {
+        this.tags.set(data || []);
+      },
+      error: () => {
+        // En caso de fallo de red
+      },
+    });
+  }
+
+  openCreateTagModal(): void {
+    this.newTagName.set('');
+    this.newTagColor.set('#7C3AED');
+    this.isTagModalOpen.set(true);
+  }
+
+  closeCreateTagModal(): void {
+    this.isTagModalOpen.set(false);
+    this.newTagName.set('');
+  }
+
+  selectPresetColor(color: string): void {
+    this.newTagColor.set(color);
+  }
+
+  onHexColorInput(event: Event): void {
+    let hex = (event.target as HTMLInputElement).value.trim();
+    if (!hex.startsWith('#') && hex.length > 0) {
+      hex = '#' + hex;
+    }
+    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+      this.newTagColor.set(hex);
+    }
+  }
+
+  createTag(): void {
+    this.clearAlerts();
+    const name = this.newTagName().trim();
+    let color = this.newTagColor().trim();
+
+    if (!name) {
+      this.error = 'Debes ingresar un nombre para la etiqueta.';
+      return;
+    }
+
+    if (!color.startsWith('#')) {
+      color = '#' + color;
+    }
+
+    if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
+      this.error = 'El color debe ser un código hexadecimal válido de 6 caracteres (ej. #7C3AED).';
+      return;
+    }
+
+    this.isCreatingTag.set(true);
+    this.http.post<TagItem>(this.tagsApiUrl, { name, color }, this.options).subscribe({
+      next: (createdTag) => {
+        this.isCreatingTag.set(false);
+        this.message = `Etiqueta "${createdTag?.name || name}" creada exitosamente.`;
+        if (createdTag && createdTag.id) {
+          const current = this.tags();
+          if (!current.some((t) => t.id === createdTag.id)) {
+            this.tags.set([...current, createdTag]);
+          }
+        }
+        this.closeCreateTagModal();
+        this.loadTags();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.isCreatingTag.set(false);
+        this.error = err?.error?.message || 'No fue posible crear la etiqueta.';
+      },
+    });
+  }
+
+  deleteTag(id: number, name: string): void {
+    this.clearAlerts();
+    if (!confirm(`¿Estás seguro de que deseas eliminar la etiqueta "${name}"? Se desvinculará de todos los usuarios.`)) return;
+
+    // Actualización inmediata en memoria para reflejar la eliminación sin demora
+    this.tags.set(this.tags().filter((t) => t.id !== id));
+    this.users.set(
+      this.users().map((u) => ({
+        ...u,
+        tags: (u.tags || []).filter((t) => t.id !== id),
+        tag: u.tag && u.tag.id === id ? null : u.tag,
+      }))
+    );
+
+    this.http.delete(`${this.tagsApiUrl}/${id}`, this.options).subscribe({
+      next: () => {
+        this.message = `Etiqueta "${name}" eliminada correctamente.`;
+        this.loadTags();
+        this.loadUsers();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No fue posible eliminar la etiqueta.';
+        this.loadTags();
+        this.loadUsers();
+      },
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+   * MÉTODOS DE ASIGNACIÓN MÚLTIPLE DE TAGS A UN USUARIO
+   * ------------------------------------------------------------------------ */
+  openUserTagsModal(user: UserItem): void {
+    this.selectedUserForTags.set(user);
+    const existingTags = this.getUserTags(user);
+    this.selectedUserTagIds.set(existingTags.map((t) => t.id));
+    this.userTagsSearchTerm.set('');
+  }
+
+  closeUserTagsModal(): void {
+    this.selectedUserForTags.set(null);
+    this.selectedUserTagIds.set([]);
+    this.userTagsSearchTerm.set('');
+  }
+
+  toggleTagSelection(tagId: number): void {
+    const current = this.selectedUserTagIds();
+    if (current.includes(tagId)) {
+      this.selectedUserTagIds.set(current.filter((id) => id !== tagId));
+    } else {
+      this.selectedUserTagIds.set([...current, tagId]);
+    }
+  }
+
+  isTagSelected(tagId: number): boolean {
+    return this.selectedUserTagIds().includes(tagId);
+  }
+
+  selectAllTagsInModal(): void {
+    const visibleIds = this.filteredModalTags().map((t) => t.id);
+    const current = new Set(this.selectedUserTagIds());
+    visibleIds.forEach((id) => current.add(id));
+    this.selectedUserTagIds.set(Array.from(current));
+  }
+
+  clearAllTagsInModal(): void {
+    this.selectedUserTagIds.set([]);
+  }
+
+  saveUserTags(): void {
+    const user = this.selectedUserForTags();
+    if (!user) return;
+
+    this.clearAlerts();
+    this.isSavingUserTags.set(true);
+
+    const tagIds = this.selectedUserTagIds();
+    const updatedTags = this.tags().filter((t) => tagIds.includes(t.id));
+
+    this.http.patch(`${this.usersApiUrl}/${user.uuid}/tags`, { tagIds }, this.options).subscribe({
+      next: () => {
+        this.isSavingUserTags.set(false);
+        this.message = `Etiquetas de "${user.name}" actualizadas con éxito (${tagIds.length} asignadas).`;
+
+        // Actualización inmediata del usuario en memoria para respuesta instantánea
+        this.users.set(
+          this.users().map((u) => {
+            if (u.uuid === user.uuid) {
+              return {
+                ...u,
+                tags: updatedTags,
+                tag: updatedTags.length > 0 ? updatedTags[0] : null,
+              };
+            }
+            return u;
+          })
+        );
+
+        this.closeUserTagsModal();
+        this.loadUsers();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.isSavingUserTags.set(false);
+        this.error = err?.error?.message || 'No fue posible guardar las etiquetas del usuario.';
+      },
+    });
+  }
+
+  getUserCountForTag(tagId: number): number {
+    return (this.users() || []).filter((u) => this.getUserTags(u).some((t) => t.id === tagId)).length;
+  }
+
+  getContrastColor(hexColor: string | undefined): string {
+    if (!hexColor) return '#ffffff';
+    let hex = hexColor.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+    if (hex.length !== 6) return '#ffffff';
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 150) ? '#0f172a' : '#ffffff';
+  }
+
+  createEvent(): void {
+    this.clearAlerts();
+
+    if (this.eventForm.invalid) {
+      this.eventForm.markAllAsTouched();
+      const missing: string[] = [];
+      if (this.eventForm.controls.title.invalid) missing.push('Título (mínimo 3 letras)');
+      if (this.eventForm.controls.subtitle.invalid) missing.push('Subtítulo');
+      if (this.eventForm.controls.dateDay.invalid) missing.push('Día (ej. 28)');
+      if (this.eventForm.controls.location.invalid) missing.push('Lugar / Recinto');
+      if (this.eventForm.controls.description.invalid) missing.push('Descripción (mínimo 10 letras)');
+
+      this.error = `Por favor completa los campos requeridos: ${missing.join(', ')}.`;
+      return;
+    }
+
+    this.isLoading = true;
+    const formVal = this.eventForm.getRawValue();
+    const now = new Date();
+    const nextWeek = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+
+    const payload = {
+      title: formVal.title.trim().toUpperCase(),
+      subtitle: formVal.subtitle.trim(),
+      dateDay: formVal.dateDay.trim().padStart(2, '0'),
+      dateMonth: formVal.dateMonth.trim().toUpperCase(),
+      time: formVal.time.trim(),
+      location: formVal.location.trim(),
+      city: formVal.city.trim(),
+      description: formVal.description.trim(),
+      imageUrl: formVal.imageUrl.trim() || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
+      status: 'active',
+      startDate: now.toISOString(),
+      endDate: nextWeek.toISOString(),
+    };
+
+    this.http.post<AdminEventItem>(this.eventsApiUrl, payload, this.options).subscribe({
+      next: (created) => {
+        this.isLoading = false;
+        this.message = `¡Evento "${created.title || payload.title}" publicado con éxito! Guardado en la base de datos.`;
+        this.error = '';
+
+        // Sugerir nueva plantilla de datos para seguir creando
+        this.eventForm.reset({
+          title: 'NOCHE DE GALA & ARTE VISUAL',
+          subtitle: 'Encuentro cultural y performance interactivo',
+          dateDay: '15',
+          dateMonth: 'NOV',
+          time: '20:00 - 23:00 HRS',
+          location: 'Centro de Bellas Artes',
+          city: 'Salón de Actos',
+          description: 'Una noche para celebrar el talento contemporáneo con proyecciones audiovisuales y música instrumental en directo.',
+          imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1400&q=80',
+        });
+        this.formValueSignal.set(this.eventForm.getRawValue());
+        this.loadEvents();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const serverMsg = err?.error?.message;
+        if (Array.isArray(serverMsg)) {
+          this.error = `Validación del servidor: ${serverMsg.join(', ')}`;
+        } else if (typeof serverMsg === 'string') {
+          this.error = `Error al guardar: ${serverMsg}`;
+        } else if (err?.status === 401) {
+          this.error = 'Sesión expirada o no autenticada. Por favor vuelve a iniciar sesión.';
+        } else if (err?.status === 403) {
+          this.error = 'No tienes permiso de administrador para publicar este evento.';
+        } else {
+          this.error = 'No fue posible guardar el evento en el servidor (http://localhost:3000/events).';
+        }
+      },
+    });
+  }
+
+  moveToPast(event: AdminEventItem): void {
+    this.clearAlerts();
+    if (!event.uuid) return;
+
+    this.http.patch(`${this.eventsApiUrl}/${event.uuid}`, { status: 'past' }, this.options).subscribe({
+      next: () => {
+        this.message = `El evento "${event.title}" se movió a eventos vencidos.`;
+        this.error = '';
+        this.loadEvents();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No fue posible actualizar el estado del evento.';
+      },
+    });
+  }
+
+  restoreToActive(event: AdminEventItem): void {
+    this.clearAlerts();
+    if (!event.uuid) return;
+
+    this.http.patch(`${this.eventsApiUrl}/${event.uuid}`, { status: 'active' }, this.options).subscribe({
+      next: () => {
+        this.message = `El evento "${event.title}" fue reactivado en los eventos activos.`;
+        this.error = '';
+        this.loadEvents();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No fue posible reactivar el evento.';
+      },
+    });
+  }
+
+  deleteEvent(event: AdminEventItem): void {
+    this.clearAlerts();
+    if (!event?.uuid) {
+      this.error = 'No se pudo identificar el UUID del evento a eliminar.';
+      return;
+    }
+
+    if (!confirm(`¿Estás seguro de que deseas eliminar definitivamente "${event.title}"?`)) return;
+
+    this.http.delete(`${this.eventsApiUrl}/${event.uuid}`, this.options).subscribe({
+      next: () => {
+        this.message = 'Evento eliminado correctamente de la base de datos.';
+        this.error = '';
+        this.loadEvents();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No tienes permiso o no fue posible eliminar este evento.';
+      },
+    });
+  }
+
+  openEventModal(event: AdminEventItem): void {
+    this.selectedEventDetail.set(event);
+  }
+
+  closeEventModal(): void {
+    this.selectedEventDetail.set(null);
+  }
+
+  // Creador de Publicaciones
+  createPublication(): void {
+    if (!this.authService.hasManagementRole() || this.publicationForm.invalid) return;
+    const raw = this.publicationForm.getRawValue();
+    const payload: { title: string; content: string; media?: string[] } = {
+      title: raw.title,
+      content: raw.content,
+    };
+    if (raw.imageUrl && raw.imageUrl.trim()) {
+      payload.media = [raw.imageUrl.trim()];
+    }
+
+    this.http.post(this.publicationsApiUrl, payload, this.options).subscribe({
+      next: () => {
+        this.message = '¡Publicación creada exitosamente!';
+        this.publicationForm.reset();
+        this.loadPublications();
+        this.clearAlertsSoon();
+      },
+      error: () => {
+        this.error = 'No fue posible crear la publicación.';
+      },
+    });
+  }
+
+  deletePublication(uuid: string): void {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta publicación?')) return;
+    this.http.delete(`${this.publicationsApiUrl}/${uuid}`, this.options).subscribe({
+      next: () => {
+        this.message = 'Publicación eliminada correctamente.';
+        this.loadPublications();
+        this.clearAlertsSoon();
+      },
+      error: () => {
+        this.error = 'No tienes permiso para eliminar esta publicación.';
+      },
+    });
+  }
+
+  // =========================================================================
+  // GESTIÓN DE SUBIDA Y RECORTE DE IMÁGENES (CANVAS INTERACTIVO WYSIWYG)
+  // =========================================================================
+  openFilePicker(target: 'event' | 'publication'): void {
+    this.cropTarget.set(target);
+    const fileInput = document.getElementById('admin-image-file-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.click();
+    }
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.error = 'Por favor selecciona un archivo de imagen válido (JPG, PNG, WebP).';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) {
+        this.rawImageSrc.set(result);
+        const img = new Image();
+        img.onload = () => {
+          this.loadedImage = img;
+          this.zoom.set(1);
+          this.rotation.set(0);
+          this.panX = 0;
+          this.panY = 0;
+          this.selectedAspectRatio.set('16:9');
+          this.cropModalOpen.set(true);
+          setTimeout(() => {
+            this.drawCropperCanvas();
+          }, 60);
+        };
+        img.src = result;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  drawCropperCanvas(): void {
+    if (!this.loadedImage || !this.cropperCanvasRef) return;
+    const canvas = this.cropperCanvasRef.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let targetWidth = 800;
+    let ratioNum = 16 / 9;
+    if (this.selectedAspectRatio() === '4:3') {
+      ratioNum = 4 / 3;
+      targetWidth = 800;
+    } else if (this.selectedAspectRatio() === '1:1') {
+      ratioNum = 1;
+      targetWidth = 600;
+    }
+    const targetHeight = Math.round(targetWidth / ratioNum);
+
+    if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+    }
+
+    ctx.clearRect(0, 0, targetWidth, targetHeight);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const rot = this.rotation();
+    const isRotated90 = rot === 90 || rot === 270;
+    const effImgW = isRotated90 ? this.loadedImage.naturalHeight : this.loadedImage.naturalWidth;
+    const effImgH = isRotated90 ? this.loadedImage.naturalWidth : this.loadedImage.naturalHeight;
+
+    const baseScale = Math.max(targetWidth / effImgW, targetHeight / effImgH);
+    const currentScale = baseScale * this.zoom();
+
+    const drawW = this.loadedImage.naturalWidth * currentScale;
+    const drawH = this.loadedImage.naturalHeight * currentScale;
+
+    const effDrawW = isRotated90 ? drawH : drawW;
+    const effDrawH = isRotated90 ? drawW : drawH;
+
+    const maxPanX = Math.max(0, (effDrawW - targetWidth) / 2);
+    const maxPanY = Math.max(0, (effDrawH - targetHeight) / 2);
+
+    this.panX = Math.max(-maxPanX, Math.min(maxPanX, this.panX));
+    this.panY = Math.max(-maxPanY, Math.min(maxPanY, this.panY));
+
+    ctx.save();
+    ctx.translate(targetWidth / 2 + this.panX, targetHeight / 2 + this.panY);
+    ctx.rotate((rot * Math.PI) / 180);
+    ctx.drawImage(this.loadedImage, -drawW / 2, -drawH / 2, drawW, drawH);
+    ctx.restore();
+  }
+
+  onMouseDown(event: MouseEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragStartPanX = this.panX;
+    this.dragStartPanY = this.panY;
+  }
+
+  onMouseMove(event: MouseEvent): void {
+    if (!this.isDragging || !this.cropperCanvasRef) return;
+    const canvas = this.cropperCanvasRef.nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    const scaleRatio = canvas.width / rect.width;
+
+    const deltaX = (event.clientX - this.dragStartX) * scaleRatio;
+    const deltaY = (event.clientY - this.dragStartY) * scaleRatio;
+
+    this.panX = this.dragStartPanX + deltaX;
+    this.panY = this.dragStartPanY + deltaY;
+    this.drawCropperCanvas();
+  }
+
+  onMouseUp(): void {
+    this.isDragging = false;
+  }
+
+  onTouchStart(event: TouchEvent): void {
+    if (event.touches.length === 1) {
+      this.isDragging = true;
+      this.dragStartX = event.touches[0].clientX;
+      this.dragStartY = event.touches[0].clientY;
+      this.dragStartPanX = this.panX;
+      this.dragStartPanY = this.panY;
+    }
+  }
+
+  onTouchMove(event: TouchEvent): void {
+    if (!this.isDragging || event.touches.length !== 1 || !this.cropperCanvasRef) return;
+    const canvas = this.cropperCanvasRef.nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    const scaleRatio = canvas.width / rect.width;
+
+    const deltaX = (event.touches[0].clientX - this.dragStartX) * scaleRatio;
+    const deltaY = (event.touches[0].clientY - this.dragStartY) * scaleRatio;
+
+    this.panX = this.dragStartPanX + deltaX;
+    this.panY = this.dragStartPanY + deltaY;
+    this.drawCropperCanvas();
+  }
+
+  onTouchEnd(): void {
+    this.isDragging = false;
+  }
+
+  onWheel(event: WheelEvent): void {
+    event.preventDefault();
+    const zoomDelta = event.deltaY < 0 ? 0.08 : -0.08;
+    const newZoom = Math.min(3.5, Math.max(1, +(this.zoom() + zoomDelta).toFixed(2)));
+    this.zoom.set(newZoom);
+    this.drawCropperCanvas();
+  }
+
+  setZoom(value: string | number): void {
+    const val = typeof value === 'string' ? parseFloat(value) : value;
+    this.zoom.set(Math.min(3.5, Math.max(1, +(val).toFixed(2))));
+    this.drawCropperCanvas();
+  }
+
+  adjustZoom(delta: number): void {
+    const newZoom = Math.min(3.5, Math.max(1, +(this.zoom() + delta).toFixed(2)));
+    this.zoom.set(newZoom);
+    this.drawCropperCanvas();
+  }
+
+  rotate90(): void {
+    this.rotation.update((r) => (r + 90) % 360);
+    this.panX = 0;
+    this.panY = 0;
+    this.drawCropperCanvas();
+  }
+
+  resetPanAndZoom(): void {
+    this.zoom.set(1);
+    this.panX = 0;
+    this.panY = 0;
+    this.rotation.set(0);
+    this.drawCropperCanvas();
+  }
+
+  setAspectRatio(ratio: '16:9' | '4:3' | '1:1'): void {
+    this.selectedAspectRatio.set(ratio);
+    this.panX = 0;
+    this.panY = 0;
+    this.drawCropperCanvas();
+  }
+
+  applyCrop(): void {
+    if (!this.cropperCanvasRef) return;
+    const canvas = this.cropperCanvasRef.nativeElement;
+
+    // Redibujar para asegurar sincronía exacta
+    this.drawCropperCanvas();
+
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+    if (this.cropTarget() === 'event') {
+      this.eventForm.controls.imageUrl.setValue(croppedDataUrl);
+      this.formValueSignal.set(this.eventForm.getRawValue());
+      this.message = '¡Foto recortada y aplicada a la portada del evento!';
+    } else {
+      this.publicationForm.patchValue({ imageUrl: croppedDataUrl });
+      this.message = '¡Foto recortada y aplicada a la publicación!';
+    }
+
+    this.clearAlertsSoon();
+    this.cropModalOpen.set(false);
+  }
+
+  cancelCrop(): void {
+    this.cropModalOpen.set(false);
+    this.rawImageSrc.set('');
+    this.loadedImage = null;
+  }
+
+  private clearAlertsSoon(): void {
+    setTimeout(() => {
+      if (this.message) this.message = '';
+    }, 4500);
+  }
 }
+

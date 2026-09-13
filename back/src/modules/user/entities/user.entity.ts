@@ -6,11 +6,12 @@ import { EventEntity } from "src/modules/event/entities/event.entity";
 import { PublicationEntity } from "src/modules/publication/entities/publication.entity";
 import { RolEntity } from "src/modules/rol/entities/rol.entity";
 import { TagEntity } from "src/modules/tag/entities/tag.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, FindOptionsRelations } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, FindOptionsRelations } from "typeorm";
 
 
 export const UserEntityRelations: FindOptionsRelations<UserEntity> = {
     tag: true,
+    tags: true,
     rol: true,
 };
 
@@ -32,10 +33,8 @@ export class UserEntity extends BaseEntity {
     @Column({ type: 'varchar', length: 255 })
     email: string;
 
-    @ApiProperty({
-        description: 'Contraseña del usuario',
-        example: enumProperty.password
-    })
+    @ApiHideProperty()
+    @Exclude()
     @Column()
     password: string;
 
@@ -50,19 +49,30 @@ export class UserEntity extends BaseEntity {
         description: 'El rol de autorización del usuario',
         example: enumProperty.rol
     })
-    @Exclude()
     @JoinColumn({ name: 'rol' })
     @ManyToOne( ()  => RolEntity, (rol) => rol.users)
     rol: RolEntity;
 
     @ApiProperty({
+        description: 'Las etiquetas asignadas al usuario',
+        type: () => [TagEntity]
+    })
+    @ManyToMany( () => TagEntity, (tag) => tag.users, { onDelete: 'CASCADE' } )
+    @JoinTable({
+        name: 'user_tags',
+        joinColumn: { name: 'userIndex', referencedColumnName: 'index' },
+        inverseJoinColumn: { name: 'tagId', referencedColumnName: 'id' }
+    })
+    tags?: TagEntity[];
+
+    @ApiProperty({
         description: 'El tag ligado al usuario',
         example: enumProperty.tag
     })
-    @Exclude()
     @JoinColumn({ name: 'tag' })
-    @ManyToOne( () => TagEntity, (tag) => tag.users, {
-        nullable: true
+    @ManyToOne( () => TagEntity, {
+        nullable: true,
+        onDelete: 'SET NULL'
     })
     tag?: TagEntity | null;
 

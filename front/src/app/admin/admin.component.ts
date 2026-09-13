@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../auth/services/auth.service';
@@ -23,6 +23,14 @@ export interface AdminEventItem {
   createdAt?: string;
 }
 
+export interface UserItem {
+  uuid: string;
+  name: string;
+  email: string;
+  rol?: { name: string };
+  role?: string;
+}
+
 interface Publication {
   uuid: string;
   title: string;
@@ -34,7 +42,7 @@ interface Publication {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
 })
@@ -45,6 +53,7 @@ export class AdminComponent implements OnInit {
 
   private readonly eventsApiUrl = 'http://localhost:3000/events';
   private readonly publicationsApiUrl = 'http://localhost:3000/publications';
+  private readonly usersApiUrl = 'http://localhost:3000/users';
 
   // Pestaña activa
   readonly activeTab = signal<AdminTab>('events');
@@ -143,6 +152,33 @@ export class AdminComponent implements OnInit {
   // Publicaciones
   publications: Publication[] = [];
 
+  // Gestión de Usuarios (RF-05 / Admin)
+  users = signal<UserItem[]>([]);
+  readonly userSearchTerm = signal<string>('');
+  readonly userRoleFilter = signal<string>('all');
+
+  readonly filteredUsers = computed<UserItem[]>(() => {
+    const list = this.users() || [];
+    const filter = (this.userRoleFilter() || 'all').toLowerCase();
+    const term = (this.userSearchTerm() || '').trim().toLowerCase();
+
+    return list.filter((u) => {
+      const userRole = (u.rol?.name || u.role || 'user').toString().toLowerCase();
+      const matchesRole = filter === 'all' || userRole === filter;
+      const matchesSearch =
+        !term ||
+        (u.name && u.name.toLowerCase().includes(term)) ||
+        (u.email && u.email.toLowerCase().includes(term));
+
+      return matchesRole && matchesSearch;
+    });
+  });
+
+  resetUserFilters(): void {
+    this.userSearchTerm.set('');
+    this.userRoleFilter.set('all');
+  }
+
   // Mensajes de estado
   message = '';
   error = '';
@@ -181,6 +217,7 @@ export class AdminComponent implements OnInit {
   ngOnInit(): void {
     this.loadEvents();
     this.loadPublications();
+    this.loadUsers();
 
     // Conectar cambios del formulario al signal reactivo
     this.eventForm.valueChanges.subscribe(() => {
@@ -191,6 +228,9 @@ export class AdminComponent implements OnInit {
   setTab(tab: AdminTab): void {
     this.activeTab.set(tab);
     this.clearAlerts();
+    if (tab === 'users') {
+      this.loadUsers();
+    }
   }
 
   clearAlerts(): void {
@@ -230,6 +270,47 @@ export class AdminComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
+      },
+    });
+  }
+
+  loadUsers(): void {
+    if (!this.authService.getToken()) return;
+    this.http.get<{ data: UserItem[] }>(`${this.usersApiUrl}?limit=100`, this.options).subscribe({
+      next: (res) => {
+        this.users.set(res.data || []);
+      },
+      error: () => {
+        this.error = 'No fue posible cargar el listado de usuarios.';
+      },
+    });
+  }
+
+  changeUserRole(uuid: string, newRole: string): void {
+    this.clearAlerts();
+    this.http.patch(`${this.usersApiUrl}/${uuid}/role`, { role: newRole }, this.options).subscribe({
+      next: () => {
+        this.message = 'Rol de usuario actualizado correctamente.';
+        this.loadUsers();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No fue posible cambiar el rol del usuario.';
+      },
+    });
+  }
+
+  deleteUserAccount(uuid: string, userName: string = 'este usuario'): void {
+    this.clearAlerts();
+    if (!confirm(`¿Estás seguro de que deseas eliminar definitivamente a ${userName}?`)) return;
+    this.http.delete(`${this.usersApiUrl}/${uuid}`, this.options).subscribe({
+      next: () => {
+        this.message = 'Usuario eliminado del sistema correctamente.';
+        this.loadUsers();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No fue posible eliminar al usuario.';
       },
     });
   }

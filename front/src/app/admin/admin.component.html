@@ -99,6 +99,7 @@
           <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
         <span>Usuarios</span>
+        <span class="tab-badge" *ngIf="users().length">{{ users().length }}</span>
       </button>
 
       <button 
@@ -182,7 +183,7 @@
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Control de Usuarios</span>
-            <span class="kpi-value">Módulo Activo</span>
+            <span class="kpi-value">{{ users().length ? users().length + ' Registrados' : 'Módulo Activo' }}</span>
           </div>
           <span class="kpi-action">Ver roles →</span>
         </div>
@@ -834,20 +835,148 @@
     </section>
 
     <!-- ====================================================================
-         5. PESTAÑA USUARIOS
+         5. PESTAÑA USUARIOS (GESTIÓN DE ROLES Y CUENTAS - RF-05 / ADMIN)
          ==================================================================== -->
     <section *ngIf="activeTab() === 'users'" class="tab-panel animate-fade-in">
       <div class="section-intro">
-        <h2>Gestión de Usuarios y Roles</h2>
-        <p>Control de cuentas, asignación de permisos administrativos y supervisión de accesos.</p>
+        <h2>Gestión de Usuarios y Accesos</h2>
+        <p>Supervisa a los miembros registrados, filtra por correo/nombre y administra los privilegios de acceso al sistema.</p>
       </div>
 
-      <div class="card placeholder-card">
-        <div class="placeholder-icon">👥</div>
-        <h3>Módulo de Usuarios</h3>
-        <p>Estructura lista para la gestión detallada de usuarios, asignación de roles y estados de cuenta.</p>
-        <div class="placeholder-actions">
-          <span class="status-pill active">Listo para configurar</span>
+      <div class="card users-management-card">
+        <!-- Header de la tarjeta con conteos y controles -->
+        <div class="card-header users-header-row">
+          <div class="users-header-info">
+            <h3>Directorio de Cuentas Registradas</h3>
+            <span class="counter-badge">{{ users().length }} cuentas en total</span>
+          </div>
+
+          <!-- Barra de controles: Buscador y Filtro por Rol -->
+          <div class="users-search-filter-bar">
+            <!-- Buscador por nombre o email -->
+            <div class="search-input-wrapper">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input 
+                type="text" 
+                [value]="userSearchTerm()" 
+                (input)="userSearchTerm.set($any($event.target).value)" 
+                placeholder="Buscar por nombre o correo..." 
+                class="search-text-input"
+              />
+              <button 
+                *ngIf="userSearchTerm()" 
+                type="button" 
+                class="clear-search-btn" 
+                (click)="userSearchTerm.set('')"
+                title="Limpiar búsqueda"
+              >✕</button>
+            </div>
+
+            <!-- Filtro de Rol -->
+            <div class="filter-role-wrapper">
+              <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <select 
+                [value]="userRoleFilter()" 
+                (change)="userRoleFilter.set($any($event.target).value)" 
+                class="filter-role-select"
+              >
+                <option value="all">Todos los roles</option>
+                <option value="admin">Administrador (admin)</option>
+                <option value="mod">Moderador (mod)</option>
+                <option value="user">Usuario Regular (user)</option>
+              </select>
+            </div>
+
+            <!-- Botón limpiar filtros -->
+            <button 
+              *ngIf="userSearchTerm() || userRoleFilter() !== 'all'" 
+              type="button" 
+              class="btn-reset-filters" 
+              (click)="resetUserFilters()"
+              title="Restablecer filtros"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              <span>Limpiar</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body users-table-body">
+          <!-- Estado vacío -->
+          <div *ngIf="!users().length" class="empty-state">
+            <p>No hay usuarios registrados en el sistema actualmente.</p>
+          </div>
+
+          <div *ngIf="users().length && !filteredUsers().length" class="empty-state">
+            <p>No se encontraron usuarios que coincidan con "{{ userSearchTerm() || userRoleFilter() }}".</p>
+            <button class="btn-clean-state" (click)="resetUserFilters()">Ver todos los usuarios</button>
+          </div>
+
+          <!-- Tabla de usuarios -->
+          <div *ngIf="filteredUsers().length" class="users-table-responsive">
+            <table class="admin-data-table">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Correo Electrónico</th>
+                  <th>Rol Actual</th>
+                  <th>Asignar Nivel de Acceso</th>
+                  <th class="text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let userItem of filteredUsers()">
+                  <td>
+                    <div class="user-identity-cell">
+                      <div class="user-avatar-bubble" [class.admin]="(userItem.rol?.name || userItem.role) === 'admin'" [class.mod]="(userItem.rol?.name || userItem.role) === 'mod'">
+                        {{ userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U' }}
+                      </div>
+                      <div class="user-identity-info">
+                        <strong class="user-name-text">{{ userItem.name }}</strong>
+                        <small class="user-uuid-sub">{{ userItem.uuid | slice:0:8 }}...</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="user-email-text">{{ userItem.email }}</span>
+                  </td>
+                  <td>
+                    <span class="role-badge-pill" [ngClass]="'role-' + (userItem.rol?.name || userItem.role || 'user')">
+                      <span class="role-dot"></span>
+                      {{ userItem.rol?.name || userItem.role || 'user' | uppercase }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="role-changer-box">
+                      <select
+                        [value]="userItem.rol?.name || userItem.role || 'user'"
+                        (change)="changeUserRole(userItem.uuid, $any($event.target).value)"
+                        class="role-changer-select"
+                        [disabled]="!authService.isAdmin()"
+                      >
+                        <option value="admin">Administrador (admin)</option>
+                        <option value="mod">Moderador (mod)</option>
+                        <option value="user">Usuario Regular (user)</option>
+                      </select>
+                    </div>
+                  </td>
+                  <td class="text-right">
+                    <button
+                      type="button"
+                      class="btn-delete-user"
+                      (click)="deleteUserAccount(userItem.uuid, userItem.name)"
+                      [disabled]="!authService.isAdmin()"
+                      title="Eliminar cuenta de usuario"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                      <span>Eliminar</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
     </section>

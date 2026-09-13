@@ -1,107 +1,774 @@
+/*
+ * # ESTILOS DEL PANEL DE ADMINISTRACIÓN GLOBAL - PALETA OFICIAL LIBERO WEB (STYLE.md)
+ * Encargado: Eduardo
+ * Colores Oficiales:
+ * - Principal (Naranja Cobre): #D84E18
+ * - Complementario (Naranja Ámbar): #D86E00
+ * - Resalte (Azul Petróleo): #006581
+ * - Delineados (Azul Verdoso): #0080A3
+ * - Base (Gris Azulado): #E4EBED
+ * - Profundidad (Blanco Hielo): #F5FDFF
+ */
+
 .admin-page {
   min-height: 100vh;
   padding: 2rem;
-  background: #f5f2eb;
-  color: #1d2a24;
+  background: #E4EBED;
+  color: #006581;
+  font-family: 'Inter', system-ui, sans-serif;
 }
+
 .admin-header,
+.admin-section,
+.survey-management-section,
 .creation-grid,
 .lists-grid {
-  max-width: 1180px;
-  margin: 0 auto 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto 1.75rem;
 }
+
+/* Header branding con Logo de la empresa y Paleta Oficial */
 .admin-header {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
+  background: #F5FDFF;
+  padding: 1.25rem 1.75rem;
+  border-radius: 12px;
+  border: 1px solid #0080A3;
+  box-shadow: 0 4px 15px rgba(0, 101, 129, 0.06);
+
+  .header-branding {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+
+    .admin-logo {
+      height: 54px;
+      width: auto;
+      object-fit: contain;
+    }
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #D84E18;
+    margin: 0 0 0.2rem 0;
+  }
+
+  h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.6rem;
+    margin: 0;
+    color: #006581;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0.2rem 0 0 0;
+    font-size: 0.85rem;
+    color: #006581;
+    opacity: 0.85;
+  }
+
+  .admin-header__actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+
+    .home-button {
+      padding: 0.65rem 1.2rem;
+      background: #D84E18;
+      color: #ffffff;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: #D86E00;
+      }
+    }
+
+    .btn-logout {
+      padding: 0.65rem 1.2rem;
+      background: #006581;
+      color: #ffffff;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: #0080A3;
+      }
+    }
+  }
 }
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.75rem;
-  color: #b05d2a;
+
+.message {
+  max-width: 1200px;
+  margin: 0 auto 1.25rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+
+  &.success {
+    background: #e6f4ea;
+    color: #137333;
+    border: 1px solid #ceead6;
+  }
+
+  &.error {
+    background: #fce8e6;
+    color: #c5221f;
+    border: 1px solid #fad2cf;
+  }
 }
-h1,
-h2 {
-  margin-top: 0;
+
+/* Tarjetas globales */
+.admin-card {
+  background: #ffffff;
+  border: 1px solid #0080A3;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 101, 129, 0.04);
+
+  &.full-width-card {
+    grid-column: 1 / -1;
+  }
+
+  .card-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      margin: 0;
+      font-size: 1.3rem;
+      color: #006581;
+      font-weight: 700;
+    }
+
+    .badge-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .badge-info {
+        background: #F5FDFF;
+        color: #006581;
+        border: 1px solid #0080A3;
+      }
+    }
+  }
+
+  /* # Este bloque tiene como objetivo dar estilo a la barra de paginación de encuestas en el panel de administración */
+  .admin-pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding: 0.6rem 1rem;
+    background: #F5FDFF;
+    border: 1px solid #0080A3;
+    border-radius: 8px;
+
+    /* # Este bloque agrupa de forma centrada los botones numéricos y la etiqueta informativa de encuestas */
+    .pagination-center-group {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-page-nav {
+      background: linear-gradient(135deg, #006581 0%, #0080A3 100%);
+      color: #ffffff;
+      border: none;
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover:not([disabled]) {
+        background: linear-gradient(135deg, #D84E18 0%, #D86E00 100%);
+        transform: translateY(-1px);
+      }
+
+      &[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+        background: #006581;
+      }
+    }
+
+    &.pagination-bottom {
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-numbers-group {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+
+      .btn-page-number {
+        background: #ffffff;
+        color: #006581;
+        border: 1px solid #0080A3;
+        padding: 0.3rem 0.65rem;
+        border-radius: 6px;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover:not(.active) {
+          border-color: #D84E18;
+          background: #fff7ed;
+        }
+
+        &.active {
+          background: #D84E18;
+          color: #ffffff;
+          border-color: #D84E18;
+          font-weight: 700;
+        }
+      }
+    }
+
+    .pagination-info-text {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: #006581;
+    }
+  }
+
+  .section-desc {
+    color: #006581;
+    opacity: 0.85;
+    font-size: 0.9rem;
+    margin: 0 0 1.25rem 0;
+  }
+
+  .empty-msg {
+    color: #006581;
+    opacity: 0.6;
+    font-style: italic;
+    font-size: 0.9rem;
+  }
 }
-.creation-grid,
+
+/* Barra de controles de filtrado y búsqueda de usuarios */
+.user-controls-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .search-input-group {
+    flex: 1;
+    min-width: 260px;
+
+    .search-input {
+      width: 100%;
+      padding: 0.65rem 1rem;
+      border: 1px solid #0080A3;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: #F5FDFF;
+      color: #006581;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+
+      &:focus {
+        outline: none;
+        border-color: #D84E18;
+        box-shadow: 0 0 0 3px rgba(216, 78, 24, 0.15);
+      }
+    }
+  }
+
+  .filter-select-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #006581;
+    }
+
+    .filter-select {
+      padding: 0.65rem 1rem;
+      border: 1px solid #0080A3;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: #F5FDFF;
+      color: #006581;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:focus {
+        outline: none;
+        border-color: #D84E18;
+      }
+    }
+  }
+}
+
+/* Tabla de gestión de usuarios (RF-05 / ADMIN) */
+.users-table-wrapper {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+
+  th, td {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #E4EBED;
+    font-size: 0.9rem;
+  }
+
+  th {
+    background: #F5FDFF;
+    color: #006581;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  .role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+
+    &.role-admin {
+      background: #fce8e6;
+      color: #D84E18;
+      border: 1px solid #D84E18;
+    }
+
+    &.role-mod {
+      background: #fff7ed;
+      color: #D86E00;
+      border: 1px solid #D86E00;
+    }
+
+    &.role-user {
+      background: #e0f2fe;
+      color: #006581;
+      border: 1px solid #0080A3;
+    }
+  }
+
+  .role-select {
+    padding: 0.4rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid #0080A3;
+    font-size: 0.85rem;
+    background: #F5FDFF;
+    color: #006581;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: #D84E18;
+    }
+  }
+
+  .btn-delete-sm {
+    background: #fce8e6;
+    color: #D84E18;
+    border: 1px solid #D84E18;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+      background: #D84E18;
+      color: #ffffff;
+    }
+  }
+}
+
+/* Listado de Encuestas Dinámicas (RF-17 / RF-18) */
+.surveys-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.survey-card-item {
+  background: #F5FDFF;
+  border: 1px solid #0080A3;
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 101, 129, 0.04);
+
+  .survey-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    .survey-info {
+      h3 {
+        font-family: 'Outfit', sans-serif;
+        margin: 0 0 0.35rem 0;
+        font-size: 1.15rem;
+        color: #006581;
+        font-weight: 700;
+      }
+
+      .survey-meta {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #006581;
+        opacity: 0.85;
+
+        .status-pill {
+          font-weight: 700;
+          text-transform: uppercase;
+          font-size: 0.75rem;
+
+          &.status-published { color: #D84E18; }
+          &.status-draft { color: #D86E00; }
+          &.status-closed { color: #c5221f; }
+        }
+
+        .closed-date-tag {
+          color: #c5221f;
+          font-weight: 700;
+          font-size: 0.8rem;
+        }
+      }
+    }
+
+    .survey-actions {
+      display: flex;
+      gap: 0.65rem;
+      align-items: center;
+      flex-shrink: 0;
+
+      .btn-action {
+        padding: 0.55rem 1rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .btn-view-results {
+        background: #D84E18;
+        color: #ffffff;
+
+        &:hover {
+          background: #D86E00;
+        }
+      }
+
+      .btn-disable {
+        background: #D86E00;
+        color: #ffffff;
+
+        &:hover {
+          background: #b55c00;
+        }
+      }
+
+      .btn-enable {
+        background: #137333;
+        color: #ffffff;
+
+        &:hover {
+          background: #0f5c29;
+        }
+      }
+
+      .btn-delete-survey {
+        background: #006581;
+        color: #ffffff;
+
+        &:hover {
+          background: #0080A3;
+        }
+      }
+    }
+  }
+
+  .results-container-box {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #0080A3;
+  }
+}
+
+/* Grillas secundarias de Publicaciones y Eventos */
+.creation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+
+  form.admin-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      margin: 0 0 0.5rem 0;
+      font-size: 1.3rem;
+      color: #006581;
+      font-weight: 700;
+    }
+
+    label {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #006581;
+      margin-bottom: 0.15rem;
+      display: block;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid #0080A3;
+      background: #F5FDFF;
+      color: #006581;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+
+      &:focus {
+        outline: none;
+        border-color: #D84E18;
+        box-shadow: 0 0 0 3px rgba(216, 78, 24, 0.15);
+      }
+    }
+
+    /* # Este bloque tiene como objetivo dar un estilo moderno y atractivo al botón de selección de archivo usando la paleta oficial (#006581, #0080A3, #D84E18, #F5FDFF) */
+    .file-input {
+      padding: 0.35rem 0.6rem;
+      background: #F5FDFF;
+      border: 1px dashed #0080A3;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #006581;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        border-color: #D84E18;
+        background: #ffffff;
+      }
+
+      &::file-selector-button,
+      &::-webkit-file-upload-button {
+        background: linear-gradient(135deg, #006581 0%, #0080A3 100%);
+        color: #ffffff;
+        border: none;
+        padding: 0.45rem 0.9rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        margin-right: 0.75rem;
+        transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 101, 129, 0.2);
+      }
+
+      &:hover::file-selector-button,
+      &:hover::-webkit-file-upload-button {
+        background: linear-gradient(135deg, #D84E18 0%, #D86E00 100%);
+        box-shadow: 0 3px 6px rgba(216, 78, 24, 0.3);
+      }
+    }
+
+    .image-preview-container {
+      position: relative;
+      margin-top: 0.35rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #0080A3;
+      max-height: 160px;
+      display: flex;
+      justify-content: center;
+      background: #F5FDFF;
+
+      .img-preview {
+        max-width: 100%;
+        max-height: 160px;
+        object-fit: cover;
+      }
+
+      .btn-remove-img {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: rgba(197, 34, 31, 0.9);
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+
+        &:hover {
+          background: #c5221f;
+        }
+      }
+    }
+
+    button[type="submit"] {
+      margin-top: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      background: #D84E18;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover:not(:disabled) {
+        background: #D86E00;
+      }
+
+      &:disabled {
+        background: #006581;
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
 .lists-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
-.admin-card {
-  background: #fff;
-  border: 1px solid #ded8cb;
-  padding: 1.25rem;
-}
-.admin-card form {
-  display: grid;
-  gap: 0.55rem;
-}
-input,
-textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0.7rem;
-  border: 1px solid #c9c2b5;
-  font: inherit;
-}
-textarea {
-  min-height: 110px;
-  resize: vertical;
-}
-button {
-  border: 0;
-  padding: 0.7rem 1rem;
-  background: #1d2a24;
-  color: #fff;
-  cursor: pointer;
-}
-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.admin-header__actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-.home-button {
-  padding: 0.7rem 1rem;
-  background: #b05d2a;
-  color: #fff;
-  text-decoration: none;
-}
+
 .list-row {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
   align-items: center;
-  padding: 0.8rem 0;
-  border-top: 1px solid #ebe6dc;
+  padding: 0.75rem 0;
+  border-top: 1px solid #E4EBED;
+
+  .list-row-main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .row-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid #0080A3;
+      flex-shrink: 0;
+    }
+  }
+
+  button {
+    background: #D84E18;
+    color: #ffffff;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+
+    &:hover {
+      background: #D86E00;
+    }
+  }
 }
-.list-row button {
-  background: #9a3828;
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  &-info {
+    background: #e0f2fe;
+    color: #006581;
+    border: 1px solid #0080A3;
+  }
+
+  &-primary {
+    background: #fff7ed;
+    color: #D84E18;
+    border: 1px solid #D86E00;
+  }
 }
-.message {
-  max-width: 1180px;
-  margin: 0 auto 1rem;
-  padding: 0.75rem 1rem;
-}
-.success {
-  background: #dcefe1;
-}
-.error {
-  background: #f8dddd;
-}
-@media (max-width: 760px) {
-  .admin-header,
+
+@media (max-width: 840px) {
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .creation-grid,
   .lists-grid {
     grid-template-columns: 1fr;
-    display: grid;
+  }
+
+  .survey-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .survey-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
   }
 }

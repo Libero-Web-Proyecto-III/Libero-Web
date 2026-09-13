@@ -24,6 +24,7 @@ export class UserService {
 
   ) {}
 
+  // # Este bloque tiene como objetivo listar a todos los usuarios paginados incluyendo sus relaciones de rol y tag
   async findAll(query: GetAllUserQueryDto): Promise<AllResponse> {
     const { include, page = 1, limit = 10 } = query;
 
@@ -32,6 +33,7 @@ export class UserService {
     const [data, total] = await this.UserRepository.findAndCount({
       skip,
       take: limit,
+      relations: UserEntityRelations as FindOptionsRelations<UserEntity>,
       order: { index: 'ASC' },
     });
 
@@ -155,6 +157,25 @@ export class UserService {
       message: 'Usuario ELIMINADO',
       user: await this.UserRepository.softRemove(contact),
     };
+  }
+
+  // # Este bloque tiene como objetivo cambiar el rol de un usuario existente (ej. promover de usuario a admin) por parte de un Administrador
+  async updateRole(uuid: string, roleName: enumRol): Promise<UserEntity> {
+    const user = await this.findOneBy.uuid(uuid);
+    const newRole = await this.RolRepository.findOne(roleName);
+    if (!newRole) {
+      throw new NotFoundException(`El rol ${roleName} no existe.`);
+    }
+    user.rol = newRole;
+    return await this.UserRepository.save(user);
+  }
+
+  // # Este bloque tiene como objetivo actualizar la información básica de un usuario (nombre, correo) por el Administrador
+  async update(uuid: string, updateData: { name?: string; email?: string }): Promise<UserEntity> {
+    const user = await this.findOneBy.uuid(uuid);
+    if (updateData.name) user.name = updateData.name;
+    if (updateData.email) user.email = updateData.email;
+    return await this.UserRepository.save(user);
   }
 
   async recover(uuid: string) {

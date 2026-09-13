@@ -888,3 +888,189 @@
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-10px); }
 }
+
+/* ── Encuestas y Participación Ciudadana (RF-17 / RF-18) ──────────────── */
+.home-surveys-section {
+  padding: 5rem 2rem;
+  background: #F5FDFF;
+  border-top: 1px solid #E4EBED;
+  border-bottom: 1px solid #E4EBED;
+
+  .home-surveys-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .surveys-header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    .surveys-lead {
+      max-width: 700px;
+      margin: 0 auto;
+      color: #006581;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+  }
+
+  /* # Este bloque tiene como objetivo dar estilos responsivos e interactivos al carrusel de encuestas en Home con la paleta de colores institucional */
+  .surveys-carousel-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .carousel-controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1.25rem;
+    background: #ffffff;
+    border: 1px solid #0080A3;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 101, 129, 0.08);
+
+    .carousel-btn {
+      background: linear-gradient(135deg, #006581 0%, #0080A3 100%);
+      color: #ffffff;
+      border: none;
+      padding: 0.5rem 1.1rem;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+
+      &:hover {
+        background: linear-gradient(135deg, #D84E18 0%, #D86E00 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(216, 78, 24, 0.25);
+      }
+    }
+
+    .carousel-indicators {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+
+      .carousel-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #E4EBED;
+        border: 1px solid #0080A3;
+        cursor: pointer;
+        transition: all 0.25s ease;
+
+        &.active {
+          background: #D84E18;
+          border-color: #D84E18;
+          width: 28px;
+          border-radius: 999px;
+        }
+
+        &:hover:not(.active) {
+          background: #0080A3;
+        }
+      }
+
+      .carousel-counter-badge {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #006581;
+        margin-left: 0.5rem;
+        background: #F5FDFF;
+        padding: 0.25rem 0.65rem;
+        border-radius: 6px;
+        border: 1px solid #0080A3;
+      }
+    }
+  }
+
+  .surveys-grid-home {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.75rem;
+  }
+
+  .home-survey-card {
+    background: #ffffff;
+    border: 1px solid #0080A3;
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 20px rgba(0, 101, 129, 0.06);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0, 101, 129, 0.12);
+    }
+
+    .public-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: #fff7ed;
+      color: #D84E18;
+      border: 1px solid #D86E00;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .survey-card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      color: #006581;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .survey-card-desc {
+      color: #006581;
+      opacity: 0.85;
+      font-size: 0.925rem;
+      line-height: 1.5;
+      margin: 0 0 1rem 0;
+    }
+
+    .survey-card-meta {
+      font-size: 0.825rem;
+      color: #006581;
+      opacity: 0.75;
+      margin-bottom: 1.25rem;
+    }
+
+    .btn-toggle-survey {
+      width: 100%;
+      padding: 0.75rem 1.25rem;
+      background: #D84E18;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: #D86E00;
+      }
+    }
+
+    .survey-viewer-modal-wrapper {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px dashed #0080A3;
+    }
+  }
+}

@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 
 @Entity('event')
@@ -39,6 +39,14 @@ export class EventEntity {
   })
   @Column('text')
   description: string;
+
+  // # Este bloque guarda opcionalmente la imagen promocional o multimedia del evento en formato Base64 permitiendo contenido extenso (longtext)
+  @ApiPropertyOptional({
+    description: 'Imagen o afiche promocional del evento en Base64 o URL',
+    example: 'data:image/jpeg;base64,...',
+  })
+  @Column({ type: 'longtext', nullable: true })
+  image?: string;
 
   @ApiProperty({
     description: 'Fecha y hora de inicio',

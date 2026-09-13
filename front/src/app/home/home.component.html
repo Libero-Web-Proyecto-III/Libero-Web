@@ -156,6 +156,64 @@
       </div>
     </section>
 
+    <!-- ════════════ SECCIÓN ENCUESTAS Y CONSULTA PÚBLICA (RF-17 / RF-18) ════════════ -->
+    <!-- # Este bloque tiene como objetivo estructurar la sección de encuestas activas en formato carrusel interactivo con navegación prev/next -->
+    <section id="encuestas" class="home-surveys-section" *ngIf="activeSurveys.length > 0">
+      <div class="home-surveys-container">
+        <div class="surveys-header">
+          <div class="section-tag">Participación Ciudadana</div>
+          <h2 class="section-title">Encuestas Disponibles y Consulta Pública</h2>
+          <p class="surveys-lead">Tu opinión es fundamental para el desarrollo sostenible de Mocoa y Putumayo. Participa activamente en nuestras encuestas dinámicas.</p>
+        </div>
+
+        <div class="surveys-carousel-wrapper">
+          <!-- Controles de navegación de carrusel cuando hay más de 1 encuesta -->
+          <div class="carousel-controls-bar" *ngIf="activeSurveys.length > 1">
+            <button type="button" class="carousel-btn btn-prev" (click)="prevSurvey()" aria-label="Encuesta anterior">
+              ◀ Anterior
+            </button>
+            
+            <div class="carousel-indicators">
+              <span 
+                *ngFor="let survey of activeSurveys; let i = index"
+                class="carousel-dot"
+                [class.active]="i === currentSurveyIndex"
+                (click)="goToSurvey(i)"
+                [attr.title]="'Ver ' + survey.title"
+              ></span>
+              <span class="carousel-counter-badge">Encuesta {{ currentSurveyIndex + 1 }} de {{ activeSurveys.length }}</span>
+            </div>
+
+            <button type="button" class="carousel-btn btn-next" (click)="nextSurvey()" aria-label="Siguiente encuesta">
+              Siguiente ▶
+            </button>
+          </div>
+
+          <!-- Tarjeta de Encuesta Activa en el Carrusel -->
+          <div class="surveys-carousel-content" *ngIf="activeSurveys[currentSurveyIndex] as survey">
+            <div class="home-survey-card">
+              <div class="survey-card-top">
+                <span class="public-badge">🌐 Consulta Pública</span>
+                <h3 class="survey-card-title">{{ survey.title }}</h3>
+                <p class="survey-card-desc">{{ survey.description || 'Participa y comparte tu opinión sobre este tema.' }}</p>
+                <div class="survey-card-meta">
+                  <span>📋 {{ survey.questions.length }} Preguntas</span>
+                </div>
+              </div>
+
+              <button type="button" class="btn-toggle-survey" (click)="toggleAnswerSurvey(survey.index)">
+                {{ selectedSurveyIdToAnswer === survey.index ? '✕ Cerrar Encuesta' : '✍️ Responder Encuesta' }}
+              </button>
+
+              <div *ngIf="selectedSurveyIdToAnswer === survey.index" class="survey-viewer-modal-wrapper">
+                <app-survey-viewer [surveyId]="survey.index"></app-survey-viewer>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ════════════ SECCIÓN 3: QUIÉNES SOMOS ════════════ -->
     <section id="quienes-somos" class="about-section">
       <div class="about-section__container">

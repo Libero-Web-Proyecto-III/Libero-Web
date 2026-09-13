@@ -1,9 +1,12 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
+import { SurveyViewerComponent } from '../survey/components/survey-viewer/survey-viewer.component';
+import { SurveyService } from '../survey/services/survey.service';
+import { Survey, SurveyStatusEnum } from '../survey/models/survey.model';
 
 interface CarouselSlide {
   title: string;
@@ -23,7 +26,7 @@ export interface FacebookPost {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, FooterComponent],
+  imports: [CommonModule, NavbarComponent, FooterComponent, SurveyViewerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -102,6 +105,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     },
   ];
 
+  // ─── Encuestas Dinámicas (RF-17 / RF-18) ──────────────────────────────────
+  private readonly surveyService = inject(SurveyService);
+  // # Este bloque tiene como objetivo almacenar el estado de encuestas activas y el índice del carrusel en Home
+  activeSurveys: Survey[] = [];
+  selectedSurveyIdToAnswer: number | null = null;
+  currentSurveyIndex: number = 0;
+
   constructor(
     private sanitizer: DomSanitizer,
     private http: HttpClient
@@ -115,6 +125,51 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.startCarousel();
     this.loadFacebookPosts();
+    this.loadActiveSurveys();
+  }
+
+  // # Este bloque tiene como objetivo cargar las encuestas públicas disponibles para la comunidad en la página de inicio
+  loadActiveSurveys(): void {
+    this.surveyService.getSurveys(SurveyStatusEnum.PUBLISHED, true).subscribe({
+      next: (surveys) => {
+        this.activeSurveys = surveys || [];
+        if (this.currentSurveyIndex >= this.activeSurveys.length) {
+          this.currentSurveyIndex = 0;
+        }
+      },
+      error: () => {
+        this.activeSurveys = [];
+      },
+    });
+  }
+
+  // # Este bloque tiene como objetivo gestionar la navegación del carrusel de encuestas en la página principal
+  nextSurvey(): void {
+    if (this.activeSurveys.length > 0) {
+      this.currentSurveyIndex = (this.currentSurveyIndex + 1) % this.activeSurveys.length;
+    }
+  }
+
+  prevSurvey(): void {
+    if (this.activeSurveys.length > 0) {
+      this.currentSurveyIndex =
+        (this.currentSurveyIndex - 1 + this.activeSurveys.length) % this.activeSurveys.length;
+    }
+  }
+
+  goToSurvey(index: number): void {
+    if (index >= 0 && index < this.activeSurveys.length) {
+      this.currentSurveyIndex = index;
+    }
+  }
+
+  // # Este bloque tiene como objetivo alternar la visualización del formulario interactivo para responder una encuesta activa
+  toggleAnswerSurvey(id: number): void {
+    if (this.selectedSurveyIdToAnswer === id) {
+      this.selectedSurveyIdToAnswer = null;
+    } else {
+      this.selectedSurveyIdToAnswer = id;
+    }
   }
 
   ngOnDestroy(): void {

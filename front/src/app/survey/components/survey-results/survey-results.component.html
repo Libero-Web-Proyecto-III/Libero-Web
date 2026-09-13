@@ -1,0 +1,111 @@
+<!-- 
+  # OBJETIVO DE LA PLANTILLA: Tablero de Resultados, Porcentajes y Perfiles de Encuestados (RF-18)
+  Encargado: Eduardo
+-->
+<div class="results-card">
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando y calculando estadísticas de la encuesta...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading && results">
+    <header class="results-header">
+      <div class="header-main">
+        <h3>📋 Encuesta: {{ results.title }}</h3>
+        <span class="responses-count">Total Entregas: {{ results.totalResponses }}</span>
+      </div>
+
+      <!-- # Selector de Pestañas: Estadísticas Generales vs Listado por Perfil / Usuario -->
+      <nav class="results-tabs">
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab === 'stats'"
+          (click)="setTab('stats')"
+        >
+          📊 Estadísticas Generales
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab === 'users'"
+          (click)="setTab('users')"
+        >
+          👥 Respuestas por Usuario ({{ results.individualResponses?.length || 0 }})
+        </button>
+      </nav>
+    </header>
+
+    <div *ngIf="results.totalResponses === 0" class="empty-state">
+      <p>Aún no se han recibido respuestas para esta encuesta.</p>
+    </div>
+
+    <!-- ════════════ PESTAÑA 1: ESTADÍSTICAS GENERALES Y PORCENTAJES ════════════ -->
+    <div *ngIf="results.totalResponses > 0 && activeTab === 'stats'" class="questions-results-list">
+      <div
+        *ngFor="let question of results.questions; let qIdx = index"
+        class="question-result-item"
+      >
+        <h4>Pregunta #{{ qIdx + 1 }}: {{ question.title }}</h4>
+
+        <!-- Resultados Opciones de Selección -->
+        <div *ngIf="question.options && question.options.length > 0" class="options-bars">
+          <div *ngFor="let opt of question.options" class="bar-row">
+            <div class="bar-label">
+              <span>{{ opt.optionText }}</span>
+              <strong>{{ opt.count }} votos ({{ opt.percentage }}%)</strong>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width.%]="opt.percentage"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Respuestas de Texto Abierto -->
+        <div *ngIf="question.textAnswers && question.textAnswers.length > 0" class="text-answers-list">
+          <h5>Comentarios y Respuestas Abiertas ({{ question.textAnswers.length }}):</h5>
+          <ul>
+            <li *ngFor="let text of question.textAnswers">
+              "{{ text }}"
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ PESTAÑA 2: LISTADO INDIVIDUAL POR PERFIL DE USUARIO ════════════ -->
+    <div *ngIf="results.totalResponses > 0 && activeTab === 'users'" class="individual-responses-list">
+      <div
+        *ngFor="let respondent of results.individualResponses; let rIdx = index"
+        class="respondent-card"
+      >
+        <div class="respondent-header">
+          <div class="respondent-profile">
+            <div class="avatar-badge">👤</div>
+            <div>
+              <h4 class="respondent-name">{{ respondent.respondentName }}</h4>
+              <p class="respondent-email">{{ respondent.respondentEmail }}</p>
+            </div>
+          </div>
+          <div class="respondent-meta">
+            <span class="role-badge" [ngClass]="'role-' + respondent.respondentRole.toLowerCase()">
+              {{ respondent.respondentRole }}
+            </span>
+            <span class="submit-time">📅 {{ respondent.submittedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <div class="respondent-answers">
+          <div *ngFor="let ans of respondent.answers" class="ans-row">
+            <span class="ans-question">{{ ans.questionTitle }}:</span>
+            <span class="ans-value">{{ ans.answerText || 'Sin respuesta' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

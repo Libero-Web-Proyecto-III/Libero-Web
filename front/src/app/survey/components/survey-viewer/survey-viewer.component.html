@@ -1,0 +1,118 @@
+<!-- 
+  # OBJETIVO DE LA PLANTILLA: Vista Interactiva para Responder Encuestas (RF-18)
+  Encargado: Eduardo
+-->
+<div class="survey-viewer-card">
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Cargando encuesta...</p>
+  </div>
+
+  <!-- # Este bloque tiene como objetivo notificar a usuarios visitantes o no autenticados que deben registrarse obligatoriamente para votar -->
+  <div *ngIf="!isLoggedIn" class="auth-required-state">
+    <div class="lock-icon">🔒</div>
+    <h3>Regístrate para participar</h3>
+    <p>Para garantizar la transparencia e integridad de la Consulta Pública en Libero Web, debes estar registrado e iniciar sesión para enviar tus respuestas.</p>
+    <button type="button" class="btn btn-auth" (click)="goToAuth()">
+      🔑 Iniciar sesión / Registrarse
+    </button>
+  </div>
+
+  <!-- # Este bloque tiene como objetivo bloquear envíos duplicados informando que el usuario ya ha participado (1 respuesta por usuario) -->
+  <div *ngIf="isLoggedIn && hasAlreadyResponded && !isSubmitted" class="already-responded-state">
+    <div class="check-icon">✅</div>
+    <h3>Ya has participado en esta encuesta</h3>
+    <p>Se permite únicamente 1 sola participación por usuario registrado para "{{ survey?.title }}". ¡Agradecemos tu activa participación en nuestra comunidad!</p>
+  </div>
+
+  <div *ngIf="isSubmitted" class="submitted-state">
+    <div class="success-icon">🎉</div>
+    <h3>¡Gracias por responder!</h3>
+    <p>Tus respuestas para "{{ survey?.title }}" se han registrado exitosamente.</p>
+  </div>
+
+  <div *ngIf="!isLoading && isLoggedIn && !hasAlreadyResponded && !isSubmitted && survey">
+    <header class="viewer-header">
+      <span class="badge">Encuesta {{ survey.isPublic ? 'Pública' : 'Privada' }}</span>
+      <h2>{{ survey.title }}</h2>
+      <p *ngIf="survey.description" class="description">{{ survey.description }}</p>
+    </header>
+
+    <div *ngIf="errorMessage" class="alert alert-error">
+      {{ errorMessage }}
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="viewer-form">
+      <div
+        *ngFor="let question of survey.questions; let i = index"
+        class="question-block"
+      >
+        <div class="question-header">
+          <span class="q-number">Pregunta {{ i + 1 }}</span>
+          <span *ngIf="question.isRequired" class="required-tag">* Obligatoria</span>
+        </div>
+        <h4>{{ question.title }}</h4>
+
+        <!-- Tipo: Selección Única (Radio Buttons) -->
+        <div *ngIf="question.type === 'SINGLE_CHOICE'" class="options-list">
+          <label
+            *ngFor="let option of question.options"
+            class="option-radio-label"
+          >
+            <input
+              type="radio"
+              [name]="'q_' + question.index"
+              [value]="option.index"
+              [(ngModel)]="answersMap[question.index].optionId"
+            />
+            <span>{{ option.optionText }}</span>
+          </label>
+        </div>
+
+        <!-- Tipo: Selección Múltiple (Checkboxes) -->
+        <div *ngIf="question.type === 'MULTIPLE_CHOICE'" class="options-list">
+          <label
+            *ngFor="let option of question.options"
+            class="option-checkbox-label"
+          >
+            <input
+              type="checkbox"
+              [checked]="isOptionChecked(question.index, option.index)"
+              (change)="toggleMultipleOption(question.index, option.index)"
+            />
+            <span>{{ option.optionText }}</span>
+          </label>
+        </div>
+
+        <!-- Tipo: Texto Abierto (Textarea) -->
+        <div *ngIf="question.type === 'OPEN_TEXT'" class="text-input-block">
+          <textarea
+            rows="3"
+            [(ngModel)]="answersMap[question.index].textValue"
+            [name]="'q_text_' + question.index"
+            placeholder="Escribe tu respuesta aquí..."
+          ></textarea>
+        </div>
+
+        <!-- Tipo: Puntuación (Escala 1 a 5) -->
+        <div *ngIf="question.type === 'RATING'" class="rating-block">
+          <p class="rating-instruction">Selecciona una puntuación del 1 (Muy Malo) al 5 (Excelente):</p>
+          <div class="rating-stars">
+            <label *ngFor="let score of [1, 2, 3, 4, 5]" class="rating-pill">
+              <input
+                type="radio"
+                [name]="'q_rating_' + question.index"
+                [value]="score.toString()"
+                [(ngModel)]="answersMap[question.index].textValue"
+              />
+              <span>⭐ {{ score }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-submit">
+        Enviar Respuestas
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,262 @@
+/*
+ * # ESTILOS DE LA VISTA DE RESPUESTA DE ENCUESTAS (RF-18) - PALETA OFICIAL (STYLE.md)
+ * Encargado: Eduardo
+ */
+
+.survey-viewer-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 101, 129, 0.05);
+  border: 1px solid #0080A3;
+  max-width: 750px;
+  margin: 0 auto;
+
+  .loading-state,
+  .submitted-state,
+  .auth-required-state,
+  .already-responded-state {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+
+    .success-icon,
+    .lock-icon,
+    .check-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      color: #006581;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #006581;
+      opacity: 0.85;
+      font-size: 0.95rem;
+      max-width: 520px;
+      margin: 0 auto 1.25rem auto;
+      line-height: 1.5;
+    }
+  }
+
+  /* # Este bloque tiene como objetivo dar estilo al botón corporativo de inicio de sesión / registro dentro del aviso de participación */
+  .btn-auth {
+    background: linear-gradient(135deg, #D84E18 0%, #D86E00 100%);
+    color: #ffffff;
+    padding: 0.75rem 1.4rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(216, 78, 24, 0.25);
+
+    &:hover {
+      background: linear-gradient(135deg, #006581 0%, #0080A3 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 101, 129, 0.3);
+    }
+  }
+
+  .viewer-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #E4EBED;
+
+    .badge {
+      display: inline-block;
+      background: #fff7ed;
+      color: #D84E18;
+      border: 1px solid #D86E00;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      color: #006581;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .description {
+      color: #006581;
+      opacity: 0.85;
+      font-size: 0.95rem;
+      margin: 0;
+    }
+  }
+
+  .alert-error {
+    background: #fce8e6;
+    color: #D84E18;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #D84E18;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .viewer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .question-block {
+    background: #F5FDFF;
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #0080A3;
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+
+      .q-number {
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #D84E18;
+        text-transform: uppercase;
+      }
+
+      .required-tag {
+        font-size: 0.75rem;
+        color: #D84E18;
+        font-weight: 700;
+      }
+    }
+
+    h4 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      color: #006581;
+      margin: 0 0 1rem 0;
+      font-weight: 700;
+    }
+  }
+
+  .options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .option-radio-label,
+    .option-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #ffffff;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #0080A3;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #D84E18;
+        background: #fff7ed;
+      }
+
+      input {
+        width: 18px;
+        height: 18px;
+        accent-color: #D84E18;
+      }
+
+      span {
+        font-size: 0.95rem;
+        color: #006581;
+      }
+    }
+  }
+
+  .text-input-block {
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #0080A3;
+      font-size: 0.95rem;
+      color: #006581;
+      box-sizing: border-box;
+
+      &:focus {
+        outline: none;
+        border-color: #D84E18;
+        box-shadow: 0 0 0 3px rgba(216, 78, 24, 0.15);
+      }
+    }
+  }
+
+  .rating-block {
+    .rating-instruction {
+      font-size: 0.85rem;
+      color: #006581;
+      margin-bottom: 0.75rem;
+    }
+
+    .rating-stars {
+      display: flex;
+      gap: 0.75rem;
+
+      .rating-pill {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        border: 1px solid #0080A3;
+        border-radius: 8px;
+        padding: 0.6rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: #D86E00;
+          background: #fff7ed;
+        }
+
+        input {
+          display: none;
+        }
+
+        span {
+          font-weight: 700;
+          color: #006581;
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+
+  .btn-submit {
+    background: #D84E18;
+    color: #ffffff;
+    padding: 0.85rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-top: 1rem;
+
+    &:hover {
+      background: #D86E00;
+    }
+  }
+}

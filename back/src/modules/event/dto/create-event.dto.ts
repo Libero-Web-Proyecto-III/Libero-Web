@@ -59,4 +59,12 @@ export class CreateEventDto {
   @IsOptional()
   @IsString()
   tagUuid?: string;
+
+  @ApiPropertyOptional({
+    description: 'Imagen o URL adjunta del evento',
+    example: 'data:image/jpeg;base64,...',
+  })
+  @IsOptional()
+  @IsString()
+  image?: string;
 }

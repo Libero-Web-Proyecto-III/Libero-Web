@@ -1,39 +1,309 @@
 <main class="admin-page">
+  <!-- # Este bloque tiene como objetivo renderizar el encabezado con el logo de la empresa y datos de sesión -->
   <header class="admin-header">
-    <div>
-      <p class="eyebrow">Control de acceso</p>
-      <h1>Panel de administración</h1>
-      <p>Sesión: {{ authService.getUser()?.username }} · Rol: {{ authService.getUser()?.role }}</p>
+    <div class="header-branding">
+      <img src="logo.png" alt="Logo Libero Web" class="admin-logo" />
+      <div>
+        <p class="eyebrow">Control de acceso</p>
+        <h1>Panel de administración</h1>
+        <p>Sesión: {{ authService.getUser()?.username }} · Rol: {{ authService.getUser()?.role }}</p>
+      </div>
     </div>
     <div class="admin-header__actions">
       <a routerLink="/" class="home-button">Volver al inicio</a>
-      <button type="button" (click)="authService.logout()">Cerrar sesión</button>
+      <button type="button" class="btn-logout" (click)="authService.logout()">Cerrar sesión</button>
     </div>
   </header>
 
   <p *ngIf="message" class="message success">{{ message }}</p>
   <p *ngIf="error" class="message error">{{ error }}</p>
 
+  <!-- # SECCIÓN DE GESTIÓN DE USUARIOS Y ROLES (ADMIN - RF-05) -->
+  <section *ngIf="authService.isAdmin()" class="admin-section">
+    <article class="admin-card full-width-card">
+      <div class="card-title-bar">
+        <h2>👥 Gestión de Usuarios y Accesos</h2>
+        <span class="badge badge-info">{{ users.length }} usuarios registrados</span>
+      </div>
+      <p class="section-desc">Visualiza a los trabajadores y usuarios registrados. Puedes buscar por nombre o correo (gmail), filtrar por su nivel de acceso o cambiar su rol.</p>
+
+      <!-- # Este bloque tiene como objetivo proveer controles interactivos de búsqueda y filtrado por rol para los usuarios -->
+      <div class="user-controls-bar">
+        <div class="search-input-group">
+          <input
+            type="text"
+            [(ngModel)]="userSearchTerm"
+            placeholder="🔍 Buscar usuario por nombre o correo (gmail)..."
+            class="search-input"
+          />
+        </div>
+        <div class="filter-select-group">
+          <label for="role-filter-select">Filtro rol:</label>
+          <select id="role-filter-select" [(ngModel)]="userRoleFilter" class="filter-select">
+            <option value="all">Todos los roles</option>
+            <option value="admin">Administrador (admin)</option>
+            <option value="mod">Moderador (mod)</option>
+            <option value="user">Usuario (user)</option>
+          </select>
+        </div>
+      </div>
+      
+      <p *ngIf="!users.length" class="empty-msg">No hay usuarios registrados actualmente.</p>
+      <p *ngIf="users.length && !filteredUsers.length" class="empty-msg">No se encontraron usuarios que coincidan con la búsqueda o filtro aplicado.</p>
+      
+      <div *ngIf="filteredUsers.length" class="users-table-wrapper">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Correo Electrónico</th>
+              <th>Rol Actual</th>
+              <th>Cambiar Acceso / Rol</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let userItem of filteredUsers">
+              <td>
+                <strong>{{ userItem.name }}</strong>
+              </td>
+              <td>{{ userItem.email }}</td>
+              <td>
+                <span class="role-badge" [ngClass]="'role-' + (userItem.rol?.name || 'user')">
+                  {{ userItem.rol?.name || 'user' }}
+                </span>
+              </td>
+              <td>
+                <select
+                  [ngModel]="userItem.rol?.name || 'user'"
+                  (ngModelChange)="changeUserRole(userItem.uuid, $event)"
+                  class="role-select"
+                >
+                  <option value="admin">Administrador (admin)</option>
+                  <option value="mod">Moderador (mod)</option>
+                  <option value="user">Usuario Regular (user)</option>
+                </select>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="btn-action btn-delete-sm"
+                  (click)="deleteUserAccount(userItem.uuid)"
+                  title="Eliminar usuario"
+                >
+                  🗑️ Eliminar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <!-- # SECCIÓN DE CONSTRUCTOR DE ENCUESTAS DINÁMICAS (RF-17 - Eduardo) -->
+  <section *ngIf="authService.hasManagementRole()" class="survey-management-section">
+    <app-survey-builder (surveyCreated)="loadSurveys()"></app-survey-builder>
+  </section>
+
+  <!-- # SECCIÓN DE LISTADO DE ENCUESTAS DINÁMICAS Y RESULTADOS CON PAGINACIÓN (RF-17 y RF-18) -->
+  <section *ngIf="authService.hasManagementRole()" class="admin-section">
+    <article class="admin-card full-width-card">
+      <div class="card-title-bar">
+        <h2>🗳️ Encuestas Dinámicas Creadas</h2>
+        <div class="badge-group">
+          <span class="badge badge-primary">{{ surveys.length }} encuestas totales</span>
+          <span *ngIf="surveys.length > 5" class="badge badge-info">Página {{ currentSurveyPage }} de {{ totalSurveyPages }}</span>
+        </div>
+      </div>
+
+      <!-- Barra de navegación de páginas superior cuando hay más de 5 encuestas creadas -->
+      <div *ngIf="surveys.length > 5" class="admin-pagination-bar">
+        <button
+          type="button"
+          class="btn-page-nav"
+          [disabled]="currentSurveyPage === 1"
+          (click)="prevSurveyPage()"
+        >
+          ◀ Anterior
+        </button>
+
+        <!-- # Este bloque tiene como objetivo agrupar los botones de navegación numéricos junto al texto del rango de encuestas -->
+        <div class="pagination-center-group">
+          <div class="page-numbers-group">
+            <button
+              *ngFor="let pageNum of surveyPageNumbers"
+              type="button"
+              class="btn-page-number"
+              [class.active]="pageNum === currentSurveyPage"
+              (click)="goToSurveyPage(pageNum)"
+            >
+              {{ pageNum }}
+            </button>
+          </div>
+
+          <span class="pagination-info-text">
+            Encuestas {{ (currentSurveyPage - 1) * surveysPerPage + 1 }} a {{ currentSurveyPage * surveysPerPage > surveys.length ? surveys.length : currentSurveyPage * surveysPerPage }} de {{ surveys.length }}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="btn-page-nav"
+          [disabled]="currentSurveyPage === totalSurveyPages"
+          (click)="nextSurveyPage()"
+        >
+          Siguiente ▶
+        </button>
+      </div>
+
+      <p *ngIf="!surveys.length" class="empty-msg">No hay encuestas creadas. Utiliza el constructor superior para agregar la primera.</p>
+
+      <div class="surveys-grid">
+        <div *ngFor="let survey of paginatedSurveys" class="survey-card-item">
+          <div class="survey-card-header">
+            <div class="survey-info">
+              <h3>{{ survey.title }}</h3>
+              <p class="survey-meta">
+                <span>📋 {{ survey.questions.length || 0 }} preguntas</span> · 
+                <span class="status-pill" [ngClass]="'status-' + (survey.status || 'DRAFT').toLowerCase()">
+                  {{ survey.status }}
+                </span> · 
+                <span>{{ survey.isPublic ? '🌐 Pública' : '🔒 Privada' }}</span>
+                <span *ngIf="survey.status === 'CLOSED' && survey.endDate" class="closed-date-tag">
+                  · 🔒 Encuesta Cerrada el: {{ survey.endDate | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </p>
+            </div>
+            <div class="survey-actions">
+              <button
+                type="button"
+                class="btn-action btn-view-results"
+                (click)="toggleSurveyResults(survey.index)"
+              >
+                {{ selectedSurveyResultsId === survey.index ? '✕ Ocultar Resultados' : '📊 Ver Resultados' }}
+              </button>
+              <button
+                type="button"
+                class="btn-action btn-toggle-status"
+                [ngClass]="survey.status === 'PUBLISHED' ? 'btn-disable' : 'btn-enable'"
+                (click)="toggleSurveyStatus(survey)"
+              >
+                {{ survey.status === 'PUBLISHED' ? '🚫 Deshabilitar' : '▶️ Habilitar' }}
+              </button>
+              <button
+                type="button"
+                class="btn-action btn-delete-survey"
+                (click)="deleteSurvey(survey.index)"
+              >
+                🗑️ Eliminar
+              </button>
+            </div>
+          </div>
+
+          <!-- Tablero visual de resultados y porcentajes (RF-18) -->
+          <div *ngIf="selectedSurveyResultsId === survey.index" class="results-container-box">
+            <app-survey-results [surveyId]="survey.index"></app-survey-results>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de navegación de páginas inferior cuando hay más de 5 encuestas creadas -->
+      <div *ngIf="surveys.length > 5" class="admin-pagination-bar pagination-bottom">
+        <button
+          type="button"
+          class="btn-page-nav"
+          [disabled]="currentSurveyPage === 1"
+          (click)="prevSurveyPage()"
+        >
+          ◀ Anterior
+        </button>
+
+        <div class="pagination-center-group">
+          <div class="page-numbers-group">
+            <button
+              *ngFor="let pageNum of surveyPageNumbers"
+              type="button"
+              class="btn-page-number"
+              [class.active]="pageNum === currentSurveyPage"
+              (click)="goToSurveyPage(pageNum)"
+            >
+              {{ pageNum }}
+            </button>
+          </div>
+
+          <span class="pagination-info-text">
+            Página {{ currentSurveyPage }} de {{ totalSurveyPages }}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="btn-page-nav"
+          [disabled]="currentSurveyPage === totalSurveyPages"
+          (click)="nextSurveyPage()"
+        >
+          Siguiente ▶
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <!-- # CREACIÓN DE PUBLICACIONES Y EVENTOS -->
   <section *ngIf="authService.isAdmin()" class="creation-grid">
     <form [formGroup]="publicationForm" (ngSubmit)="createPublication()" class="admin-card">
       <h2>Nueva publicación</h2>
       <label for="publication-title">Título</label>
-      <input id="publication-title" formControlName="title" />
+      <input id="publication-title" formControlName="title" placeholder="Escribe el título..." />
+
       <label for="publication-content">Contenido</label>
-      <textarea id="publication-content" formControlName="content"></textarea>
+      <textarea id="publication-content" formControlName="content" placeholder="Escribe el contenido..."></textarea>
+
+      <!-- # Campo de subida de imagen para publicación -->
+      <label for="publication-image">Imagen promocional (opcional)</label>
+      <input
+        id="publication-image"
+        type="file"
+        accept="image/*"
+        (change)="onPublicationImageSelected($event)"
+        class="file-input"
+      />
+      <div *ngIf="publicationForm.value.image" class="image-preview-container">
+        <img [src]="publicationForm.value.image" alt="Vista previa publicación" class="img-preview" />
+        <button type="button" class="btn-remove-img" (click)="publicationForm.patchValue({ image: '' })">✕ Quitar imagen</button>
+      </div>
+
       <button type="submit" [disabled]="publicationForm.invalid">Publicar</button>
     </form>
 
     <form [formGroup]="eventForm" (ngSubmit)="createEvent()" class="admin-card">
       <h2>Nuevo evento</h2>
       <label for="event-title">Título</label>
-      <input id="event-title" formControlName="title" />
+      <input id="event-title" formControlName="title" placeholder="Título del evento..." />
+
       <label for="event-description">Descripción</label>
-      <textarea id="event-description" formControlName="description"></textarea>
+      <textarea id="event-description" formControlName="description" placeholder="Detalles del evento..."></textarea>
+
       <label for="event-start">Inicio</label>
       <input id="event-start" type="datetime-local" formControlName="startDate" />
+
       <label for="event-end">Fin</label>
       <input id="event-end" type="datetime-local" formControlName="endDate" />
+
+      <!-- # Campo de subida de imagen para evento -->
+      <label for="event-image">Imagen o afiche del evento (opcional)</label>
+      <input
+        id="event-image"
+        type="file"
+        accept="image/*"
+        (change)="onEventImageSelected($event)"
+        class="file-input"
+      />
+      <div *ngIf="eventForm.value.image" class="image-preview-container">
+        <img [src]="eventForm.value.image" alt="Vista previa evento" class="img-preview" />
+        <button type="button" class="btn-remove-img" (click)="eventForm.patchValue({ image: '' })">✕ Quitar imagen</button>
+      </div>
+
       <button type="submit" [disabled]="eventForm.invalid">Crear evento</button>
     </form>
   </section>
@@ -43,7 +313,10 @@
       <h2>Publicaciones</h2>
       <p *ngIf="!publications.length">No hay publicaciones.</p>
       <div *ngFor="let publication of publications" class="list-row">
-        <span>{{ publication.title }} <small>({{ publication.author?.rol?.name || 'sin rol' }})</small></span>
+        <div class="list-row-main">
+          <img *ngIf="publication.media && publication.media.length > 0" [src]="publication.media[0]" alt="Imagen de publicación" class="row-thumb" />
+          <span>{{ publication.title }} <small>({{ publication.author?.rol?.name || 'sin rol' }})</small></span>
+        </div>
         <button type="button" (click)="deletePublication(publication.uuid)">Eliminar</button>
       </div>
     </article>
@@ -52,7 +325,10 @@
       <h2>Eventos</h2>
       <p *ngIf="!events.length">No hay eventos.</p>
       <div *ngFor="let event of events" class="list-row">
-        <span>{{ event.title }} <small>({{ event.organizer?.rol?.name || 'sin rol' }})</small></span>
+        <div class="list-row-main">
+          <img *ngIf="event.image" [src]="event.image" alt="Imagen de evento" class="row-thumb" />
+          <span>{{ event.title }} <small>({{ event.organizer?.rol?.name || 'sin rol' }})</small></span>
+        </div>
         <button type="button" (click)="deleteEvent(event.uuid)">Eliminar</button>
       </div>
     </article>

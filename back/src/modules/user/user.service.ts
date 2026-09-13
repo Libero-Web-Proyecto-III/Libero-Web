@@ -186,6 +186,32 @@ export class UserService {
     return await this.UserRepository.save(user);
   }
 
+  async updateTag(uuid: string, tagId: number | null): Promise<UserEntity> {
+    const user = await this.findOneBy.uuid(uuid);
+    if (tagId === null || tagId === undefined || isNaN(Number(tagId)) || Number(tagId) === 0) {
+      user.tag = null;
+    } else {
+      const tag = await this.TagRepository.findOne(Number(tagId));
+      if (!tag) throw new NotFoundException('No existe esa etiqueta (TAG)');
+      user.tag = tag;
+    }
+    return await this.UserRepository.save(user);
+  }
+
+  async updateTags(uuid: string, tagIds: number[]): Promise<UserEntity> {
+    const user = await this.findOneBy.uuid(uuid);
+    if (!tagIds || !Array.isArray(tagIds) || tagIds.length === 0) {
+      user.tags = [];
+      user.tag = null;
+    } else {
+      const validIds = tagIds.map(Number).filter(id => !isNaN(id) && id > 0);
+      const tags = await this.TagRepository.findByIds(validIds);
+      user.tags = tags;
+      user.tag = tags.length > 0 ? tags[0] : null;
+    }
+    return await this.UserRepository.save(user);
+  }
+
   async recover(uuid: string) {
 
     const user = await this.UserRepository.findOne({

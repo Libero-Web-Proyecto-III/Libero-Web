@@ -27,12 +27,22 @@ export interface AdminEventItem {
   createdAt?: string;
 }
 
+export interface TagItem {
+  id: number;
+  name: string;
+  color: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface UserItem {
   uuid: string;
   name: string;
   email: string;
   rol?: { name: string };
   role?: string;
+  tag?: TagItem | null;
+  tags?: TagItem[];
 }
 
 interface Publication {
@@ -66,6 +76,7 @@ export class AdminComponent implements OnInit {
   private readonly eventsApiUrl = 'http://localhost:3000/events';
   private readonly publicationsApiUrl = 'http://localhost:3000/publications';
   private readonly usersApiUrl = 'http://localhost:3000/users';
+  private readonly tagsApiUrl = 'http://localhost:3000/tag';
 
   // Pestaña activa
   readonly activeTab = signal<AdminTab>('events');
@@ -168,6 +179,43 @@ export class AdminComponent implements OnInit {
   users = signal<UserItem[]>([]);
   readonly userSearchTerm = signal<string>('');
   readonly userRoleFilter = signal<string>('all');
+  readonly userTagFilter = signal<string>('all');
+
+  // Gestión de Etiquetas (Tags)
+  tags = signal<TagItem[]>([]);
+  readonly isTagModalOpen = signal<boolean>(false);
+  readonly newTagName = signal<string>('');
+  readonly newTagColor = signal<string>('#7C3AED');
+  readonly isCreatingTag = signal<boolean>(false);
+
+  // Modal de Asignación Múltiple de Tags a un Usuario
+  readonly selectedUserForTags = signal<UserItem | null>(null);
+  readonly selectedUserTagIds = signal<number[]>([]);
+  readonly userTagsSearchTerm = signal<string>('');
+  readonly isSavingUserTags = signal<boolean>(false);
+
+  readonly filteredModalTags = computed<TagItem[]>(() => {
+    const list = this.tags() || [];
+    const term = this.userTagsSearchTerm().trim().toLowerCase();
+    if (!term) return list;
+    return list.filter((t) => t.name.toLowerCase().includes(term));
+  });
+
+  // Paleta de colores predefinidos sugeridos para etiquetas
+  readonly presetColors: string[] = [
+    '#7C3AED', // Morado Intenso
+    '#2563EB', // Azul Cobalto
+    '#0284C7', // Azul Océano
+    '#0D9488', // Teal
+    '#059669', // Esmeralda
+    '#16A34A', // Verde
+    '#D97706', // Ámbar
+    '#EA580C', // Naranja Fuego
+    '#DC2626', // Rojo Carmesí
+    '#DB2777', // Rosa Fucsia
+    '#475569', // Grafito Pizarra
+    '#0F172A', // Medianoche
+  ];
 
   // Gestión de Encuestas (RF-17 / RF-18)
   surveys = signal<Survey[]>([]);
@@ -188,26 +236,55 @@ export class AdminComponent implements OnInit {
     return Array.from({ length: this.totalSurveyPages() }, (_, i) => i + 1);
   });
 
+  getUserTags(user: UserItem): TagItem[] {
+    const activeTags = this.tags() || [];
+    const activeTagIds = new Set(activeTags.map((t) => t.id));
+
+    if (user.tags && Array.isArray(user.tags)) {
+      if (activeTagIds.size > 0) {
+        return user.tags.filter((t) => t && t.id && activeTagIds.has(t.id));
+      }
+      return user.tags.filter((t) => t && t.id && t.name);
+    }
+    if (user.tag && user.tag.id && user.tag.name) {
+      if (activeTagIds.size > 0 && !activeTagIds.has(user.tag.id)) {
+        return [];
+      }
+      return [user.tag];
+    }
+    return [];
+  }
+
   readonly filteredUsers = computed<UserItem[]>(() => {
     const list = this.users() || [];
-    const filter = (this.userRoleFilter() || 'all').toLowerCase();
+    const roleFilter = (this.userRoleFilter() || 'all').toLowerCase();
+    const tagFilter = this.userTagFilter() || 'all';
     const term = (this.userSearchTerm() || '').trim().toLowerCase();
 
     return list.filter((u) => {
       const userRole = (u.rol?.name || u.role || 'user').toString().toLowerCase();
-      const matchesRole = filter === 'all' || userRole === filter;
+      const matchesRole = roleFilter === 'all' || userRole === roleFilter;
+
+      const userTags = this.getUserTags(u);
+      const matchesTag =
+        tagFilter === 'all' ||
+        (tagFilter === 'none' && userTags.length === 0) ||
+        userTags.some((t) => t.id.toString() === tagFilter);
+
       const matchesSearch =
         !term ||
         (u.name && u.name.toLowerCase().includes(term)) ||
-        (u.email && u.email.toLowerCase().includes(term));
+        (u.email && u.email.toLowerCase().includes(term)) ||
+        userTags.some((t) => t.name.toLowerCase().includes(term));
 
-      return matchesRole && matchesSearch;
+      return matchesRole && matchesTag && matchesSearch;
     });
   });
 
   resetUserFilters(): void {
     this.userSearchTerm.set('');
     this.userRoleFilter.set('all');
+    this.userTagFilter.set('all');
   }
 
   // Mensajes de estado
@@ -249,6 +326,7 @@ export class AdminComponent implements OnInit {
     this.loadEvents();
     this.loadPublications();
     this.loadUsers();
+    this.loadTags();
     this.loadSurveys();
 
     // Conectar cambios del formulario al signal reactivo
@@ -262,6 +340,7 @@ export class AdminComponent implements OnInit {
     this.clearAlerts();
     if (tab === 'users') {
       this.loadUsers();
+      this.loadTags();
     } else if (tab === 'polls') {
       this.loadSurveys();
     } else if (tab === 'news') {
@@ -432,6 +511,215 @@ export class AdminComponent implements OnInit {
         this.error = err?.error?.message || 'No fue posible eliminar al usuario.';
       },
     });
+  }
+
+  /* ------------------------------------------------------------------------
+   * MÉTODOS DE GESTIÓN DE TAGS / ETIQUETAS
+   * ------------------------------------------------------------------------ */
+  loadTags(): void {
+    this.http.get<TagItem[]>(this.tagsApiUrl).subscribe({
+      next: (data) => {
+        this.tags.set(data || []);
+      },
+      error: () => {
+        // En caso de fallo de red
+      },
+    });
+  }
+
+  openCreateTagModal(): void {
+    this.newTagName.set('');
+    this.newTagColor.set('#7C3AED');
+    this.isTagModalOpen.set(true);
+  }
+
+  closeCreateTagModal(): void {
+    this.isTagModalOpen.set(false);
+    this.newTagName.set('');
+  }
+
+  selectPresetColor(color: string): void {
+    this.newTagColor.set(color);
+  }
+
+  onHexColorInput(event: Event): void {
+    let hex = (event.target as HTMLInputElement).value.trim();
+    if (!hex.startsWith('#') && hex.length > 0) {
+      hex = '#' + hex;
+    }
+    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+      this.newTagColor.set(hex);
+    }
+  }
+
+  createTag(): void {
+    this.clearAlerts();
+    const name = this.newTagName().trim();
+    let color = this.newTagColor().trim();
+
+    if (!name) {
+      this.error = 'Debes ingresar un nombre para la etiqueta.';
+      return;
+    }
+
+    if (!color.startsWith('#')) {
+      color = '#' + color;
+    }
+
+    if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
+      this.error = 'El color debe ser un código hexadecimal válido de 6 caracteres (ej. #7C3AED).';
+      return;
+    }
+
+    this.isCreatingTag.set(true);
+    this.http.post<TagItem>(this.tagsApiUrl, { name, color }, this.options).subscribe({
+      next: (createdTag) => {
+        this.isCreatingTag.set(false);
+        this.message = `Etiqueta "${createdTag?.name || name}" creada exitosamente.`;
+        if (createdTag && createdTag.id) {
+          const current = this.tags();
+          if (!current.some((t) => t.id === createdTag.id)) {
+            this.tags.set([...current, createdTag]);
+          }
+        }
+        this.closeCreateTagModal();
+        this.loadTags();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.isCreatingTag.set(false);
+        this.error = err?.error?.message || 'No fue posible crear la etiqueta.';
+      },
+    });
+  }
+
+  deleteTag(id: number, name: string): void {
+    this.clearAlerts();
+    if (!confirm(`¿Estás seguro de que deseas eliminar la etiqueta "${name}"? Se desvinculará de todos los usuarios.`)) return;
+
+    // Actualización inmediata en memoria para reflejar la eliminación sin demora
+    this.tags.set(this.tags().filter((t) => t.id !== id));
+    this.users.set(
+      this.users().map((u) => ({
+        ...u,
+        tags: (u.tags || []).filter((t) => t.id !== id),
+        tag: u.tag && u.tag.id === id ? null : u.tag,
+      }))
+    );
+
+    this.http.delete(`${this.tagsApiUrl}/${id}`, this.options).subscribe({
+      next: () => {
+        this.message = `Etiqueta "${name}" eliminada correctamente.`;
+        this.loadTags();
+        this.loadUsers();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No fue posible eliminar la etiqueta.';
+        this.loadTags();
+        this.loadUsers();
+      },
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+   * MÉTODOS DE ASIGNACIÓN MÚLTIPLE DE TAGS A UN USUARIO
+   * ------------------------------------------------------------------------ */
+  openUserTagsModal(user: UserItem): void {
+    this.selectedUserForTags.set(user);
+    const existingTags = this.getUserTags(user);
+    this.selectedUserTagIds.set(existingTags.map((t) => t.id));
+    this.userTagsSearchTerm.set('');
+  }
+
+  closeUserTagsModal(): void {
+    this.selectedUserForTags.set(null);
+    this.selectedUserTagIds.set([]);
+    this.userTagsSearchTerm.set('');
+  }
+
+  toggleTagSelection(tagId: number): void {
+    const current = this.selectedUserTagIds();
+    if (current.includes(tagId)) {
+      this.selectedUserTagIds.set(current.filter((id) => id !== tagId));
+    } else {
+      this.selectedUserTagIds.set([...current, tagId]);
+    }
+  }
+
+  isTagSelected(tagId: number): boolean {
+    return this.selectedUserTagIds().includes(tagId);
+  }
+
+  selectAllTagsInModal(): void {
+    const visibleIds = this.filteredModalTags().map((t) => t.id);
+    const current = new Set(this.selectedUserTagIds());
+    visibleIds.forEach((id) => current.add(id));
+    this.selectedUserTagIds.set(Array.from(current));
+  }
+
+  clearAllTagsInModal(): void {
+    this.selectedUserTagIds.set([]);
+  }
+
+  saveUserTags(): void {
+    const user = this.selectedUserForTags();
+    if (!user) return;
+
+    this.clearAlerts();
+    this.isSavingUserTags.set(true);
+
+    const tagIds = this.selectedUserTagIds();
+    const updatedTags = this.tags().filter((t) => tagIds.includes(t.id));
+
+    this.http.patch(`${this.usersApiUrl}/${user.uuid}/tags`, { tagIds }, this.options).subscribe({
+      next: () => {
+        this.isSavingUserTags.set(false);
+        this.message = `Etiquetas de "${user.name}" actualizadas con éxito (${tagIds.length} asignadas).`;
+
+        // Actualización inmediata del usuario en memoria para respuesta instantánea
+        this.users.set(
+          this.users().map((u) => {
+            if (u.uuid === user.uuid) {
+              return {
+                ...u,
+                tags: updatedTags,
+                tag: updatedTags.length > 0 ? updatedTags[0] : null,
+              };
+            }
+            return u;
+          })
+        );
+
+        this.closeUserTagsModal();
+        this.loadUsers();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.isSavingUserTags.set(false);
+        this.error = err?.error?.message || 'No fue posible guardar las etiquetas del usuario.';
+      },
+    });
+  }
+
+  getUserCountForTag(tagId: number): number {
+    return (this.users() || []).filter((u) => this.getUserTags(u).some((t) => t.id === tagId)).length;
+  }
+
+  getContrastColor(hexColor: string | undefined): string {
+    if (!hexColor) return '#ffffff';
+    let hex = hexColor.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+    if (hex.length !== 6) return '#ffffff';
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 150) ? '#0f172a' : '#ffffff';
   }
 
   createEvent(): void {

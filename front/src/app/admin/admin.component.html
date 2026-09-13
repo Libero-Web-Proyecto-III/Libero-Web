@@ -983,14 +983,78 @@
     </section>
 
     <!-- ====================================================================
-         5. PESTAÑA USUARIOS (GESTIÓN DE ROLES Y CUENTAS - RF-05 / ADMIN)
+         5. PESTAÑA USUARIOS (GESTIÓN DE ROLES, TAGS Y CUENTAS - RF-05 / ADMIN)
          ==================================================================== -->
     <section *ngIf="activeTab() === 'users'" class="tab-panel animate-fade-in">
       <div class="section-intro">
         <h2>Gestión de Usuarios y Accesos</h2>
-        <p>Supervisa a los miembros registrados, filtra por correo/nombre y administra los privilegios de acceso al sistema.</p>
+        <p>Supervisa a los miembros registrados, clasifícalos con etiquetas personalizadas y administra sus privilegios.</p>
       </div>
 
+      <!-- ====================================================================
+           CONTENEDOR DE GESTIÓN DE TAGS / ETIQUETAS
+           ==================================================================== -->
+      <div class="card tags-management-card mb-4">
+        <div class="card-header tags-header-row">
+          <div class="tags-header-info">
+            <div class="tags-icon-badge">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </div>
+            <div>
+              <h3>Etiquetas de Usuarios (Tags)</h3>
+              <p class="tags-sub-desc">Crea y administra etiquetas para clasificar miembros (ej. VIP, Staff, Estudiante, etc.).</p>
+            </div>
+          </div>
+
+          <div class="tags-header-actions">
+            <span class="counter-badge">{{ tags().length }} etiquetas</span>
+            <button 
+              type="button" 
+              class="btn-create-tag-trigger" 
+              (click)="openCreateTagModal()"
+              [disabled]="!authService.isAdmin()"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Nueva Etiqueta</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body tags-card-body">
+          <!-- Lista de tags disponibles -->
+          <div *ngIf="!tags().length" class="empty-tags-state">
+            <p>Aún no hay etiquetas creadas. Haz clic en <strong>"Nueva Etiqueta"</strong> para crear la primera.</p>
+          </div>
+
+          <div *ngIf="tags().length" class="tags-pill-cloud">
+            <div 
+              *ngFor="let t of tags()" 
+              class="tag-item-chip"
+              [style.background-color]="t.color + '15'"
+              [style.border-color]="t.color + '55'"
+            >
+              <span class="tag-color-bullet" [style.background-color]="t.color"></span>
+              <span class="tag-name-text" [style.color]="t.color">{{ t.name }}</span>
+              <span class="tag-users-count" [title]="getUserCountForTag(t.id) + ' usuarios con esta etiqueta'">
+                {{ getUserCountForTag(t.id) }}
+              </span>
+              <button 
+                *ngIf="authService.isAdmin()"
+                type="button" 
+                class="tag-delete-btn" 
+                (click)="deleteTag(t.id, t.name)"
+                [title]="'Eliminar etiqueta ' + t.name"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           DIRECTORIO DE CUENTAS REGISTRADAS
+           ==================================================================== -->
       <div class="card users-management-card">
         <!-- Header de la tarjeta con conteos y controles -->
         <div class="card-header users-header-row">
@@ -999,7 +1063,7 @@
             <span class="counter-badge">{{ users().length }} cuentas en total</span>
           </div>
 
-          <!-- Barra de controles: Buscador y Filtro por Rol -->
+          <!-- Barra de controles: Buscador, Filtro por Rol y Filtro por Tag -->
           <div class="users-search-filter-bar">
             <!-- Buscador por nombre o email -->
             <div class="search-input-wrapper">
@@ -1008,7 +1072,7 @@
                 type="text" 
                 [value]="userSearchTerm()" 
                 (input)="userSearchTerm.set($any($event.target).value)" 
-                placeholder="Buscar por nombre o correo..." 
+                placeholder="Buscar por nombre, correo o tag..." 
                 class="search-text-input"
               />
               <button 
@@ -1035,9 +1099,25 @@
               </select>
             </div>
 
+            <!-- Filtro de Tag -->
+            <div class="filter-tag-wrapper">
+              <svg class="tag-filter-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              <select 
+                [value]="userTagFilter()" 
+                (change)="userTagFilter.set($any($event.target).value)" 
+                class="filter-tag-select"
+              >
+                <option value="all">Todas las etiquetas</option>
+                <option value="none">Sin etiqueta</option>
+                <option *ngFor="let t of tags()" [value]="t.id.toString()">
+                  {{ t.name }}
+                </option>
+              </select>
+            </div>
+
             <!-- Botón limpiar filtros -->
             <button 
-              *ngIf="userSearchTerm() || userRoleFilter() !== 'all'" 
+              *ngIf="userSearchTerm() || userRoleFilter() !== 'all' || userTagFilter() !== 'all'" 
               type="button" 
               class="btn-reset-filters" 
               (click)="resetUserFilters()"
@@ -1068,12 +1148,14 @@
                   <th>Usuario</th>
                   <th>Correo Electrónico</th>
                   <th>Rol Actual</th>
-                  <th>Asignar Nivel de Acceso</th>
+                  <th>Etiquetas Asignadas</th>
+                  <th>Asignar Rol</th>
                   <th class="text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let userItem of filteredUsers()">
+                  <!-- Usuario -->
                   <td>
                     <div class="user-identity-cell">
                       <div class="user-avatar-bubble" [class.admin]="(userItem.rol?.name || userItem.role) === 'admin'" [class.mod]="(userItem.rol?.name || userItem.role) === 'mod'">
@@ -1085,15 +1167,56 @@
                       </div>
                     </div>
                   </td>
+
+                  <!-- Correo -->
                   <td>
                     <span class="user-email-text">{{ userItem.email }}</span>
                   </td>
+
+                  <!-- Rol -->
                   <td>
                     <span class="role-badge-pill" [ngClass]="'role-' + (userItem.rol?.name || userItem.role || 'user')">
                       <span class="role-dot"></span>
                       {{ userItem.rol?.name || userItem.role || 'user' | uppercase }}
                     </span>
                   </td>
+
+                  <!-- Etiquetas Asignadas con botón + para gestionar -->
+                  <td>
+                    <div class="user-tags-cell-container">
+                      <div class="user-tags-list-wrapper">
+                        <ng-container *ngIf="getUserTags(userItem).length; else noTagsTpl">
+                          <span 
+                            *ngFor="let t of getUserTags(userItem)" 
+                            class="user-tag-pill"
+                            [style.background-color]="t.color"
+                            [style.color]="getContrastColor(t.color)"
+                            [title]="t.name"
+                          >
+                            <span class="tag-dot" [style.background-color]="getContrastColor(t.color)"></span>
+                            {{ t.name }}
+                          </span>
+                        </ng-container>
+                        <ng-template #noTagsTpl>
+                          <span class="user-no-tag-label">Sin etiquetas</span>
+                        </ng-template>
+                      </div>
+
+                      <!-- Botón + para agregar/editar etiquetas del usuario -->
+                      <button 
+                        type="button" 
+                        class="btn-manage-user-tags"
+                        (click)="openUserTagsModal(userItem)"
+                        [disabled]="!authService.isAdmin()"
+                        [title]="getUserTags(userItem).length ? 'Modificar etiquetas de ' + userItem.name : 'Asignar etiquetas a ' + userItem.name"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span>{{ getUserTags(userItem).length ? 'Editar' : 'Agregar' }}</span>
+                      </button>
+                    </div>
+                  </td>
+
+                  <!-- Asignar Rol -->
                   <td>
                     <div class="role-changer-box">
                       <select
@@ -1108,6 +1231,8 @@
                       </select>
                     </div>
                   </td>
+
+                  <!-- Acciones -->
                   <td class="text-right">
                     <button
                       type="button"
@@ -1125,6 +1250,215 @@
             </table>
           </div>
 
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           MODAL 1: ASIGNACIÓN MÚLTIPLE DE TAGS A UN USUARIO
+           ==================================================================== -->
+      <div *ngIf="selectedUserForTags()" class="modal-overlay animate-fade-in" (click)="closeUserTagsModal()">
+        <div class="modal-card user-tags-modal-box animate-scale-up" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <div class="modal-title-wrap">
+              <div class="modal-icon-circle user-tags-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              </div>
+              <div>
+                <h3>Etiquetas de {{ selectedUserForTags()?.name }}</h3>
+                <p>Selecciona las etiquetas que pertenecerán a esta cuenta.</p>
+              </div>
+            </div>
+            <button type="button" class="btn-close-modal" (click)="closeUserTagsModal()">✕</button>
+          </div>
+
+          <div class="modal-body user-tags-modal-content">
+            <!-- Buscador pequeño dentro del modal -->
+            <div class="tags-modal-search-wrapper">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input 
+                type="text" 
+                class="form-control tags-modal-search-input" 
+                placeholder="Buscar etiqueta por nombre..." 
+                [value]="userTagsSearchTerm()"
+                (input)="userTagsSearchTerm.set($any($event.target).value)"
+              />
+              <button 
+                *ngIf="userTagsSearchTerm()" 
+                type="button" 
+                class="clear-search-btn" 
+                (click)="userTagsSearchTerm.set('')"
+                title="Limpiar búsqueda"
+              >✕</button>
+            </div>
+
+            <!-- Toolbar con conteo y acciones rápidas -->
+            <div class="modal-tags-toolbar">
+              <span class="selected-count-badge">
+                <strong>{{ selectedUserTagIds().length }}</strong> de {{ tags().length }} seleccionada{{ selectedUserTagIds().length === 1 ? '' : 's' }}
+              </span>
+              <div class="quick-actions">
+                <button type="button" class="btn-text-action" (click)="selectAllTagsInModal()" *ngIf="filteredModalTags().length">
+                  Seleccionar todas
+                </button>
+                <button type="button" class="btn-text-action" (click)="clearAllTagsInModal()" *ngIf="selectedUserTagIds().length">
+                  Desmarcar todas
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista interactiva de etiquetas -->
+            <div class="modal-tags-list-container">
+              <div *ngIf="!tags().length" class="empty-modal-tags">
+                <p>No existen etiquetas creadas en el sistema todavía. Crea una en la sección superior.</p>
+              </div>
+
+              <div *ngIf="tags().length && !filteredModalTags().length" class="empty-modal-tags">
+                <p>No se encontraron etiquetas con "{{ userTagsSearchTerm() }}".</p>
+              </div>
+
+              <div class="tags-checklist-grid" *ngIf="filteredModalTags().length">
+                <div 
+                  *ngFor="let t of filteredModalTags()" 
+                  class="tag-checkbox-item"
+                  [class.active]="isTagSelected(t.id)"
+                  (click)="toggleTagSelection(t.id)"
+                >
+                  <div class="tag-checkbox-indicator" [class.checked]="isTagSelected(t.id)" [style.background-color]="isTagSelected(t.id) ? t.color : 'transparent'" [style.border-color]="isTagSelected(t.id) ? t.color : '#cbd5e1'">
+                    <svg *ngIf="isTagSelected(t.id)" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" [attr.stroke]="getContrastColor(t.color)" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <span class="tag-pill-sample" [style.background-color]="t.color" [style.color]="getContrastColor(t.color)">
+                    <span class="dot" [style.background-color]="getContrastColor(t.color)"></span>
+                    {{ t.name }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel-modal" (click)="closeUserTagsModal()">Cancelar</button>
+            <button 
+              type="button" 
+              class="btn-submit-tag" 
+              (click)="saveUserTags()"
+              [disabled]="isSavingUserTags()"
+            >
+              <span *ngIf="isSavingUserTags()">Guardando...</span>
+              <span *ngIf="!isSavingUserTags()">Guardar Etiquetas</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           MODAL 2: CREACIÓN DE NUEVA ETIQUETA GLOBAL
+           ==================================================================== -->
+      <div *ngIf="isTagModalOpen()" class="modal-overlay animate-fade-in" (click)="closeCreateTagModal()">
+        <div class="modal-card tag-modal-box animate-scale-up" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <div class="modal-title-wrap">
+              <div class="modal-icon-circle tag-modal-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              </div>
+              <div>
+                <h3>Crear Nueva Etiqueta</h3>
+                <p>Personaliza el texto y color para identificar a los usuarios</p>
+              </div>
+            </div>
+            <button type="button" class="btn-close-modal" (click)="closeCreateTagModal()">✕</button>
+          </div>
+
+          <div class="modal-body tag-modal-content">
+            <!-- Vista previa en tiempo real -->
+            <div class="tag-live-preview-box">
+              <span class="preview-title-label">Vista previa en tiempo real:</span>
+              <div class="tag-preview-badge-container">
+                <span 
+                  class="tag-preview-pill"
+                  [style.background-color]="newTagColor()"
+                  [style.color]="getContrastColor(newTagColor())"
+                >
+                  <span class="tag-preview-dot" [style.background-color]="getContrastColor(newTagColor())"></span>
+                  {{ newTagName() || 'Nombre de la Etiqueta' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Campo de Texto para Nombre del Tag -->
+            <div class="form-group mb-3">
+              <label class="form-label">
+                Nombre de la Etiqueta <span class="required-star">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control tag-input-name" 
+                placeholder="Ej. VIP, Staff, Estudiante, Prensa, Ponente..." 
+                [value]="newTagName()"
+                (input)="newTagName.set($any($event.target).value)"
+                maxlength="50"
+              />
+            </div>
+
+            <!-- Selector de Color: Ruedita + Código Hexadecimal -->
+            <div class="form-group mb-3">
+              <label class="form-label">Color de la Etiqueta</label>
+              <div class="color-picker-dual-field">
+                <!-- Rueda de color nativa / selector circular -->
+                <div class="color-wheel-wrapper" [style.background-color]="newTagColor()" title="Haz clic para abrir la rueda de colores">
+                  <input 
+                    type="color" 
+                    class="native-color-wheel" 
+                    [value]="newTagColor()"
+                    (input)="newTagColor.set($any($event.target).value)"
+                  />
+                </div>
+                
+                <!-- Input Hexadecimal -->
+                <div class="hex-input-group">
+                  <span class="hex-prefix">#</span>
+                  <input 
+                    type="text" 
+                    class="form-control hex-text-input" 
+                    [value]="newTagColor().replace('#', '')"
+                    (input)="onHexColorInput($event)"
+                    placeholder="7C3AED"
+                    maxlength="7"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Presets de Colores Recomendados -->
+            <div class="form-group">
+              <label class="form-label-sub">Paleta sugerida:</label>
+              <div class="preset-colors-grid">
+                <button 
+                  type="button" 
+                  *ngFor="let color of presetColors" 
+                  class="preset-color-dot"
+                  [class.selected]="newTagColor().toUpperCase() === color.toUpperCase()"
+                  [style.background-color]="color"
+                  (click)="selectPresetColor(color)"
+                  [title]="color"
+                >
+                  <svg *ngIf="newTagColor().toUpperCase() === color.toUpperCase()" class="check-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel-modal" (click)="closeCreateTagModal()">Cancelar</button>
+            <button 
+              type="button" 
+              class="btn-submit-tag" 
+              (click)="createTag()" 
+              [disabled]="!newTagName().trim() || isCreatingTag()"
+            >
+              <span *ngIf="isCreatingTag()">Guardando...</span>
+              <span *ngIf="!isCreatingTag()">Guardar Etiqueta</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>

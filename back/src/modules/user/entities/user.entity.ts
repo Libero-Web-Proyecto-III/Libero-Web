@@ -32,10 +32,8 @@ export class UserEntity extends BaseEntity {
     @Column({ type: 'varchar', length: 255 })
     email: string;
 
-    @ApiProperty({
-        description: 'Contraseña del usuario',
-        example: enumProperty.password
-    })
+    @ApiHideProperty()
+    @Exclude()
     @Column()
     password: string;
 
@@ -50,7 +48,6 @@ export class UserEntity extends BaseEntity {
         description: 'El rol de autorización del usuario',
         example: enumProperty.rol
     })
-    @Exclude()
     @JoinColumn({ name: 'rol' })
     @ManyToOne( ()  => RolEntity, (rol) => rol.users)
     rol: RolEntity;
@@ -59,7 +56,6 @@ export class UserEntity extends BaseEntity {
         description: 'El tag ligado al usuario',
         example: enumProperty.tag
     })
-    @Exclude()
     @JoinColumn({ name: 'tag' })
     @ManyToOne( () => TagEntity, (tag) => tag.users, {
         nullable: true

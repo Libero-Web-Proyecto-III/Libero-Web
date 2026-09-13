@@ -53,7 +53,7 @@ export class PublicationController {
 
   @Post()
   @PRIVATE()
-  @ROLES([enumRol.ADMIN])
+  @ROLES([enumRol.ADMIN, enumRol.MOD])
   @ApiOperation({
     summary: 'Crear una publicación',
     description: 'Crea una nueva publicación asociada al usuario autenticado.',
@@ -66,7 +66,7 @@ export class PublicationController {
 
   @Patch(':uuid')
   @PRIVATE()
-  @ROLES([enumRol.ADMIN])
+  @ROLES([enumRol.ADMIN, enumRol.MOD])
   @ApiOperation({
     summary: 'Actualizar una publicación',
     description: 'Modifica los datos de una publicación existente (solo moderador o admin).',

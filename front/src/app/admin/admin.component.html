@@ -70,7 +70,7 @@
           <path d="M10 6h8v4h-8V6Z"/>
         </svg>
         <span>Noticias</span>
-        <span class="tab-badge" *ngIf="publications.length">{{ publications.length }}</span>
+        <span class="tab-badge" *ngIf="publications().length">{{ publications().length }}</span>
       </button>
 
       <button 
@@ -85,6 +85,7 @@
           <rect x="19" y="13" width="2" height="5" rx="1"/>
         </svg>
         <span>Encuestas</span>
+        <span class="tab-badge" *ngIf="surveys().length">{{ surveys().length }}</span>
       </button>
 
       <button 
@@ -161,7 +162,7 @@
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Noticias & Artículos</span>
-            <span class="kpi-value">{{ publications.length }}</span>
+            <span class="kpi-value">{{ publications().length }}</span>
           </div>
           <span class="kpi-action">Gestionar →</span>
         </div>
@@ -172,7 +173,7 @@
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Encuestas</span>
-            <span class="kpi-value">Sondeos</span>
+            <span class="kpi-value">{{ surveys().length ? surveys().length + ' Creadas' : '0 Creadas' }}</span>
           </div>
           <span class="kpi-action">Gestionar →</span>
         </div>
@@ -789,14 +790,14 @@
         <div class="card list-card">
           <div class="card-header list-header">
             <h3>Artículos Publicados</h3>
-            <span class="counter-badge">{{ publications.length }}</span>
+            <span class="counter-badge">{{ publications().length }}</span>
           </div>
           <div class="card-body">
-            <div *ngIf="!publications.length" class="empty-state">
+            <div *ngIf="!publications().length" class="empty-state">
               <p>No hay noticias publicadas aún.</p>
             </div>
-            <div *ngIf="publications.length" class="items-list">
-              <div *ngFor="let pub of publications" class="item-row">
+            <div *ngIf="publications().length" class="items-list">
+              <div *ngFor="let pub of publications()" class="item-row">
                 <div class="item-main">
                   <span class="item-title">{{ pub.title }}</span>
                   <div class="item-meta">
@@ -816,20 +817,167 @@
     </section>
 
     <!-- ====================================================================
-         4. PESTAÑA ENCUESTAS
+         4. PESTAÑA ENCUESTAS (CONSTRUCTOR Y RESULTADOS - RF-17 / RF-18)
          ==================================================================== -->
     <section *ngIf="activeTab() === 'polls'" class="tab-panel animate-fade-in">
       <div class="section-intro">
         <h2>Gestión de Encuestas y Votaciones</h2>
-        <p>Crea sondeos de opinión, votaciones comunitarias y consultas interactivas para los lectores de Líbero.</p>
+        <p>Crea sondeos dinámicos de opinión, habilita o deshabilita encuestas y visualiza estadísticas en tiempo real con gráficos y desglose de participantes.</p>
       </div>
 
-      <div class="card placeholder-card">
-        <div class="placeholder-icon">📊</div>
-        <h3>Módulo de Encuestas</h3>
-        <p>Estructura vacía y lista para la creación de encuestas, opciones de votación y estadísticas de participación.</p>
-        <div class="placeholder-actions">
-          <span class="status-pill active">Listo para configurar</span>
+      <!-- SECCIÓN 1: CONSTRUCTOR DE ENCUESTAS (RF-17) -->
+      <div *ngIf="authService.hasManagementRole()" class="survey-builder-wrapper">
+        <app-survey-builder (surveyCreated)="loadSurveys()"></app-survey-builder>
+      </div>
+
+      <!-- SECCIÓN 2: LISTADO DE ENCUESTAS DINÁMICAS Y RESULTADOS (RF-18) -->
+      <div *ngIf="authService.hasManagementRole()" class="card surveys-list-card">
+        <div class="card-header surveys-header-bar">
+          <div class="surveys-header-title">
+            <h3>🗳️ Encuestas Creadas en el Portal</h3>
+            <div class="badge-group">
+              <span class="counter-badge">{{ surveys().length }} encuestas totales</span>
+              <span *ngIf="surveys().length > 5" class="counter-badge page-badge">Página {{ currentSurveyPage() }} de {{ totalSurveyPages() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body surveys-card-body">
+          <!-- Barra de paginación superior -->
+          <div *ngIf="surveys().length > 5" class="admin-pagination-bar">
+            <button
+              type="button"
+              class="btn-page-nav"
+              [disabled]="currentSurveyPage() === 1"
+              (click)="prevSurveyPage()"
+            >
+              ◀ Anterior
+            </button>
+
+            <div class="pagination-center-group">
+              <div class="page-numbers-group">
+                <button
+                  *ngFor="let pageNum of surveyPageNumbers()"
+                  type="button"
+                  class="btn-page-number"
+                  [class.active]="pageNum === currentSurveyPage()"
+                  (click)="goToSurveyPage(pageNum)"
+                >
+                  {{ pageNum }}
+                </button>
+              </div>
+
+              <span class="pagination-info-text">
+                Encuestas {{ (currentSurveyPage() - 1) * surveysPerPage + 1 }} a {{ currentSurveyPage() * surveysPerPage > surveys().length ? surveys().length : currentSurveyPage() * surveysPerPage }} de {{ surveys().length }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="btn-page-nav"
+              [disabled]="currentSurveyPage() === totalSurveyPages()"
+              (click)="nextSurveyPage()"
+            >
+              Siguiente ▶
+            </button>
+          </div>
+
+          <!-- Estado Vacío -->
+          <div *ngIf="!surveys().length" class="empty-state">
+            <p>No hay encuestas creadas aún. Utiliza el constructor superior para agregar la primera.</p>
+          </div>
+
+          <!-- Grid de Encuestas -->
+          <div *ngIf="surveys().length" class="surveys-grid">
+            <div *ngFor="let survey of paginatedSurveys()" class="survey-card-item">
+              <div class="survey-card-header">
+                <div class="survey-info">
+                  <h4>{{ survey.title }}</h4>
+                  <p class="survey-meta">
+                    <span>📋 {{ survey.questions.length || 0 }} preguntas</span> · 
+                    <span class="status-pill" [ngClass]="'status-' + (survey.status || 'DRAFT').toLowerCase()">
+                      {{ survey.status }}
+                    </span> · 
+                    <span>{{ survey.isPublic ? '🌐 Pública' : '🔒 Privada' }}</span>
+                    <span *ngIf="survey.status === 'CLOSED' && survey.endDate" class="closed-date-tag">
+                      · 🔒 Cerrada el: {{ survey.endDate | date:'dd/MM/yyyy HH:mm' }}
+                    </span>
+                  </p>
+                </div>
+                <div class="survey-actions">
+                  <button
+                    type="button"
+                    class="btn-action btn-view-results"
+                    (click)="toggleSurveyResults(survey.index)"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8" rx="1"/><rect x="13" y="5" width="3" height="13" rx="1"/><rect x="19" y="13" width="2" height="5" rx="1"/></svg>
+                    <span>{{ selectedSurveyResultsId() === survey.index ? 'Ocultar Resultados' : 'Ver Resultados' }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-action btn-toggle-status"
+                    [ngClass]="survey.status === 'PUBLISHED' ? 'btn-disable' : 'btn-enable'"
+                    (click)="toggleSurveyStatus(survey)"
+                  >
+                    <span>{{ survey.status === 'PUBLISHED' ? '🚫 Deshabilitar' : '▶️ Habilitar' }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-action btn-delete-survey"
+                    (click)="deleteSurvey(survey.index)"
+                    title="Eliminar encuesta definitivamente"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tablero visual de resultados y porcentajes (RF-18) -->
+              <div *ngIf="selectedSurveyResultsId() === survey.index" class="results-container-box">
+                <app-survey-results [surveyId]="survey.index"></app-survey-results>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barra de paginación inferior -->
+          <div *ngIf="surveys().length > 5" class="admin-pagination-bar pagination-bottom">
+            <button
+              type="button"
+              class="btn-page-nav"
+              [disabled]="currentSurveyPage() === 1"
+              (click)="prevSurveyPage()"
+            >
+              ◀ Anterior
+            </button>
+
+            <div class="pagination-center-group">
+              <div class="page-numbers-group">
+                <button
+                  *ngFor="let pageNum of surveyPageNumbers()"
+                  type="button"
+                  class="btn-page-number"
+                  [class.active]="pageNum === currentSurveyPage()"
+                  (click)="goToSurveyPage(pageNum)"
+                >
+                  {{ pageNum }}
+                </button>
+              </div>
+
+              <span class="pagination-info-text">
+                Página {{ currentSurveyPage() }} de {{ totalSurveyPages() }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="btn-page-nav"
+              [disabled]="currentSurveyPage() === totalSurveyPages()"
+              (click)="nextSurveyPage()"
+            >
+              Siguiente ▶
+            </button>
+          </div>
         </div>
       </div>
     </section>

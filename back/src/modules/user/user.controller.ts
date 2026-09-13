@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Query, Param } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetAllQueryDto } from 'src/common/dto/get-all.dto';
@@ -18,7 +18,7 @@ export class UserController {
   @ApiOkResponse({ description: 'Listado de usuarios obtenida correctamente', type: [UserEntity] })
   @Get()
   getAll(@Query() query: GetAllQueryDto) {
-    return this.userService.findAll(query)
+    return this.userService.findAll(query);
   }
 
   @ApiOperation({ summary: 'Crea un nuevo usuario' })
@@ -28,13 +28,30 @@ export class UserController {
   @PRIVATE()
   @ROLES([enumRol.ADMIN])
   post(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto)
+    return this.userService.create(createUserDto);
   }
 
   @ApiOperation({ summary: 'Busca un usuario por su NOMBRE' })
   @ApiOkResponse({ description: 'Usuario hallado con exito', type: UserEntity })
   @Get(':name')
   getOne(@Param('name') name: string) {
-    return this.userService.findOneBy.name(name)
+    return this.userService.findOneBy.name(name);
+  }
+
+  @Patch(':uuid/role')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
+  @ApiOperation({ summary: 'Actualiza el rol de un usuario' })
+  updateRole(@Param('uuid') uuid: string, @Body() body: { role: string }) {
+    return this.userService.updateRole(uuid, body.role);
+  }
+
+  @Delete(':uuid')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
+  @ApiOperation({ summary: 'Elimina lógicamente un usuario' })
+  remove(@Param('uuid') uuid: string) {
+    return this.userService.delete(uuid);
   }
 }
+

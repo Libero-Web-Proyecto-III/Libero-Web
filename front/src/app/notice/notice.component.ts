@@ -1,9 +1,10 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
-import { Comment, Publication, ReactionType } from './publication.model';
+import { Comment, Publication, PublicationMedia, ReactionType } from './publication.model';
 
 @Component({
   selector: 'app-notice',
@@ -12,11 +13,15 @@ import { Comment, Publication, ReactionType } from './publication.model';
   templateUrl: './notice.component.html',
   styleUrl: './notice.component.scss'
 })
-export class NoticeComponent {
+export class NoticeComponent implements OnInit {
+  private readonly http = inject(HttpClient);
+  private readonly publicationsApiUrl = 'http://localhost:3000/publications';
+
   selectedUuid = signal<string | null>(null);
   newCommentDraft = signal<string>('');
+  isLoading = signal<boolean>(false);
 
-  news = signal<Publication[]>([
+  private readonly fallbackNews: Publication[] = [
     {
       uuid: '1',
       title: 'Nuevo avance en energías renovables promete duplicar la eficiencia solar',
@@ -122,7 +127,65 @@ export class NoticeComponent {
       userReaction: null,
       comments: []
     }
-  ]);
+  ];
+
+  news = signal<Publication[]>(this.fallbackNews);
+
+  ngOnInit(): void {
+    this.loadPublications();
+  }
+
+  loadPublications(): void {
+    this.isLoading.set(true);
+    this.http.get<{ data: any[] }>(`${this.publicationsApiUrl}?limit=50`).subscribe({
+      next: (response) => {
+        if (response && response.data && response.data.length > 0) {
+          const mapped: Publication[] = response.data.map(p => {
+            let mediaList: PublicationMedia[] = [];
+            if (Array.isArray(p.media) && p.media.length > 0) {
+              mediaList = p.media.map((m: any) => typeof m === 'string' ? { url: m, type: m.endsWith('.mp4') ? 'video' : 'image' } : m);
+            } else if (typeof p.media === 'string' && p.media.trim()) {
+              mediaList = [{ url: p.media.trim(), type: p.media.endsWith('.mp4') ? 'video' : 'image' }];
+            } else {
+              mediaList = [{ url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1400&q=80', type: 'image' }];
+            }
+
+            const likes = Array.isArray(p.reactions) ? p.reactions.filter((r: any) => r.type === 'like').length : (p.likes || 0);
+            const dislikes = Array.isArray(p.reactions) ? p.reactions.filter((r: any) => r.type === 'dislike').length : (p.dislikes || 0);
+
+            return {
+              uuid: p.uuid,
+              title: p.title,
+              content: p.content,
+              media: mediaList,
+              author: p.author?.name || 'Redacción Libero',
+              createdAt: p.createdAt ? new Date(p.createdAt) : new Date(),
+              likes,
+              dislikes,
+              userReaction: null,
+              comments: (p.comments || []).map((c: any) => ({
+                uuid: c.uuid || crypto.randomUUID(),
+                author: c.author?.name || 'Usuario',
+                content: c.content,
+                createdAt: c.createdAt ? new Date(c.createdAt) : new Date(),
+                likes: Array.isArray(c.reactions) ? c.reactions.filter((r: any) => r.type === 'like').length : (c.likes || 0),
+                dislikes: Array.isArray(c.reactions) ? c.reactions.filter((r: any) => r.type === 'dislike').length : (c.dislikes || 0),
+                userReaction: null,
+              }))
+            };
+          });
+          this.news.set(mapped);
+        } else {
+          this.news.set(this.fallbackNews);
+        }
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.news.set(this.fallbackNews);
+        this.isLoading.set(false);
+      }
+    });
+  }
 
   selectedForModal = computed(() =>
     this.news().find(n => n.uuid === this.selectedUuid()) ?? null
@@ -139,17 +202,17 @@ export class NoticeComponent {
 
   toggleReaction(publicationUuid: string, type: ReactionType) {
     this.news.update(list =>
-      list.map(pub => (pub.uuid === publicationUuid ? this.applyReaction(pub, type) : pub))
+      list.map((pub: Publication) => (pub.uuid === publicationUuid ? this.applyReaction(pub, type) : pub))
     );
   }
 
   toggleCommentReaction(publicationUuid: string, commentUuid: string, type: ReactionType) {
     this.news.update(list =>
-      list.map(pub => {
+      list.map((pub: Publication) => {
         if (pub.uuid !== publicationUuid) return pub;
         return {
           ...pub,
-          comments: pub.comments.map(c => (c.uuid === commentUuid ? this.applyReaction(c, type) : c))
+          comments: pub.comments.map((c: Comment) => (c.uuid === commentUuid ? this.applyReaction(c, type) : c))
         };
       })
     );
@@ -170,8 +233,8 @@ export class NoticeComponent {
     };
 
     this.news.update(list =>
-      list.map(pub =>
-        pub.uuid === publicationUuid ? { ...pub, comments: [comment, ...pub.comments] } : pub
+      list.map((pub: Publication) =>
+        pub.uuid === publicationUuid ? { ...pub, comments: [comment, ...(pub.comments || [])] } : pub
       )
     );
 

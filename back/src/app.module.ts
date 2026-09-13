@@ -16,6 +16,7 @@ import { JwtAuthGuard } from './common/guard/jwt-auth.guard';
 import { RolesGuard } from './common/guard/roles.guard';
 import { ReactionModule } from './modules/reaction/reaction.module';
 import { CommentModule } from './modules/comment/comment.module';
+import { SurveyModule } from './modules/survey/survey.module';
 
 
 @Module({
@@ -30,7 +31,7 @@ import { CommentModule } from './modules/comment/comment.module';
 
     TagModule, RolModule,
     UserModule, PublicationModule, ReactionModule,
-    EventModule, AuthModule, CommentModule
+    EventModule, AuthModule, CommentModule, SurveyModule
 ],
   controllers: [AppController],
   providers: [

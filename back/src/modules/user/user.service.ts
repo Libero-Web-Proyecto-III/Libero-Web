@@ -30,6 +30,7 @@ export class UserService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await this.UserRepository.findAndCount({
+      relations: UserEntityRelations as FindOptionsRelations<UserEntity>,
       skip,
       take: limit,
       order: { index: 'ASC' },
@@ -176,6 +177,13 @@ export class UserService {
       message: 'Usuario ELIMINADO',
       user: await this.UserRepository.softRemove(contact),
     };
+  }
+
+  async updateRole(uuid: string, roleName: string): Promise<UserEntity> {
+    const user = await this.findOneBy.uuid(uuid);
+    const role = await this.RolRepository.findOne(roleName);
+    user.rol = role;
+    return await this.UserRepository.save(user);
   }
 
   async recover(uuid: string) {

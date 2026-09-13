@@ -4,6 +4,10 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../auth/services/auth.service';
+import { SurveyBuilderComponent } from '../survey/components/survey-builder/survey-builder.component';
+import { SurveyResultsComponent } from '../survey/components/survey-results/survey-results.component';
+import { SurveyService } from '../survey/services/survey.service';
+import { Survey, SurveyStatusEnum } from '../survey/models/survey.model';
 
 export type AdminTab = 'home' | 'events' | 'news' | 'polls' | 'users' | 'settings';
 
@@ -42,13 +46,21 @@ interface Publication {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterLink,
+    SurveyBuilderComponent,
+    SurveyResultsComponent,
+  ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
 })
 export class AdminComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly surveyService = inject(SurveyService);
   readonly authService = inject(AuthService);
 
   private readonly eventsApiUrl = 'http://localhost:3000/events';
@@ -150,12 +162,31 @@ export class AdminComponent implements OnInit {
   }
 
   // Publicaciones
-  publications: Publication[] = [];
+  publications = signal<Publication[]>([]);
 
   // Gestión de Usuarios (RF-05 / Admin)
   users = signal<UserItem[]>([]);
   readonly userSearchTerm = signal<string>('');
   readonly userRoleFilter = signal<string>('all');
+
+  // Gestión de Encuestas (RF-17 / RF-18)
+  surveys = signal<Survey[]>([]);
+  selectedSurveyResultsId = signal<number | null>(null);
+  currentSurveyPage = signal<number>(1);
+  surveysPerPage = 5;
+
+  readonly totalSurveyPages = computed(() => {
+    return Math.max(1, Math.ceil(this.surveys().length / this.surveysPerPage));
+  });
+
+  readonly paginatedSurveys = computed(() => {
+    const startIndex = (this.currentSurveyPage() - 1) * this.surveysPerPage;
+    return this.surveys().slice(startIndex, startIndex + this.surveysPerPage);
+  });
+
+  readonly surveyPageNumbers = computed(() => {
+    return Array.from({ length: this.totalSurveyPages() }, (_, i) => i + 1);
+  });
 
   readonly filteredUsers = computed<UserItem[]>(() => {
     const list = this.users() || [];
@@ -218,6 +249,7 @@ export class AdminComponent implements OnInit {
     this.loadEvents();
     this.loadPublications();
     this.loadUsers();
+    this.loadSurveys();
 
     // Conectar cambios del formulario al signal reactivo
     this.eventForm.valueChanges.subscribe(() => {
@@ -230,7 +262,94 @@ export class AdminComponent implements OnInit {
     this.clearAlerts();
     if (tab === 'users') {
       this.loadUsers();
+    } else if (tab === 'polls') {
+      this.loadSurveys();
+    } else if (tab === 'news') {
+      this.loadPublications();
+    } else if (tab === 'events') {
+      this.loadEvents();
     }
+  }
+
+  loadSurveys(): void {
+    this.surveyService.getSurveys().subscribe({
+      next: (data) => {
+        this.surveys.set(data || []);
+        if (this.currentSurveyPage() > this.totalSurveyPages()) {
+          this.currentSurveyPage.set(this.totalSurveyPages());
+        }
+      },
+      error: () => {
+        this.error = 'No fue posible cargar las encuestas dinámicas.';
+      },
+    });
+  }
+
+  prevSurveyPage(): void {
+    if (this.currentSurveyPage() > 1) {
+      this.currentSurveyPage.update(p => p - 1);
+    }
+  }
+
+  nextSurveyPage(): void {
+    if (this.currentSurveyPage() < this.totalSurveyPages()) {
+      this.currentSurveyPage.update(p => p + 1);
+    }
+  }
+
+  goToSurveyPage(page: number): void {
+    if (page >= 1 && page <= this.totalSurveyPages()) {
+      this.currentSurveyPage.set(page);
+    }
+  }
+
+  toggleSurveyResults(id: number): void {
+    if (this.selectedSurveyResultsId() === id) {
+      this.selectedSurveyResultsId.set(null);
+    } else {
+      this.selectedSurveyResultsId.set(id);
+    }
+  }
+
+  toggleSurveyStatus(survey: Survey): void {
+    this.clearAlerts();
+    const isCurrentlyPublished = survey.status === 'PUBLISHED';
+    const newStatus = isCurrentlyPublished ? SurveyStatusEnum.CLOSED : SurveyStatusEnum.PUBLISHED;
+    const payload: any = { status: newStatus };
+    if (newStatus === SurveyStatusEnum.CLOSED) {
+      payload.endDate = new Date().toISOString();
+    }
+
+    this.surveyService.updateSurvey(survey.index, payload).subscribe({
+      next: () => {
+        this.message = isCurrentlyPublished
+          ? 'Encuesta deshabilitada correctamente. Ya no estará visible para los votantes.'
+          : 'Encuesta habilitada y publicada nuevamente.';
+        this.loadSurveys();
+        this.clearAlertsSoon();
+      },
+      error: () => {
+        this.error = 'No fue posible cambiar el estado de la encuesta.';
+      },
+    });
+  }
+
+  deleteSurvey(id: number): void {
+    this.clearAlerts();
+    if (!confirm('¿Estás seguro de que deseas eliminar definitivamente esta encuesta?')) return;
+    this.surveyService.deleteSurvey(id).subscribe({
+      next: () => {
+        this.message = 'Encuesta eliminada exitosamente.';
+        if (this.selectedSurveyResultsId() === id) {
+          this.selectedSurveyResultsId.set(null);
+        }
+        this.loadSurveys();
+        this.clearAlertsSoon();
+      },
+      error: () => {
+        this.error = 'No tienes permiso para eliminar esta encuesta.';
+      },
+    });
   }
 
   clearAlerts(): void {
@@ -263,9 +382,9 @@ export class AdminComponent implements OnInit {
 
   loadPublications(): void {
     this.isLoading = true;
-    this.http.get<{ data: Publication[] }>(this.publicationsApiUrl, this.options).subscribe({
+    this.http.get<{ data: Publication[] }>(`${this.publicationsApiUrl}?limit=100`, this.options).subscribe({
       next: response => {
-        this.publications = response.data || [];
+        this.publications.set(response.data || []);
         this.isLoading = false;
       },
       error: () => {
@@ -453,7 +572,7 @@ export class AdminComponent implements OnInit {
 
   // Creador de Publicaciones
   createPublication(): void {
-    if (!this.authService.isAdmin() || this.publicationForm.invalid) return;
+    if (!this.authService.hasManagementRole() || this.publicationForm.invalid) return;
     const raw = this.publicationForm.getRawValue();
     const payload: { title: string; content: string; media?: string[] } = {
       title: raw.title,

@@ -11,13 +11,13 @@
    TOPBAR
    ========================================================================== */
 .admin-topbar {
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1d4ed8 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.2);
   position: sticky;
   top: 0;
   z-index: 40;
@@ -30,10 +30,10 @@
 }
 
 .brand-logo-img {
-  height: 42px;
+  height: 44px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 2px 5px rgba(30, 58, 138, 0.12));
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
 }
 
 .brand-badge {
@@ -42,18 +42,19 @@
 
   .brand-title {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 800;
     letter-spacing: 0.08em;
-    color: #1e3a8a;
+    color: #ffffff;
     line-height: 1.1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
   .brand-sub {
     font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.14em;
-    color: #ea580c;
+    letter-spacing: 0.16em;
+    color: #fb923c;
   }
 }
 
@@ -61,14 +62,21 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.4rem 0.9rem;
-  background: #f0f9ff;
+  padding: 0.4rem 0.95rem;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
   border-radius: 9999px;
-  border: 1px solid #bae6fd;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
 
   .user-avatar {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     color: #ffffff;
@@ -76,8 +84,8 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.85rem;
-    box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3);
+    font-size: 0.88rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   }
 
   .user-details {
@@ -88,17 +96,17 @@
     .user-name {
       font-size: 0.85rem;
       font-weight: 600;
-      color: #0f172a;
+      color: #ffffff;
     }
 
     .user-role-badge {
       font-size: 0.65rem;
       font-weight: 700;
-      color: #0284c7;
+      color: #93c5fd;
       letter-spacing: 0.05em;
 
       &.admin {
-        color: #ea580c;
+        color: #fdba74;
       }
     }
   }
@@ -114,30 +122,31 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.55rem 1.1rem;
+  padding: 0.55rem 1.15rem;
   border-radius: 8px;
-  background: #eff6ff;
-  color: #1e40af;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
   font-size: 0.875rem;
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid #bfdbfe;
-  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(6px);
+  transition: all 0.25 ease;
 
   svg {
     transition: transform 0.2s ease;
-    stroke: #1e40af;
+    stroke: #ffffff;
   }
 
   &:hover {
-    background: #1e40af;
-    color: #ffffff;
-    border-color: #1e40af;
-    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+    background: #ffffff;
+    color: #1e3a8a;
+    border-color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 
     svg {
       transform: translateX(-3px);
-      stroke: #ffffff;
+      stroke: #1e3a8a;
     }
   }
 }

@@ -77,13 +77,13 @@ export class EventEntity {
   @ApiProperty({
     description: 'Descripción detallada del evento',
   })
-  @Column('text')
+  @Column({ type: 'longtext', nullable: true })
   description: string;
 
   @ApiPropertyOptional({
-    description: 'URL de imagen de portada',
+    description: 'URL o base64 de imagen de portada',
   })
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'longtext', nullable: true })
   imageUrl: string;
 
   @ApiPropertyOptional({

@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../auth/services/auth.service';
 
-export type AdminTab = 'home' | 'events' | 'news' | 'users' | 'settings';
+export type AdminTab = 'home' | 'events' | 'news' | 'polls' | 'users' | 'settings';
 
 export interface AdminEventItem {
   uuid: string;
@@ -72,12 +72,73 @@ export class AdminComponent implements OnInit {
   readonly publicationForm = this.formBuilder.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     content: ['', Validators.required],
+    imageUrl: [''],
   });
+
+  // Modal de Recorte de Imagen (Estilo red social / portada)
+  @ViewChild('cropperCanvas') cropperCanvasRef?: ElementRef<HTMLCanvasElement>;
+  loadedImage: HTMLImageElement | null = null;
+  readonly cropModalOpen = signal<boolean>(false);
+  readonly cropTarget = signal<'event' | 'publication'>('event');
+  readonly rawImageSrc = signal<string>('');
+  readonly zoom = signal<number>(1);
+  readonly rotation = signal<number>(0);
+  readonly selectedAspectRatio = signal<'16:9' | '4:3' | '1:1'>('16:9');
+  readonly cropLoading = signal<boolean>(false);
+
+  // Coordenadas de desplazamiento y estado de arrastre
+  panX = 0;
+  panY = 0;
+  isDragging = false;
+  dragStartX = 0;
+  dragStartY = 0;
+  dragStartPanX = 0;
+  dragStartPanY = 0;
 
   // Colecciones de eventos conectados al backend
   activeEvents = signal<AdminEventItem[]>([]);
   pastEvents = signal<AdminEventItem[]>([]);
   readonly eventFilter = signal<'active' | 'past'>('active');
+
+  // Filtros de búsqueda y fecha para eventos
+  readonly eventSearchQuery = signal<string>('');
+  readonly eventDateMonthFilter = signal<string>('all');
+
+  // Listas filtradas reactivas de eventos
+  readonly filteredActiveEvents = computed<AdminEventItem[]>(() => {
+    return this.applyEventFilters(this.activeEvents());
+  });
+
+  readonly filteredPastEvents = computed<AdminEventItem[]>(() => {
+    return this.applyEventFilters(this.pastEvents());
+  });
+
+  private applyEventFilters(events: AdminEventItem[]): AdminEventItem[] {
+    const query = this.eventSearchQuery().trim().toLowerCase();
+    const month = this.eventDateMonthFilter().toUpperCase();
+
+    return events.filter((item) => {
+      const matchesQuery =
+        !query ||
+        item.title?.toLowerCase().includes(query) ||
+        item.subtitle?.toLowerCase().includes(query) ||
+        item.location?.toLowerCase().includes(query) ||
+        item.city?.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query) ||
+        item.dateDay?.toLowerCase().includes(query) ||
+        item.dateMonth?.toLowerCase().includes(query);
+
+      const matchesMonth =
+        month === 'ALL' || !item.dateMonth || item.dateMonth.toUpperCase() === month;
+
+      return matchesQuery && matchesMonth;
+    });
+  }
+
+  resetEventFilters(): void {
+    this.eventSearchQuery.set('');
+    this.eventDateMonthFilter.set('all');
+  }
 
   // Publicaciones
   publications: Publication[] = [];
@@ -312,11 +373,21 @@ export class AdminComponent implements OnInit {
   // Creador de Publicaciones
   createPublication(): void {
     if (!this.authService.isAdmin() || this.publicationForm.invalid) return;
-    this.http.post(this.publicationsApiUrl, this.publicationForm.getRawValue(), this.options).subscribe({
+    const raw = this.publicationForm.getRawValue();
+    const payload: { title: string; content: string; media?: string[] } = {
+      title: raw.title,
+      content: raw.content,
+    };
+    if (raw.imageUrl && raw.imageUrl.trim()) {
+      payload.media = [raw.imageUrl.trim()];
+    }
+
+    this.http.post(this.publicationsApiUrl, payload, this.options).subscribe({
       next: () => {
         this.message = '¡Publicación creada exitosamente!';
         this.publicationForm.reset();
         this.loadPublications();
+        this.clearAlertsSoon();
       },
       error: () => {
         this.error = 'No fue posible crear la publicación.';
@@ -330,10 +401,242 @@ export class AdminComponent implements OnInit {
       next: () => {
         this.message = 'Publicación eliminada correctamente.';
         this.loadPublications();
+        this.clearAlertsSoon();
       },
       error: () => {
         this.error = 'No tienes permiso para eliminar esta publicación.';
       },
     });
   }
+
+  // =========================================================================
+  // GESTIÓN DE SUBIDA Y RECORTE DE IMÁGENES (CANVAS INTERACTIVO WYSIWYG)
+  // =========================================================================
+  openFilePicker(target: 'event' | 'publication'): void {
+    this.cropTarget.set(target);
+    const fileInput = document.getElementById('admin-image-file-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.click();
+    }
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.error = 'Por favor selecciona un archivo de imagen válido (JPG, PNG, WebP).';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) {
+        this.rawImageSrc.set(result);
+        const img = new Image();
+        img.onload = () => {
+          this.loadedImage = img;
+          this.zoom.set(1);
+          this.rotation.set(0);
+          this.panX = 0;
+          this.panY = 0;
+          this.selectedAspectRatio.set('16:9');
+          this.cropModalOpen.set(true);
+          setTimeout(() => {
+            this.drawCropperCanvas();
+          }, 60);
+        };
+        img.src = result;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  drawCropperCanvas(): void {
+    if (!this.loadedImage || !this.cropperCanvasRef) return;
+    const canvas = this.cropperCanvasRef.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let targetWidth = 800;
+    let ratioNum = 16 / 9;
+    if (this.selectedAspectRatio() === '4:3') {
+      ratioNum = 4 / 3;
+      targetWidth = 800;
+    } else if (this.selectedAspectRatio() === '1:1') {
+      ratioNum = 1;
+      targetWidth = 600;
+    }
+    const targetHeight = Math.round(targetWidth / ratioNum);
+
+    if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+    }
+
+    ctx.clearRect(0, 0, targetWidth, targetHeight);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const rot = this.rotation();
+    const isRotated90 = rot === 90 || rot === 270;
+    const effImgW = isRotated90 ? this.loadedImage.naturalHeight : this.loadedImage.naturalWidth;
+    const effImgH = isRotated90 ? this.loadedImage.naturalWidth : this.loadedImage.naturalHeight;
+
+    const baseScale = Math.max(targetWidth / effImgW, targetHeight / effImgH);
+    const currentScale = baseScale * this.zoom();
+
+    const drawW = this.loadedImage.naturalWidth * currentScale;
+    const drawH = this.loadedImage.naturalHeight * currentScale;
+
+    const effDrawW = isRotated90 ? drawH : drawW;
+    const effDrawH = isRotated90 ? drawW : drawH;
+
+    const maxPanX = Math.max(0, (effDrawW - targetWidth) / 2);
+    const maxPanY = Math.max(0, (effDrawH - targetHeight) / 2);
+
+    this.panX = Math.max(-maxPanX, Math.min(maxPanX, this.panX));
+    this.panY = Math.max(-maxPanY, Math.min(maxPanY, this.panY));
+
+    ctx.save();
+    ctx.translate(targetWidth / 2 + this.panX, targetHeight / 2 + this.panY);
+    ctx.rotate((rot * Math.PI) / 180);
+    ctx.drawImage(this.loadedImage, -drawW / 2, -drawH / 2, drawW, drawH);
+    ctx.restore();
+  }
+
+  onMouseDown(event: MouseEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragStartPanX = this.panX;
+    this.dragStartPanY = this.panY;
+  }
+
+  onMouseMove(event: MouseEvent): void {
+    if (!this.isDragging || !this.cropperCanvasRef) return;
+    const canvas = this.cropperCanvasRef.nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    const scaleRatio = canvas.width / rect.width;
+
+    const deltaX = (event.clientX - this.dragStartX) * scaleRatio;
+    const deltaY = (event.clientY - this.dragStartY) * scaleRatio;
+
+    this.panX = this.dragStartPanX + deltaX;
+    this.panY = this.dragStartPanY + deltaY;
+    this.drawCropperCanvas();
+  }
+
+  onMouseUp(): void {
+    this.isDragging = false;
+  }
+
+  onTouchStart(event: TouchEvent): void {
+    if (event.touches.length === 1) {
+      this.isDragging = true;
+      this.dragStartX = event.touches[0].clientX;
+      this.dragStartY = event.touches[0].clientY;
+      this.dragStartPanX = this.panX;
+      this.dragStartPanY = this.panY;
+    }
+  }
+
+  onTouchMove(event: TouchEvent): void {
+    if (!this.isDragging || event.touches.length !== 1 || !this.cropperCanvasRef) return;
+    const canvas = this.cropperCanvasRef.nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    const scaleRatio = canvas.width / rect.width;
+
+    const deltaX = (event.touches[0].clientX - this.dragStartX) * scaleRatio;
+    const deltaY = (event.touches[0].clientY - this.dragStartY) * scaleRatio;
+
+    this.panX = this.dragStartPanX + deltaX;
+    this.panY = this.dragStartPanY + deltaY;
+    this.drawCropperCanvas();
+  }
+
+  onTouchEnd(): void {
+    this.isDragging = false;
+  }
+
+  onWheel(event: WheelEvent): void {
+    event.preventDefault();
+    const zoomDelta = event.deltaY < 0 ? 0.08 : -0.08;
+    const newZoom = Math.min(3.5, Math.max(1, +(this.zoom() + zoomDelta).toFixed(2)));
+    this.zoom.set(newZoom);
+    this.drawCropperCanvas();
+  }
+
+  setZoom(value: string | number): void {
+    const val = typeof value === 'string' ? parseFloat(value) : value;
+    this.zoom.set(Math.min(3.5, Math.max(1, +(val).toFixed(2))));
+    this.drawCropperCanvas();
+  }
+
+  adjustZoom(delta: number): void {
+    const newZoom = Math.min(3.5, Math.max(1, +(this.zoom() + delta).toFixed(2)));
+    this.zoom.set(newZoom);
+    this.drawCropperCanvas();
+  }
+
+  rotate90(): void {
+    this.rotation.update((r) => (r + 90) % 360);
+    this.panX = 0;
+    this.panY = 0;
+    this.drawCropperCanvas();
+  }
+
+  resetPanAndZoom(): void {
+    this.zoom.set(1);
+    this.panX = 0;
+    this.panY = 0;
+    this.rotation.set(0);
+    this.drawCropperCanvas();
+  }
+
+  setAspectRatio(ratio: '16:9' | '4:3' | '1:1'): void {
+    this.selectedAspectRatio.set(ratio);
+    this.panX = 0;
+    this.panY = 0;
+    this.drawCropperCanvas();
+  }
+
+  applyCrop(): void {
+    if (!this.cropperCanvasRef) return;
+    const canvas = this.cropperCanvasRef.nativeElement;
+
+    // Redibujar para asegurar sincronía exacta
+    this.drawCropperCanvas();
+
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+    if (this.cropTarget() === 'event') {
+      this.eventForm.controls.imageUrl.setValue(croppedDataUrl);
+      this.formValueSignal.set(this.eventForm.getRawValue());
+      this.message = '¡Foto recortada y aplicada a la portada del evento!';
+    } else {
+      this.publicationForm.patchValue({ imageUrl: croppedDataUrl });
+      this.message = '¡Foto recortada y aplicada a la publicación!';
+    }
+
+    this.clearAlertsSoon();
+    this.cropModalOpen.set(false);
+  }
+
+  cancelCrop(): void {
+    this.cropModalOpen.set(false);
+    this.rawImageSrc.set('');
+    this.loadedImage = null;
+  }
+
+  private clearAlertsSoon(): void {
+    setTimeout(() => {
+      if (this.message) this.message = '';
+    }, 4500);
+  }
 }
+

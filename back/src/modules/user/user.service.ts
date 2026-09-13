@@ -34,7 +34,6 @@ export class UserService {
       relations: UserEntityRelations as FindOptionsRelations<UserEntity>,
       skip,
       take: limit,
-      relations: UserEntityRelations as FindOptionsRelations<UserEntity>,
       order: { index: 'ASC' },
     });
 

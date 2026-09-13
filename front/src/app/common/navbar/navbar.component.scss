@@ -8,12 +8,13 @@
   width: 100%;
   box-sizing: border-box;
   z-index: 1000;
-  background: black;
-  border-bottom: 1px solid gray;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1d4ed8 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.2);
   transition: box-shadow 0.3s ease;
 
   &.scrolled {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 6px 24px rgba(15, 23, 42, 0.4);
   }
 
   &__container {
@@ -44,6 +45,7 @@
     width: auto;
     object-fit: contain;
     flex-shrink: 0;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
     transition: transform 0.3s ease;
 
     &:hover { transform: scale(1.05); }
@@ -61,14 +63,15 @@
     font-weight: 700;
     color: white;
     letter-spacing: 0.04em;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
   &__logo-sub {
     font-family: 'Inter', sans-serif;
     font-size: 0.65rem;
-    font-weight: 400;
-    color: gray;
-    letter-spacing: 0.15em;
+    font-weight: 700;
+    color: #fb923c;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
   }
 
@@ -138,7 +141,7 @@
     width: 40px;
     height: 40px;
     background: none;
-    border: 1px solid gray;
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 8px;
     cursor: pointer;
     padding: 8px;
@@ -164,8 +167,9 @@
 
   /* Menú móvil */
   &__mobile-menu {
-    background: black;
-    border-top: 1px solid gray;
+    background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.3);
     animation: slideDown 0.3s ease;
 
     ul {

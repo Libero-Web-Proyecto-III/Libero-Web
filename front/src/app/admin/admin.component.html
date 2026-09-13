@@ -35,6 +35,19 @@
       <button 
         type="button" 
         class="tab-btn" 
+        [class.active]="activeTab() === 'metrics'"
+        (click)="setTab('metrics')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span>Métricas</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="tab-btn" 
         [class.active]="activeTab() === 'home'"
         (click)="setTab('home')">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -136,16 +149,23 @@
   <main class="admin-content-area">
 
     <!-- ====================================================================
-         1. PESTAÑA HOME (RESUMEN GENERAL)
+         0. PESTAÑA MÉTRICAS Y ANALÍTICAS
          ==================================================================== -->
-    <section *ngIf="activeTab() === 'home'" class="tab-panel animate-fade-in">
-      <div class="section-intro">
-        <h2>Panel General de Control</h2>
-        <p>Bienvenido al centro de administración de Líbero. Gestiona contenidos, eventos y configuraciones globales.</p>
+    <section *ngIf="activeTab() === 'metrics'" class="tab-panel animate-fade-in">
+      <div class="section-intro metrics-intro-header">
+        <div>
+          <h2>Panel de Métricas y Analíticas</h2>
+          <p>Supervisión en tiempo real del alcance comunitario, contenido publicado, encuestas y crecimiento de usuarios.</p>
+        </div>
+        <div class="metrics-header-badge">
+          <span class="pulse-dot"></span>
+          <span>Datos en tiempo real</span>
+        </div>
       </div>
 
-      <!-- Métricas / KPIs rápidos -->
-      <div class="kpi-grid">
+      <!-- KPIs Principales (6 tarjetas enriquecidas) -->
+      <div class="kpi-grid metrics-kpi-grid">
+        <!-- 1. Eventos -->
         <div class="kpi-card" (click)="setTab('events')">
           <div class="kpi-icon-wrap events-accent">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
@@ -153,10 +173,12 @@
           <div class="kpi-info">
             <span class="kpi-label">Eventos Activos</span>
             <span class="kpi-value">{{ activeEvents().length }}</span>
+            <span class="kpi-meta">{{ totalEventsCount() }} totales · {{ pastEvents().length }} concluidos</span>
           </div>
           <span class="kpi-action">Gestionar →</span>
         </div>
 
+        <!-- 2. Noticias -->
         <div class="kpi-card" (click)="setTab('news')">
           <div class="kpi-icon-wrap news-accent">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
@@ -164,104 +186,384 @@
           <div class="kpi-info">
             <span class="kpi-label">Noticias & Artículos</span>
             <span class="kpi-value">{{ publications().length }}</span>
+            <span class="kpi-meta">Publicaciones activas en el portal</span>
           </div>
           <span class="kpi-action">Gestionar →</span>
         </div>
 
+        <!-- 3. Encuestas -->
         <div class="kpi-card" (click)="setTab('polls')">
           <div class="kpi-icon-wrap polls-accent">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8" rx="1"/><rect x="13" y="5" width="3" height="13" rx="1"/><rect x="19" y="13" width="2" height="5" rx="1"/></svg>
           </div>
           <div class="kpi-info">
-            <span class="kpi-label">Encuestas</span>
-            <span class="kpi-value">{{ surveys().length ? surveys().length + ' Creadas' : '0 Creadas' }}</span>
+            <span class="kpi-label">Encuestas Creadas</span>
+            <span class="kpi-value">{{ surveys().length }}</span>
+            <span class="kpi-meta">{{ publishedSurveysCount() }} publicadas · {{ draftSurveysCount() }} borradores</span>
           </div>
           <span class="kpi-action">Gestionar →</span>
         </div>
 
+        <!-- 4. Usuarios -->
         <div class="kpi-card" (click)="setTab('users')">
           <div class="kpi-icon-wrap users-accent">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Control de Usuarios</span>
-            <span class="kpi-value">{{ users().length ? users().length + ' Registrados' : 'Módulo Activo' }}</span>
+            <span class="kpi-value">{{ users().length }}</span>
+            <span class="kpi-meta">{{ adminUsersCount() }} admin · {{ moderatorUsersCount() }} mod · {{ standardUsersCount() }} miembros</span>
           </div>
           <span class="kpi-action">Ver roles →</span>
         </div>
 
-        <div class="kpi-card" (click)="setTab('settings')">
-          <div class="kpi-icon-wrap settings-accent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        <!-- 5. Etiquetas & Segmentación -->
+        <div class="kpi-card" (click)="setTab('users')">
+          <div class="kpi-icon-wrap tags-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
           </div>
           <div class="kpi-info">
-            <span class="kpi-label">Configuración</span>
-            <span class="kpi-value">Ajustes</span>
+            <span class="kpi-label">Etiquetas y Segmentos</span>
+            <span class="kpi-value">{{ tags().length }}</span>
+            <span class="kpi-meta">{{ usersWithTagsCount() }} categorizados ({{ tagCoveragePercentage() }}% base)</span>
           </div>
-          <span class="kpi-action">Configurar →</span>
+          <span class="kpi-action">Ver tags →</span>
+        </div>
+
+        <!-- 6. Total Registros Globales -->
+        <div class="kpi-card static-card">
+          <div class="kpi-icon-wrap database-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">Volumen de Contenido</span>
+            <span class="kpi-value">{{ totalPlatformRecords() }}</span>
+            <span class="kpi-meta">Registros acumulados en plataforma</span>
+          </div>
         </div>
       </div>
 
-      <!-- Panel de Accesos Rápidos y Resumen -->
-      <div class="quick-overview-grid">
-        <div class="card overview-card">
+      <!-- Paneles Analíticos Detallados (Grid 2 columnas) -->
+      <div class="analytics-panels-grid">
+        
+        <!-- Tarjeta 1: Distribución del Contenido (Gráfico Circular) -->
+        <div class="card analytics-card content-dist-card">
           <div class="card-header">
-            <h3>Acciones Rápidas</h3>
+            <h3>Distribución de Contenidos</h3>
+            <span class="card-badge">{{ contentDistribution().total }} ítems totales</span>
           </div>
-          <div class="card-body quick-actions-list">
-            <button class="action-tile" (click)="setTab('events')">
-              <span class="tile-icon">+</span>
-              <div class="tile-content">
-                <strong>Publicar Nuevo Evento</strong>
-                <small>Crear fecha, horarios y lugar para la comunidad</small>
+          <div class="card-body">
+            <div class="circular-chart-layout">
+              <!-- Gráfico Donut -->
+              <div class="donut-visual-wrap">
+                <div class="donut-chart-circle" [style.background]="donutGradient()">
+                  <div class="donut-center-hole">
+                    <span class="donut-count">{{ contentDistribution().total }}</span>
+                    <span class="donut-sub">Ítems</span>
+                  </div>
+                </div>
               </div>
-            </button>
-            <button class="action-tile" (click)="setTab('news')">
-              <span class="tile-icon">+</span>
-              <div class="tile-content">
-                <strong>Redactar Noticia / Artículo</strong>
-                <small>Publicar comunicado o editorial en el portal</small>
+
+              <!-- Leyenda con métricas y atajos -->
+              <div class="donut-legend-column">
+                <div class="donut-legend-row" (click)="setTab('events')" title="Ver eventos">
+                  <div class="legend-row-title">
+                    <span class="legend-badge-dot dist-events"></span>
+                    <span>Eventos</span>
+                  </div>
+                  <div class="legend-row-metrics">
+                    <strong class="metric-num">{{ totalEventsCount() }}</strong>
+                    <span class="metric-pct">({{ contentDistribution().eventsPct }}%)</span>
+                  </div>
+                </div>
+
+                <div class="donut-legend-row" (click)="setTab('news')" title="Ver noticias">
+                  <div class="legend-row-title">
+                    <span class="legend-badge-dot dist-news"></span>
+                    <span>Noticias</span>
+                  </div>
+                  <div class="legend-row-metrics">
+                    <strong class="metric-num">{{ publications().length }}</strong>
+                    <span class="metric-pct">({{ contentDistribution().newsPct }}%)</span>
+                  </div>
+                </div>
+
+                <div class="donut-legend-row" (click)="setTab('polls')" title="Ver encuestas">
+                  <div class="legend-row-title">
+                    <span class="legend-badge-dot dist-polls"></span>
+                    <span>Encuestas</span>
+                  </div>
+                  <div class="legend-row-metrics">
+                    <strong class="metric-num">{{ surveys().length }}</strong>
+                    <span class="metric-pct">({{ contentDistribution().pollsPct }}%)</span>
+                  </div>
+                </div>
               </div>
-            </button>
-            <button class="action-tile" (click)="setTab('users')">
-              <span class="tile-icon">👥</span>
-              <div class="tile-content">
-                <strong>Supervisar Usuarios</strong>
-                <small>Ver registros y asignar permisos</small>
-              </div>
-            </button>
+            </div>
           </div>
         </div>
 
-        <div class="card overview-card">
+        <!-- Tarjeta 2: Ciclo de Vida de Encuestas -->
+        <div class="card analytics-card">
           <div class="card-header">
-            <h3>Estado del Sistema</h3>
+            <h3>Ciclo de Vida de Encuestas</h3>
+            <span class="card-badge">{{ totalSurveyQuestionsCount() }} preguntas formuladas</span>
           </div>
-          <div class="card-body system-status">
-            <div class="status-item">
-              <span class="status-dot online"></span>
-              <div class="status-info">
-                <strong>API Backend</strong>
-                <small>Conectado (http://localhost:3000)</small>
+          <div class="card-body">
+            <div class="metric-breakdown-list">
+              <div class="breakdown-item">
+                <div class="breakdown-info">
+                  <span class="status-indicator status-published"></span>
+                  <strong>Publicadas y Activas</strong>
+                </div>
+                <div class="breakdown-values">
+                  <span class="breakdown-count">{{ publishedSurveysCount() }}</span>
+                  <span class="breakdown-sub">Disponibles para responder</span>
+                </div>
               </div>
-            </div>
-            <div class="status-item">
-              <span class="status-dot online"></span>
-              <div class="status-info">
-                <strong>Sesión Administrativa</strong>
-                <small>{{ authService.getUser()?.email }}</small>
+
+              <div class="breakdown-item">
+                <div class="breakdown-info">
+                  <span class="status-indicator status-draft"></span>
+                  <strong>Borradores en Edición</strong>
+                </div>
+                <div class="breakdown-values">
+                  <span class="breakdown-count">{{ draftSurveysCount() }}</span>
+                  <span class="breakdown-sub">En preparación</span>
+                </div>
               </div>
-            </div>
-            <div class="status-item">
-              <span class="status-dot info"></span>
-              <div class="status-info">
-                <strong>Privilegios</strong>
-                <small>{{ authService.isAdmin() ? 'Acceso Total (Admin)' : 'Gestión Moderador' }}</small>
+
+              <div class="breakdown-item">
+                <div class="breakdown-info">
+                  <span class="status-indicator status-closed"></span>
+                  <strong>Finalizadas / Cerradas</strong>
+                </div>
+                <div class="breakdown-values">
+                  <span class="breakdown-count">{{ closedSurveysCount() }}</span>
+                  <span class="breakdown-sub">Con resultados históricos</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Tarjeta 3: Estructura de Roles de Usuarios -->
+        <div class="card analytics-card">
+          <div class="card-header">
+            <h3>Estructura de Usuarios y Roles</h3>
+            <span class="card-badge">{{ users().length }} cuentas registradas</span>
+          </div>
+          <div class="card-body">
+            <div class="role-bars-list">
+              <div class="role-bar-item">
+                <div class="role-bar-label">
+                  <span>Administradores (Acceso Completo)</span>
+                  <strong>{{ adminUsersCount() }}</strong>
+                </div>
+                <div class="role-bar-track">
+                  <div class="role-bar-fill fill-admin" [style.width.%]="users().length ? (adminUsersCount() / users().length) * 100 : 0"></div>
+                </div>
+              </div>
+
+              <div class="role-bar-item">
+                <div class="role-bar-label">
+                  <span>Moderadores y Editores</span>
+                  <strong>{{ moderatorUsersCount() }}</strong>
+                </div>
+                <div class="role-bar-track">
+                  <div class="role-bar-fill fill-moderator" [style.width.%]="users().length ? (moderatorUsersCount() / users().length) * 100 : 0"></div>
+                </div>
+              </div>
+
+              <div class="role-bar-item">
+                <div class="role-bar-label">
+                  <span>Comunidad / Usuarios Estándar</span>
+                  <strong>{{ standardUsersCount() }}</strong>
+                </div>
+                <div class="role-bar-track">
+                  <div class="role-bar-fill fill-user" [style.width.%]="users().length ? (standardUsersCount() / users().length) * 100 : 0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
+
+      <!-- ==================================================================
+           SECCIÓN DE TRÁFICO WEB Y AUDIENCIA (OPCIÓN 1: RASTREO PROPIO)
+           ================================================================== -->
+      <div class="traffic-section-container">
+        
+        <!-- Encabezado de Sección de Tráfico -->
+        <div class="traffic-section-header">
+          <div class="traffic-header-info">
+            <div class="traffic-tag-row">
+              <span class="traffic-badge-tag">Métricas de Audiencia</span>
+              <span class="traffic-live-indicator">
+                <span class="pulse-dot-green"></span>
+                Rastreo Activo Sin Cookies
+              </span>
+            </div>
+            <h3>Tráfico Web y Visitantes del Portal</h3>
+            <p>Monitoreo anónimo del flujo de lectores, páginas con mayor interés y visitas diarias registradas en tiempo real.</p>
+          </div>
+          <button type="button" class="btn-refresh-traffic" (click)="loadVisitStats()" title="Actualizar datos de tráfico">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+            <span>Actualizar</span>
+          </button>
+        </div>
+
+        <!-- Mini KPIs de Tráfico (4 métricas de alto impacto) -->
+        <div class="traffic-kpi-grid">
+          <!-- 1. Total de Visitas -->
+          <div class="traffic-kpi-card">
+            <div class="traffic-kpi-icon icon-visits">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="traffic-kpi-data">
+              <span class="kpi-micro-title">Páginas Vistas Totales</span>
+              <strong class="traffic-kpi-number">{{ visitStats()?.totalVisits ?? 0 }}</strong>
+              <span class="traffic-kpi-sub">Visualizaciones acumuladas</span>
+            </div>
+          </div>
+
+          <!-- 2. Visitantes Únicos -->
+          <div class="traffic-kpi-card">
+            <div class="traffic-kpi-icon icon-unique">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="traffic-kpi-data">
+              <span class="kpi-micro-title">Visitantes Únicos Totales</span>
+              <strong class="traffic-kpi-number">{{ visitStats()?.uniqueVisitors ?? 0 }}</strong>
+              <span class="traffic-kpi-sub">Dispositivos y lectores distintos</span>
+            </div>
+          </div>
+
+          <!-- 3. Visitas Hoy -->
+          <div class="traffic-kpi-card highlight-card">
+            <div class="traffic-kpi-icon icon-today">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="traffic-kpi-data">
+              <span class="kpi-micro-title">Visitas Hoy</span>
+              <strong class="traffic-kpi-number text-highlight">{{ visitStats()?.visitsToday ?? 0 }}</strong>
+              <span class="traffic-kpi-sub">Páginas leídas en la jornada</span>
+            </div>
+          </div>
+
+          <!-- 4. Visitantes Únicos Hoy -->
+          <div class="traffic-kpi-card">
+            <div class="traffic-kpi-icon icon-user-today">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="traffic-kpi-data">
+              <span class="kpi-micro-title">Visitantes Únicos Hoy</span>
+              <strong class="traffic-kpi-number">{{ visitStats()?.uniqueVisitorsToday ?? 0 }}</strong>
+              <span class="traffic-kpi-sub">Personas que accedieron hoy</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paneles de Análisis Detallado de Tráfico (Páginas top + Tendencia 7 días) -->
+        <div class="traffic-details-grid">
+          
+          <!-- Tarjeta: Páginas más Visitadas -->
+          <div class="card traffic-detail-card">
+            <div class="card-header">
+              <div>
+                <h3>Páginas Más Visitadas (Top Rutas)</h3>
+                <p class="card-header-desc">Secciones con mayor concurrencia y tráfico del portal</p>
+              </div>
+              <span class="card-badge">{{ (visitStats()?.topPages || []).length }} rutas activas</span>
+            </div>
+            <div class="card-body">
+              <div *ngIf="!visitStats()?.topPages?.length" class="empty-traffic-state">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <p>Aún no hay visitas registradas en la base de datos.</p>
+                <small>Las visitas en las rutas públicas se contabilizarán automáticamente.</small>
+              </div>
+
+              <div *ngIf="visitStats()?.topPages?.length" class="top-pages-list">
+                <div *ngFor="let page of visitStats()?.topPages; let idx = index" class="top-page-row">
+                  <div class="top-page-rank">#{{ idx + 1 }}</div>
+                  <div class="top-page-info">
+                    <div class="top-page-header">
+                      <div class="page-titles">
+                        <strong class="page-friendly-name">{{ formatPagePath(page.path) }}</strong>
+                        <span class="page-raw-path">{{ page.path }}</span>
+                      </div>
+                      <div class="page-stats-pill">
+                        <span class="page-visits-count">{{ page.visits }} visitas</span>
+                        <span class="page-pct">({{ page.percentage }}%)</span>
+                      </div>
+                    </div>
+                    <div class="page-progress-track">
+                      <div class="page-progress-fill" [style.width.%]="page.percentage"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tarjeta: Tendencia de Visitas de los Últimos 7 Días -->
+          <div class="card traffic-detail-card">
+            <div class="card-header">
+              <div>
+                <h3>Tendencia Semanal (Últimos 7 Días)</h3>
+                <p class="card-header-desc">Volumen diario de páginas vistas y visitantes únicos</p>
+              </div>
+              <span class="card-badge">Última semana</span>
+            </div>
+            <div class="card-body">
+              <div class="trend-chart-wrapper">
+                <div class="trend-bars-container">
+                  <div *ngFor="let day of visitStats()?.recentDays" class="trend-day-column">
+                    <div class="trend-bar-wrapper">
+                      <!-- Tooltip flotante con detalles -->
+                      <div class="trend-tooltip">
+                        <strong>{{ day.date }}</strong>
+                        <span>{{ day.visits }} visitas</span>
+                        <small>{{ day.uniqueVisitors }} únicos</small>
+                      </div>
+                      <!-- Barra de volumen -->
+                      <div 
+                        class="trend-bar" 
+                        [style.height.%]="getDayBarHeight(day.visits)"
+                        [class.has-visits]="day.visits > 0">
+                        <span class="trend-bar-val" *ngIf="day.visits > 0">{{ day.visits }}</span>
+                      </div>
+                    </div>
+                    <span class="trend-date-label">{{ formatShortDate(day.date) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Resumen numérico inferior -->
+              <div class="trend-legend-footer">
+                <div class="trend-legend-item">
+                  <span class="legend-dot-bar"></span>
+                  <span>Páginas vistas por día</span>
+                </div>
+                <div class="trend-legend-stat">
+                  <span>Promedio semanal:</span>
+                  <strong>{{ dailyAverageVisits }} vistas/día</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ====================================================================
+         1. PESTAÑA HOME
+         ==================================================================== -->
+    <section *ngIf="activeTab() === 'home'" class="tab-panel animate-fade-in">
     </section>
 
     <!-- ====================================================================

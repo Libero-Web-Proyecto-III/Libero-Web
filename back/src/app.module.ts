@@ -17,6 +17,7 @@ import { RolesGuard } from './common/guard/roles.guard';
 import { ReactionModule } from './modules/reaction/reaction.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { SurveyModule } from './modules/survey/survey.module';
+import { VisitModule } from './modules/visit/visit.module';
 
 
 @Module({
@@ -31,7 +32,8 @@ import { SurveyModule } from './modules/survey/survey.module';
 
     TagModule, RolModule,
     UserModule, PublicationModule, ReactionModule,
-    EventModule, AuthModule, CommentModule, SurveyModule
+    EventModule, AuthModule, CommentModule, SurveyModule,
+    VisitModule
 ],
   controllers: [AppController],
   providers: [

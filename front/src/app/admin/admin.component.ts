@@ -9,7 +9,7 @@ import { SurveyResultsComponent } from '../survey/components/survey-results/surv
 import { SurveyService } from '../survey/services/survey.service';
 import { Survey, SurveyStatusEnum } from '../survey/models/survey.model';
 
-export type AdminTab = 'home' | 'events' | 'news' | 'polls' | 'users' | 'settings';
+export type AdminTab = 'metrics' | 'home' | 'events' | 'news' | 'polls' | 'users' | 'settings';
 
 export interface AdminEventItem {
   uuid: string;
@@ -53,6 +53,27 @@ interface Publication {
   createdAt?: string;
 }
 
+export interface TopPageStat {
+  path: string;
+  visits: number;
+  percentage: number;
+}
+
+export interface DailyVisitStat {
+  date: string;
+  visits: number;
+  uniqueVisitors: number;
+}
+
+export interface VisitStats {
+  totalVisits: number;
+  uniqueVisitors: number;
+  visitsToday: number;
+  uniqueVisitorsToday: number;
+  topPages: TopPageStat[];
+  recentDays: DailyVisitStat[];
+}
+
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -78,6 +99,9 @@ export class AdminComponent implements OnInit {
   private readonly publicationsApiUrl = 'http://localhost:3000/publications';
   private readonly usersApiUrl = 'http://localhost:3000/users';
   private readonly tagsApiUrl = 'http://localhost:3000/tag';
+  private readonly visitsApiUrl = 'http://localhost:3000/visits/stats';
+
+  readonly visitStats = signal<VisitStats | null>(null);
 
   // # Este bloque tiene como objetivo establecer la pestaña 'home' como la opción activa predeterminada al ingresar al panel de administración
   readonly activeTab = signal<AdminTab>('home');
@@ -237,6 +261,132 @@ export class AdminComponent implements OnInit {
     return Array.from({ length: this.totalSurveyPages() }, (_, i) => i + 1);
   });
 
+  // --- MÉTRICAS Y ANALÍTICAS COMPUTADAS ---
+  readonly totalEventsCount = computed(() => this.activeEvents().length + this.pastEvents().length);
+
+  readonly publishedSurveysCount = computed(() => {
+    return this.surveys().filter((s) => s.status === SurveyStatusEnum.PUBLISHED).length;
+  });
+
+  readonly draftSurveysCount = computed(() => {
+    return this.surveys().filter((s) => s.status === SurveyStatusEnum.DRAFT).length;
+  });
+
+  readonly closedSurveysCount = computed(() => {
+    return this.surveys().filter((s) => s.status === SurveyStatusEnum.CLOSED).length;
+  });
+
+  readonly totalSurveyQuestionsCount = computed(() => {
+    return this.surveys().reduce((acc, s) => acc + (s.questions ? s.questions.length : 0), 0);
+  });
+
+  readonly adminUsersCount = computed(() => {
+    return this.users().filter((u) => {
+      const r = (u.rol?.name || u.role || '').toLowerCase();
+      return r.includes('admin');
+    }).length;
+  });
+
+  readonly moderatorUsersCount = computed(() => {
+    return this.users().filter((u) => {
+      const r = (u.rol?.name || u.role || '').toLowerCase();
+      return r.includes('moder') || r.includes('editor');
+    }).length;
+  });
+
+  readonly standardUsersCount = computed(() => {
+    const total = this.users().length;
+    const privileged = this.adminUsersCount() + this.moderatorUsersCount();
+    return Math.max(0, total - privileged);
+  });
+
+  readonly usersWithTagsCount = computed(() => {
+    return this.users().filter((u) => (u.tags && u.tags.length > 0) || !!u.tag).length;
+  });
+
+  readonly tagCoveragePercentage = computed(() => {
+    const total = this.users().length;
+    if (!total) return 0;
+    return Math.round((this.usersWithTagsCount() / total) * 100);
+  });
+
+  readonly totalPlatformRecords = computed(() => {
+    return (
+      this.totalEventsCount() +
+      this.publications().length +
+      this.surveys().length +
+      this.users().length
+    );
+  });
+
+  readonly contentDistribution = computed(() => {
+    const events = this.totalEventsCount();
+    const news = this.publications().length;
+    const polls = this.surveys().length;
+    const total = events + news + polls;
+    if (!total) {
+      return { eventsPct: 33, newsPct: 33, pollsPct: 34, total: 0 };
+    }
+    const eventsPct = Math.round((events / total) * 100);
+    const newsPct = Math.round((news / total) * 100);
+    const pollsPct = Math.max(0, 100 - eventsPct - newsPct);
+    return { eventsPct, newsPct, pollsPct, total };
+  });
+
+  readonly donutGradient = computed(() => {
+    const dist = this.contentDistribution();
+    if (dist.total === 0) {
+      return 'conic-gradient(#cbd5e1 0% 100%)';
+    }
+    const p1 = dist.eventsPct;
+    const p2 = p1 + dist.newsPct;
+    return `conic-gradient(#ea580c 0% ${p1}%, #0284c7 ${p1}% ${p2}%, #10b981 ${p2}% 100%)`;
+  });
+
+  readonly maxDailyVisits = computed(() => {
+    const days = this.visitStats()?.recentDays || [];
+    if (!days.length) return 1;
+    const max = Math.max(...days.map(d => d.visits));
+    return max > 0 ? max : 1;
+  });
+
+  formatPagePath(path: string): string {
+    if (!path || path === '/') return 'Inicio / Portada Principal';
+    if (path === '/events' || path.startsWith('/events')) return 'Catálogo de Eventos';
+    if (path === '/news' || path.startsWith('/news')) return 'Noticias y Artículos';
+    if (path === '/polls' || path.startsWith('/polls')) return 'Encuestas y Votaciones';
+    if (path === '/login') return 'Inicio de Sesión';
+    if (path === '/register') return 'Registro de Nuevos Usuarios';
+    return path;
+  }
+
+  formatShortDate(dateStr: string): string {
+    if (!dateStr) return '';
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}`;
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  }
+
+  getDayBarHeight(visits: number): number {
+    const max = this.maxDailyVisits();
+    if (!visits || visits <= 0) return 6;
+    return Math.max(14, Math.round((visits / max) * 100));
+  }
+
+  get dailyAverageVisits(): number {
+    const days = this.visitStats()?.recentDays;
+    if (!days || !days.length) return 0;
+    const sum = days.reduce((acc, d) => acc + d.visits, 0);
+    return Math.round(sum / days.length);
+  }
+
+
   getUserTags(user: UserItem): TagItem[] {
     const activeTags = this.tags() || [];
     const activeTagIds = new Set(activeTags.map((t) => t.id));
@@ -329,6 +479,7 @@ export class AdminComponent implements OnInit {
     this.loadUsers();
     this.loadTags();
     this.loadSurveys();
+    this.loadVisitStats();
 
     // Conectar cambios del formulario al signal reactivo
     this.eventForm.valueChanges.subscribe(() => {
@@ -348,7 +499,25 @@ export class AdminComponent implements OnInit {
       this.loadPublications();
     } else if (tab === 'events') {
       this.loadEvents();
+    } else if (tab === 'metrics' || tab === 'home') {
+      this.loadEvents();
+      this.loadPublications();
+      this.loadUsers();
+      this.loadTags();
+      this.loadSurveys();
+      this.loadVisitStats();
     }
+  }
+
+  loadVisitStats(): void {
+    this.http.get<VisitStats>(this.visitsApiUrl).subscribe({
+      next: (data) => {
+        this.visitStats.set(data);
+      },
+      error: () => {
+        // Silencioso o mantener estado previo si la API no responde
+      },
+    });
   }
 
   loadSurveys(): void {

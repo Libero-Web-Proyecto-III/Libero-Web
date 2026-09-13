@@ -78,8 +78,8 @@ export class AdminComponent implements OnInit {
   private readonly usersApiUrl = 'http://localhost:3000/users';
   private readonly tagsApiUrl = 'http://localhost:3000/tag';
 
-  // Pestaña activa
-  readonly activeTab = signal<AdminTab>('events');
+  // # Este bloque tiene como objetivo establecer la pestaña 'home' como la opción activa predeterminada al ingresar al panel de administración
+  readonly activeTab = signal<AdminTab>('home');
 
   // Modal para ver tarjeta abierta completa
   readonly selectedEventDetail = signal<AdminEventItem | null>(null);

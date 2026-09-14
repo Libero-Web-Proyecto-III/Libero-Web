@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,8 +22,15 @@ import { UpdatePublicationDto } from './dto/update-publication.dto';
 import { GetAllPublicationQueryDto } from './dto/get-publication-query.dto';
 import { PublicationEntity } from './entities/publication.entity';
 
+import { JwtAuthGuard } from '../../common/guard/jwt-auth.guard';
+import { RolesGuard } from '../../common/guard/roles.guard';
+import { PRIVATE } from '../../common/decorator/private.decorator';
+import { ROLES } from '../../common/decorator/roles.decorator';
+import { enumRol } from '../../common/enums/rol.enum';
+
 @ApiTags('Publications')
 @Controller('publications')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class PublicationController {
   constructor(private readonly publicationService: PublicationService) {}
 
@@ -48,10 +56,12 @@ export class PublicationController {
     return this.publicationService.findOneBy.uuid(uuid);
   }
 
+  @PRIVATE()
+  @ROLES([enumRol.MOD, enumRol.ADMIN])
   @Post()
   @ApiOperation({
     summary: 'Crear una publicación',
-    description: 'Crea una nueva publicación asociada al usuario autenticado.',
+    description: 'Crea una nueva publicación asociada al usuario autenticado. Solo moderadores o administradores.',
   })
   @ApiResponse({ status: 201, description: 'Publicación creada exitosamente', type: PublicationEntity })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
@@ -59,6 +69,8 @@ export class PublicationController {
     return this.publicationService.create(createPublicationDto, req.user);
   }
 
+  @PRIVATE()
+  @ROLES([enumRol.MOD, enumRol.ADMIN])
   @Patch(':uuid')
   @ApiOperation({
     summary: 'Actualizar una publicación',
@@ -71,10 +83,12 @@ export class PublicationController {
     return this.publicationService.update(uuid, updatePublicationDto);
   }
 
+  @PRIVATE()
+  @ROLES([enumRol.MOD, enumRol.ADMIN])
   @Delete(':uuid')
   @ApiOperation({
     summary: 'Eliminar una publicación',
-    description: 'Elimina lógicamente una publicación (soft delete).',
+    description: 'Elimina lógicamente una publicación (soft delete). Solo moderador o admin.',
   })
   @ApiParam({ name: 'uuid', description: 'UUID de la publicación', example: 'f6e5d4c3-b2a1-4c3d-9e8f-7a6b5c4d3e2f' })
   @ApiResponse({ status: 200, description: 'Publicación eliminada' })

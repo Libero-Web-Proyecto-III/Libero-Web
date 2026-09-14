@@ -17,6 +17,11 @@ export interface RegisterResponse {
   message: string;
 }
 
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+}
+
 export type AuthUser = AuthResponse['data']['user'];
 export type UserSession = AuthUser;
 
@@ -55,6 +60,14 @@ export class AuthService {
   // # Este bloque tiene como objetivo registrar un nuevo usuario en la plataforma
   register(payload: { username: string; email: string; password: string }): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, payload);
+  }
+
+  requestPasswordReset(email: string): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.apiUrl}/request-password-reset`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.apiUrl}/reset-password`, { token, password });
   }
 
   // # Este bloque tiene como objetivo destruir los tokens de sesión y limpiar el estado de autenticación (logout), redirigiendo al inicio

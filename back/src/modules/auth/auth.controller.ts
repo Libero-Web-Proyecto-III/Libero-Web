@@ -11,6 +11,7 @@ import { JwtAuthGuard } from '../../common/guard/jwt-auth.guard';
 import { RolesGuard } from '../../common/guard/roles.guard';
 
 import { PRIVATE } from '../../common/decorator/private.decorator';
+import { Public } from '../../common/decorator/public.decorator';
 import { ROLES } from '../../common/decorator/roles.decorator';
 
 import { enumRol } from '../../common/enums/rol.enum';
@@ -18,6 +19,8 @@ import { enumRol } from '../../common/enums/rol.enum';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -37,21 +40,15 @@ export class AuthController {
   }
 
   @Post('request-password-reset')
-  requestPasswordReset(
-    @Body('email') email: string,
-  ) {
-    return this.authService.requestPasswordReset(email);
+  @Public()
+  requestPasswordReset(@Body() dto: RequestPasswordResetDto) {
+    return this.authService.requestPasswordReset(dto.email);
   }
 
   @Post('reset-password')
-  resetPassword(
-    @Body('token') token: string,
-    @Body('password') password: string,
-  ) {
-    return this.authService.resetPassword(
-      token,
-      password,
-    );
+  @Public()
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.password);
   }
 
   @PRIVATE()

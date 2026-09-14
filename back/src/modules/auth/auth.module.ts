@@ -8,12 +8,17 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategy/jwt.strategy';
 
 import { UserModule } from '../user/user.module';
+import { MailModule } from '../mail/mail.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PasswordResetTokenEntity } from './entities/password-reset-token.entity';
 
 @Module({
   imports: [
     ConfigModule,
 
     UserModule,
+    MailModule,
+    TypeOrmModule.forFeature([PasswordResetTokenEntity]),
 
     PassportModule.register({
       defaultStrategy: 'jwt',

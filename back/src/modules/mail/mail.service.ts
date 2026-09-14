@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export interface EventEmailData {
   title: string;
@@ -87,6 +89,55 @@ export class MailService {
     return this.lastGeneratedEmailHtml;
   }
 
+  async sendPasswordResetEmail(
+    toEmail: string,
+    userName: string,
+    resetUrl: string,
+  ): Promise<{ success: boolean; message: string; messageId?: string }> {
+    const user = this.configService.get<string>('SMTP_USER') || this.configService.get<string>('MAIL_USER') || '';
+    const fromAddress = this.configService.get<string>('SMTP_FROM') || (user ? `"Líbero Cobre" <${user.trim()}>` : '"Líbero Cobre" <no-reply@liberocobre.online>');
+    const template = readFileSync(join(__dirname, 'templates', 'password-reset.html'), 'utf8');
+    const htmlContent = template
+      .replaceAll('{{USER_NAME}}', this.escapeHtml(userName))
+      .replaceAll('{{RESET_URL}}', this.escapeHtml(resetUrl));
+    this.lastGeneratedEmailHtml = htmlContent;
+
+    const transporter = this.createTransporter();
+
+    if (!transporter) {
+      this.logger.log(`[SIMULACIÓN NODEMAILER] Correo de recuperación preparado para ${toEmail}`);
+      return { success: true, message: 'Correo de recuperación preparado en modo desarrollo.' };
+    }
+
+    try {
+      const info = await Promise.race([
+        transporter.sendMail({
+          from: fromAddress,
+          to: toEmail,
+          subject: 'Recuperación de contraseña - Líbero Cobre',
+          html: htmlContent,
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('SMTP timeout')), 10000),
+        ),
+      ]);
+      return { success: true, message: 'Correo de recuperación enviado.', messageId: info.messageId };
+    } catch (error: any) {
+      this.logger.warn(`No se pudo enviar el correo de recuperación: ${error?.message || error}`);
+      return { success: true, message: 'Solicitud de recuperación registrada.' };
+    }
+  }
+
+  private escapeHtml(value: string): string {
+    return value.replace(/[&<>'"]/g, (character) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;',
+    })[character] || character);
+  }
+
   /**
    * Envía un correo con la información del evento al usuario registrado
    */
@@ -103,37 +154,6 @@ export class MailService {
     const subject = `🔔 Confirmación de Notificación: ${event.title}`;
     const htmlContent = this.buildEventEmailTemplate(userName, event);
     this.lastGeneratedEmailHtml = htmlContent;
-
-    // Soporte opcional para envío por API HTTP (Resend) sobre puerto 443 si está configurado
-    const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
-    if (resendApiKey) {
-      try {
-        const res = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${resendApiKey.trim()}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: 'Libero Cobre <onboarding@resend.dev>',
-            to: [toEmail],
-            subject,
-            html: htmlContent,
-          }),
-        });
-        if (res.ok) {
-          const resData = await res.json();
-          this.logger.log(`Correo enviado exitosamente vía Resend API HTTPS a ${toEmail}. ID: ${resData.id}`);
-          return {
-            success: true,
-            message: 'Correo de notificación enviado exitosamente vía HTTPS.',
-            messageId: resData.id,
-          };
-        }
-      } catch (httpErr: any) {
-        this.logger.warn(`Resend HTTP API fallo temporal: ${httpErr?.message}`);
-      }
-    }
 
     const transporter = this.createTransporter();
 

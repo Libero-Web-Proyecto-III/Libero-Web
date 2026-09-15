@@ -1,5 +1,6 @@
 import {
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -22,22 +23,40 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    const user = await this.validateUser(dto);
+    const user = await this.userService.findByIdentifier(dto.identifier);
 
     if (!user) {
-      throw new UnauthorizedException(
-        'Correo o contraseña incorrectos.',
+      throw new NotFoundException(
+        'Cuenta no encontrada o no registrada',
       );
     }
 
-    const token = this.generateToken({
-      sub: user.id,
-      username: user.username,
+    const passwordCorrect = await this.comparePassword(
+      dto.password,
+      user.password,
+    );
+
+    if (!passwordCorrect) {
+      throw new UnauthorizedException(
+        'Contraseña incorrecta',
+      );
+    }
+
+    const authUser: AuthUser = {
+      id: user.index,
+      username: user.name,
       email: user.email,
-      role: user.role,
+      role: user.rol?.name || 'user',
+    };
+
+    const token = this.generateToken({
+      sub: authUser.id,
+      username: authUser.username,
+      email: authUser.email,
+      role: authUser.role,
     });
 
-    return this.buildLoginResponse(token, user);
+    return this.buildLoginResponse(token, authUser);
   }
 
   async register(dto: RegisterDto) {
@@ -78,7 +97,7 @@ export class AuthService {
       id: user.index,
       username: user.name,
       email: user.email,
-      role: user.rol.name,
+      role: user.rol?.name || 'user',
     };
   }
 

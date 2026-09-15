@@ -139,7 +139,7 @@ export class UserService {
   async findByIdentifier(identifier: string): Promise<UserEntity | null> {
     return await this.UserRepository.findOne({
       where: [{ name: identifier }, { email: identifier }],
-      relations: UserEntityRelations as FindOptionsRelations<UserEntity>,
+      relations: { rol: true } as FindOptionsRelations<UserEntity>,
     });
   }
 

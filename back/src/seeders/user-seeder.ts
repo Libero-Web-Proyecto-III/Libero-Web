@@ -50,7 +50,10 @@ export class UserSeederService implements OnModuleInit {
     ];
 
     for (const user of demoUsers) {
-      const existingUser = await this.userRepository.findOneBy({ email: user.email });
+      const existingUser = await this.userRepository.findOne({
+        where: { email: user.email },
+        withDeleted: true,
+      });
       if (!existingUser) {
         const hashedPassword = await bcrypt.hash(user.password, this.saltRounds);
         const newUser = this.userRepository.create({

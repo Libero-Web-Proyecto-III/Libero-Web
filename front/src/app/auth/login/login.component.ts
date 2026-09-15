@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -23,7 +24,8 @@ export class LoginComponent {
   constructor(
     private FormBuilderService: FormBuilder,
     private RouterService: Router,
-    private AuthService: AuthService
+    private AuthService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {
     // Configuración del grupo de controles y reglas de validación del Login
     this.LoginForm = this.FormBuilderService.group({
@@ -50,22 +52,45 @@ export class LoginComponent {
     this.IsLoading = true;
     this.ErrorMessage = null;
     this.SuccessMessage = null;
+    this.cdr.detectChanges();
+
+    const identifier = (this.LoginForm.value.UserEmail || '').trim();
+    const password = this.LoginForm.value.UserPassword;
+    const rememberMe = !!this.LoginForm.value.RememberMe;
 
     this.AuthService.login({
-      identifier: this.LoginForm.value.UserEmail,
-      password: this.LoginForm.value.UserPassword,
-    }).subscribe({
-      next: response => {
-        this.IsLoading = false;
-        this.SuccessMessage = response.message || '¡Inicio de sesión exitoso! Redirigiendo...';
-        setTimeout(() => {
-          this.RouterService.navigate(['/']);
-        }, 1500);
-      },
-      error: () => {
-        this.IsLoading = false;
-        this.ErrorMessage = 'Correo o contraseña incorrectos.';
-      },
-    });
+      identifier,
+      password,
+      rememberMe,
+    })
+      .pipe(
+        finalize(() => {
+          this.IsLoading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: response => {
+          this.SuccessMessage = response.message || '¡Inicio de sesión exitoso! Redirigiendo...';
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.RouterService.navigate(['/']);
+          }, 1500);
+        },
+        error: (err) => {
+          if (err?.status === 404) {
+            this.ErrorMessage = 'Cuenta no encontrada o no registrada';
+          } else if (err?.status === 401) {
+            this.ErrorMessage = 'Contraseña incorrecta';
+          } else if (err?.error?.message) {
+            this.ErrorMessage = Array.isArray(err.error.message)
+              ? err.error.message[0]
+              : err.error.message;
+          } else {
+            this.ErrorMessage = 'No se pudo iniciar sesión. Por favor verifica tus credenciales o conexión.';
+          }
+          this.cdr.detectChanges();
+        },
+      });
   }
 }

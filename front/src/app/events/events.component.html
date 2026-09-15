@@ -37,9 +37,14 @@
     @if (filteredEvents().length === 0) {
       <div class="empty-state">
         <div class="empty-icon">⚪</div>
-        <h3>No se encontraron eventos</h3>
-        <p>No hay eventos que coincidan con tu búsqueda "{{ searchTerm() }}". Prueba con otros términos.</p>
-        <button class="reset-btn" (click)="searchTerm.set('')">Ver todos los eventos</button>
+        @if (searchTerm()) {
+          <h3>No se encontraron eventos</h3>
+          <p>No hay eventos que coincidan con tu búsqueda "{{ searchTerm() }}". Prueba con otros términos.</p>
+          <button class="reset-btn" (click)="searchTerm.set('')">Ver todos los eventos</button>
+        } @else {
+          <h3>No hay eventos disponibles</h3>
+          <p>Actualmente no hay eventos programados en la cartelera. Próximamente se publicarán nuevos eventos.</p>
+        }
       </div>
     }
 

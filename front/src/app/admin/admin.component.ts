@@ -109,17 +109,17 @@ export class AdminComponent implements OnInit {
   // Modal para ver tarjeta abierta completa
   readonly selectedEventDetail = signal<AdminEventItem | null>(null);
 
-  // Formulario de eventos con los campos exactos del catálogo y valores de ejemplo listos
+  // Formulario de eventos con los campos listos para creación desde el dashboard
   readonly eventForm = this.formBuilder.nonNullable.group({
-    title: ['SINFONÍA NOCTURNA: GALA Y MÚSICA EN VIVO', [Validators.required, Validators.minLength(3)]],
-    subtitle: ['Una velada inmersiva con la Orquesta Filarmónica Contemporánea', [Validators.required]],
-    dateDay: ['28', [Validators.required, Validators.maxLength(2)]],
+    title: ['', [Validators.required, Validators.minLength(3)]],
+    subtitle: ['', [Validators.required]],
+    dateDay: ['', [Validators.required, Validators.maxLength(2)]],
     dateMonth: ['OCT', [Validators.required]],
-    time: ['20:00 - 23:00 HRS', [Validators.required]],
-    location: ['Gran Teatro Metropolitano', [Validators.required]],
-    city: ['Sala Principal', [Validators.required]],
-    description: ['Disfruta de una experiencia única. Un encuentro exclusivo donde la música, el arte y la cultura se fusionan en un espacio diseñado para inspirar...', [Validators.required, Validators.minLength(10)]],
-    imageUrl: ['https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80', [Validators.required]],
+    time: ['', [Validators.required]],
+    location: ['', [Validators.required]],
+    city: ['', [Validators.required]],
+    description: ['', [Validators.required, Validators.minLength(10)]],
+    imageUrl: ['', [Validators.required]],
   });
 
   // Signal para rastrear cambios en tiempo real del formulario para las vistas previas
@@ -955,17 +955,17 @@ export class AdminComponent implements OnInit {
         this.message = `¡Evento "${created.title || payload.title}" publicado con éxito! Guardado en la base de datos.`;
         this.error = '';
 
-        // Sugerir nueva plantilla de datos para seguir creando
+        // Restablecer el formulario limpio para el próximo evento
         this.eventForm.reset({
-          title: 'NOCHE DE GALA & ARTE VISUAL',
-          subtitle: 'Encuentro cultural y performance interactivo',
-          dateDay: '15',
-          dateMonth: 'NOV',
-          time: '20:00 - 23:00 HRS',
-          location: 'Centro de Bellas Artes',
-          city: 'Salón de Actos',
-          description: 'Una noche para celebrar el talento contemporáneo con proyecciones audiovisuales y música instrumental en directo.',
-          imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1400&q=80',
+          title: '',
+          subtitle: '',
+          dateDay: '',
+          dateMonth: 'OCT',
+          time: '',
+          location: '',
+          city: '',
+          description: '',
+          imageUrl: '',
         });
         this.formValueSignal.set(this.eventForm.getRawValue());
         this.loadEvents();

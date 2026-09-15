@@ -42,6 +42,7 @@ export class RolSeederService implements OnModuleInit {
       const existingAdmin = await this.userRepository.findOne({
         where: [{ email: 'admin@libero.com' }, { name: 'admin' }],
         relations: { rol: true },
+        withDeleted: true,
       });
 
       if (!existingAdmin) {

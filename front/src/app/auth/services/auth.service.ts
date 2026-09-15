@@ -31,23 +31,27 @@ export class AuthService {
   readonly isLoggedIn = computed(() => this.currentUser() !== null && this.getToken() !== null);
   readonly isAdmin = computed(() => this.currentUser()?.role === 'admin');
 
-  // # Este bloque tiene como objetivo actualizar el rol del usuario autenticado en la sesión activa y localStorage en tiempo real
+  // # Este bloque tiene como objetivo actualizar el rol del usuario autenticado en la sesión activa (sessionStorage o localStorage) en tiempo real
   updateCurrentUserRole(newRole: string): void {
     const user = this.currentUser();
     if (user) {
       const updatedUser = { ...user, role: newRole };
-      localStorage.setItem('authUser', JSON.stringify(updatedUser));
+      if (sessionStorage.getItem('authUser')) {
+        sessionStorage.setItem('authUser', JSON.stringify(updatedUser));
+      }
+      if (localStorage.getItem('authUser')) {
+        localStorage.setItem('authUser', JSON.stringify(updatedUser));
+      }
       this.currentUser.set(updatedUser);
     }
   }
 
-  // # Este bloque tiene como objetivo realizar la petición HTTP de inicio de sesión y guardar la sesión activa
-  login(payload: { identifier: string; password: string }): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, payload).pipe(
+  // # Este bloque tiene como objetivo realizar la petición HTTP de inicio de sesión y almacenar las credenciales según la preferencia de mantener sesión
+  login(payload: { identifier: string; password: string; rememberMe?: boolean }): Observable<AuthResponse> {
+    const { identifier, password, rememberMe = false } = payload;
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { identifier, password }).pipe(
       tap(response => {
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('authUser', JSON.stringify(response.data.user));
-        this.currentUser.set(response.data.user);
+        this.saveSession(response.data.accessToken, response.data.user, rememberMe);
       }),
     );
   }
@@ -57,17 +61,39 @@ export class AuthService {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, payload);
   }
 
-  // # Este bloque tiene como objetivo destruir los tokens de sesión y limpiar el estado de autenticación (logout), redirigiendo al inicio
-  logout(): void {
+  // # Este bloque tiene como objetivo guardar la sesión en localStorage si rememberMe es true o en sessionStorage si es false
+  private saveSession(token: string, user: AuthUser, rememberMe: boolean): void {
+    this.clearStorage();
+
+    if (rememberMe) {
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('authUser', JSON.stringify(user));
+    } else {
+      sessionStorage.setItem('accessToken', token);
+      sessionStorage.setItem('authUser', JSON.stringify(user));
+    }
+
+    this.currentUser.set(user);
+  }
+
+  // # Este bloque tiene como objetivo limpiar tokens y sesión de ambos almacenamientos (sessionStorage y localStorage)
+  private clearStorage(): void {
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('authUser');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('authUser');
+  }
+
+  // # Este bloque tiene como objetivo destruir los tokens de sesión y limpiar el estado de autenticación (logout), redirigiendo al inicio
+  logout(): void {
+    this.clearStorage();
     this.currentUser.set(null);
     this.router.navigate(['/']);
   }
 
-  // # Este bloque tiene como objetivo obtener el token JWT de acceso guardado localmente
+  // # Este bloque tiene como objetivo obtener el token JWT de acceso guardado (en sessionStorage o localStorage)
   getToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');
   }
 
   // # Este bloque tiene como objetivo retornar de forma segura los datos del usuario logueado evitando valores undefined
@@ -89,9 +115,9 @@ export class AuthService {
     return role === 'mod' || role === 'admin';
   }
 
-  // # Este bloque tiene como objetivo leer y parsear la información guardada del usuario en localStorage
+  // # Este bloque tiene como objetivo leer y parsear la información guardada del usuario en sessionStorage o localStorage
   private readUser(): AuthUser | null {
-    const value = localStorage.getItem('authUser');
+    const value = sessionStorage.getItem('authUser') || localStorage.getItem('authUser');
     if (!value) return null;
     try {
       return JSON.parse(value) as AuthUser;

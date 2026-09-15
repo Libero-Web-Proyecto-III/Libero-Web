@@ -17,6 +17,11 @@ export interface RegisterResponse {
   message: string;
 }
 
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+}
+
 export type AuthUser = AuthResponse['data']['user'];
 export type UserSession = AuthUser;
 
@@ -61,6 +66,14 @@ export class AuthService {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, payload);
   }
 
+  requestPasswordReset(email: string): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.apiUrl}/request-password-reset`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.apiUrl}/reset-password`, { token, password });
+  }
+
   // # Este bloque tiene como objetivo guardar la sesión en localStorage si rememberMe es true o en sessionStorage si es false
   private saveSession(token: string, user: AuthUser, rememberMe: boolean): void {
     this.clearStorage();
@@ -80,6 +93,42 @@ export class AuthService {
   private clearStorage(): void {
     sessionStorage.removeItem('accessToken');
     sessionStorage.removeItem('authUser');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('authUser');
+  }
+
+<<<<<<< HEAD
+  // # Este bloque tiene como objetivo guardar la sesión en localStorage si rememberMe es true o en sessionStorage si es false
+  private saveSession(token: string, user: AuthUser, rememberMe: boolean): void {
+    this.clearStorage();
+
+    if (rememberMe) {
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('authUser', JSON.stringify(user));
+    } else {
+      sessionStorage.setItem('accessToken', token);
+      sessionStorage.setItem('authUser', JSON.stringify(user));
+    }
+
+    this.currentUser.set(user);
+  }
+
+  // # Este bloque tiene como objetivo limpiar tokens y sesión de ambos almacenamientos (sessionStorage y localStorage)
+  private clearStorage(): void {
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('authUser');
+=======
+  requestPasswordReset(email: string): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.apiUrl}/request-password-reset`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.apiUrl}/reset-password`, { token, password });
+  }
+
+  // # Este bloque tiene como objetivo destruir los tokens de sesión y limpiar el estado de autenticación (logout), redirigiendo al inicio
+  logout(): void {
+>>>>>>> 7002f8294192e1289500cc744f7915c250e23b6f
     localStorage.removeItem('accessToken');
     localStorage.removeItem('authUser');
   }

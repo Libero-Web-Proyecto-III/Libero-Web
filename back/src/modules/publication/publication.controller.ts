@@ -22,6 +22,7 @@ import { CreatePublicationDto } from './dto/create-publication.dto';
 import { UpdatePublicationDto } from './dto/update-publication.dto';
 import { GetAllPublicationQueryDto } from './dto/get-publication-query.dto';
 import { PublicationEntity } from './entities/publication.entity';
+import { UserEntity } from 'src/modules/user/entities/user.entity';
 
 import { JwtAuthGuard } from '../../common/guard/jwt-auth.guard';
 import { RolesGuard } from '../../common/guard/roles.guard';
@@ -68,7 +69,7 @@ export class PublicationController {
   @ApiResponse({ status: 201, description: 'Publicación creada exitosamente', type: PublicationEntity })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
   create(@Body() createPublicationDto: CreatePublicationDto, @Req() req: any) {
-    return this.publicationService.create(createPublicationDto, req.user);
+    return this.publicationService.create(createPublicationDto, { index: req.user.id } as UserEntity);
   }
 
   @PRIVATE()

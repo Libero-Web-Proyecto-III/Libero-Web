@@ -22,6 +22,7 @@ export interface AuthResponse<T = any> {
 
 export interface UserSession {
   id: number;
+  uuid: string;
   username: string;
   email: string;
   role: string;

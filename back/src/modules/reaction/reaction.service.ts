@@ -30,16 +30,6 @@ export class ReactionService {
     private readonly publicationRepository: Repository<PublicationEntity>,
   ) {}
 
-  /**
-   * Lógica central del módulo (toggle), válida tanto para reaccionar a un
-   * COMENTARIO como a una PUBLICACIÓN (se manda uno solo de los dos uuid).
-   *
-   * Un usuario solo puede tener UNA reacción por comentario/publicación,
-   * nunca like y dislike al mismo tiempo sobre el mismo elemento:
-   *   - No existe reacción todavía        -> se crea.
-   *   - Ya existe con el MISMO tipo        -> se elimina (quitar el like/dislike).
-   *   - Ya existe con tipo DISTINTO        -> se actualiza al nuevo tipo.
-   */
   async react(dto: CreateReactionDto, author: UserEntity): Promise<ReactResult> {
     if (dto.commentUuid && dto.publicationUuid) {
       throw new BadRequestException('Solo puedes reaccionar a un comentario O a una publicación, no a ambos');
@@ -59,7 +49,7 @@ export class ReactionService {
     if (!comment) throw new NotFoundException('No se encontró el comentario a reaccionar');
 
     const existing = await this.reactionRepository.findOne({
-      where: { comment: { uuid: commentUuid }, author: { uuid: author.uuid } },
+      where: { comment: { uuid: commentUuid }, author: { index: author.index } },
       relations: { comment: true, author: true },
     });
 
@@ -71,7 +61,7 @@ export class ReactionService {
     if (!publication) throw new NotFoundException('No se encontró la publicación a reaccionar');
 
     const existing = await this.reactionRepository.findOne({
-      where: { publication: { uuid: publicationUuid }, author: { uuid: author.uuid } },
+      where: { publication: { uuid: publicationUuid }, author: { index: author.index } },
       relations: { publication: true, author: true },
     });
 

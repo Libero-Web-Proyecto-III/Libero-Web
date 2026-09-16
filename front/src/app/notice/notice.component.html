@@ -19,11 +19,15 @@
       <article class="notice-card" (click)="openModal(item.uuid)">
 
         <div class="card-image-wrapper">
+          @if (item.media.length > 0) {
           @if (item.media[0].type === 'video') {
           <img [src]="item.media[0].poster" [alt]="item.title" class="card-img" />
           <span class="play-badge">▶</span>
           } @else {
           <img [src]="item.media[0].url" [alt]="item.title" class="card-img" />
+          }
+          } @else {
+          <img src="/logo.png" [alt]="item.title" class="card-img" />
           }
           <div class="card-img-overlay"></div>
         </div>
@@ -91,6 +95,7 @@
       </div>
       }
 
+      @if (item.media.length > 0) {
       <div class="modal-media">
         @if (item.media[0].type === 'video') {
         <video controls [poster]="item.media[0].poster">
@@ -100,6 +105,7 @@
         <img [src]="item.media[0].url" [alt]="item.title" />
         }
       </div>
+      }
 
       <div class="modal-header">
         <span class="modal-meta">{{ item.author }} · {{ item.createdAt | date: 'longDate' }}</span>

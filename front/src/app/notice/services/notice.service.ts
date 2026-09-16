@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { AuthService } from '../auth/services/auth.service';
-import { Publication, PublicationMedia, ReactionType } from './publication.model';
+import { AuthService } from '../../auth/services/auth.service';
+import { Publication, PublicationMedia, ReactionType } from '../publication.model';
 
 interface PaginationMeta {
   totalItems: number;

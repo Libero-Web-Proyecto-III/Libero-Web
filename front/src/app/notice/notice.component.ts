@@ -5,9 +5,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
 import { Comment, Publication, ReactionType } from './publication.model';
-import { NoticeService } from './notice.service';
-import { CommentService } from './comment.service';
-import { ReactionService } from './reaction.service';
+import { NoticeService } from './services/notice.service';
+import { CommentService } from './services/comment.service';
+import { ReactionService } from './services/reaction.service';
 import { AuthService } from '../auth/services/auth.service';
 import { forkJoin } from 'rxjs';
 

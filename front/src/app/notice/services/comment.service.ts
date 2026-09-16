@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { AuthService } from '../auth/services/auth.service';
-import { Comment } from './publication.model';
+import { AuthService } from '../../auth/services/auth.service';
+import { Comment } from '../publication.model';
 
 interface RawComment {
   index: number;
   uuid: string;
   content: string;
-  author: { index: number; uuid: string; name: string };
+  author: { index: number; uuid: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,9 +31,14 @@ export class CommentService {
   }
 
   create(publicationUuid: string, content: string): Observable<Comment> {
+    // El backend no devuelve el autor completo al crear (ver nota en el service
+    // del backend), así que usamos el nombre del usuario de la sesión activa,
+    // ya que sabemos con certeza que el comentario recién creado es suyo.
+    const currentUsername = this.authService.currentUser()?.username;
+
     return this.http
       .post<RawComment>(this.apiUrl, { publicationUuid, content }, { headers: this.authHeaders() })
-      .pipe(map(item => this.mapComment(item)));
+      .pipe(map(item => this.mapComment(item, currentUsername)));
   }
 
   private authHeaders(): HttpHeaders {
@@ -41,10 +46,10 @@ export class CommentService {
     return new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
   }
 
-  private mapComment(item: RawComment): Comment {
+  private mapComment(item: RawComment, fallbackAuthor?: string): Comment {
     return {
       uuid: item.uuid,
-      author: item.author?.name ?? 'Usuario',
+      author: item.author?.name ?? fallbackAuthor ?? 'Usuario',
       content: item.content,
       createdAt: new Date(item.createdAt),
       likes: 0,

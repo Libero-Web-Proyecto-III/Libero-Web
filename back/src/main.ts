@@ -20,7 +20,8 @@ async function bootstrap() {
       'https://liberocobre.online',
       'http://localhost:81',
       'http://127.0.0.1:81',
-      'http://127.0.0.1:3000'
+      'http://127.0.0.1:3000',
+      'http://localhost:4200',
     ],
     credentials: true,
     allowedHeaders: [ 'Content-Type', 'Authorization', 'Accept' ],

@@ -13,6 +13,7 @@ import {
 import {
   ApiTags,
   ApiOperation,
+  ApiBearerAuth,
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
@@ -29,6 +30,7 @@ import { ROLES } from '../../common/decorator/roles.decorator';
 import { enumRol } from '../../common/enums/rol.enum';
 
 @ApiTags('Publications')
+@ApiBearerAuth()
 @Controller('publications')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PublicationController {

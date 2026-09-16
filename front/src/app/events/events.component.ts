@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
 import { AuthService, UserSession } from '../auth/services/auth.service';
+import { environment } from '../../environments/environment';
 
 export interface EventItem {
   uuid: string;
@@ -34,7 +35,7 @@ export class EventsComponent implements OnInit {
   private router = inject(Router);
   private http = inject(HttpClient);
 
-  private readonly apiUrl = 'http://localhost:3000/events';
+  private readonly apiUrl = `${environment.apiUrl}/events`;
 
   searchTerm = signal<string>('');
   selectedEventForModal = signal<EventItem | null>(null);

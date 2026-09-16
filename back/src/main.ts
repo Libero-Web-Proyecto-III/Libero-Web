@@ -11,11 +11,8 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
 
-  //////////// CORS /////////////
-
-
   ///////// GLOBAL ///////////
-  app.useGlobalPipes( new ValidationPipe({
+  app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
     transform: true
@@ -31,8 +28,8 @@ async function bootstrap() {
   });
 
   ////////// USE ///////////////
-  app.use( json({ limit: '10mb' }) );
-  app.use( urlencoded({ extended: true, limit: '10mb' }) );
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
   app.set('trust proxy', 'loopback');
 
 
@@ -45,7 +42,7 @@ async function bootstrap() {
     .addCookieAuth()
     .build()
 
-  
+
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('docs', app, document);

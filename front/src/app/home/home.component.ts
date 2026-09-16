@@ -7,6 +7,7 @@ import { FooterComponent } from '../common/footer/footer.component';
 import { SurveyViewerComponent } from '../survey/components/survey-viewer/survey-viewer.component';
 import { SurveyService } from '../survey/services/survey.service';
 import { Survey, SurveyStatusEnum } from '../survey/models/survey.model';
+import { environment } from '../../environments/environment';
 
 interface CarouselSlide {
   title: string;
@@ -191,7 +192,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   loadFacebookPosts(): void {
     this.isLoadingFb.set(true);
     // Intentar obtener los posts del backend NestJS
-    this.http.get<FacebookPost[]>('http://localhost:3000/facebook/posts?limit=6').subscribe({
+    this.http.get<FacebookPost[]>(`${environment.apiUrl}/facebook/posts?limit=6`).subscribe({
       next: (posts) => {
         if (posts && posts.length > 0) {
           // Decodificar &amp; en las URLs de imágenes (RSS las devuelve con entidades HTML)

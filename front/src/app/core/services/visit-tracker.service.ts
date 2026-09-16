@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -9,7 +10,7 @@ import { filter } from 'rxjs/operators';
 export class VisitTrackerService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly apiUrl = 'http://localhost:3000/visits';
+  private readonly apiUrl = `${environment.apiUrl}/visits`;
   private readonly storageKey = 'libero_visitor_uuid';
 
   private visitorId = '';

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CreateSurveyDto, SubmitSurveyResponseDto, Survey, SurveyResults, SurveyStatusEnum } from '../models/survey.model';
+import { environment } from '../../../environments/environment';
 
 // # Este bloque tiene como objetivo proveer el servicio de comunicación HTTP entre Angular y los endpoints de encuestas dinámicas en NestJS
 @Injectable({
@@ -9,7 +10,7 @@ import { CreateSurveyDto, SubmitSurveyResponseDto, Survey, SurveyResults, Survey
 })
 export class SurveyService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/surveys';
+  private readonly apiUrl = `${environment.apiUrl}/surveys`;
 
   // # Este bloque tiene como objetivo obtener la lista de encuestas filtradas por estado o visibilidad desde la API
   getSurveys(status?: SurveyStatusEnum, isPublic?: boolean): Observable<Survey[]> {

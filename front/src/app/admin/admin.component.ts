@@ -2,14 +2,42 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/services/auth.service';
 import { SurveyBuilderComponent } from '../survey/components/survey-builder/survey-builder.component';
 import { SurveyResultsComponent } from '../survey/components/survey-results/survey-results.component';
 import { SurveyService } from '../survey/services/survey.service';
 import { Survey, SurveyStatusEnum } from '../survey/models/survey.model';
+import { environment } from '../../environments/environment';
 
 export type AdminTab = 'metrics' | 'home' | 'events' | 'news' | 'polls' | 'users' | 'settings';
+
+export const ADMIN_ROUTE_TAB_MAP: Record<string, AdminTab> = {
+  'metricas': 'metrics',
+  'metrics': 'metrics',
+  'home': 'metrics',
+  'inicio': 'metrics',
+  'eventos': 'events',
+  'events': 'events',
+  'noticias': 'news',
+  'news': 'news',
+  'encuestas': 'polls',
+  'polls': 'polls',
+  'usuarios': 'users',
+  'users': 'users',
+  'configuracion': 'settings',
+  'settings': 'settings',
+};
+
+export const ADMIN_TAB_TO_ROUTE: Record<AdminTab, string> = {
+  'metrics': 'metricas',
+  'home': 'metricas',
+  'events': 'eventos',
+  'news': 'noticias',
+  'polls': 'encuestas',
+  'users': 'usuarios',
+  'settings': 'configuracion',
+};
 
 export interface AdminEventItem {
   uuid: string;
@@ -93,18 +121,19 @@ export class AdminComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly surveyService = inject(SurveyService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   readonly authService = inject(AuthService);
 
-  private readonly eventsApiUrl = 'http://localhost:3000/events';
-  private readonly publicationsApiUrl = 'http://localhost:3000/publications';
-  private readonly usersApiUrl = 'http://localhost:3000/users';
-  private readonly tagsApiUrl = 'http://localhost:3000/tag';
-  private readonly visitsApiUrl = 'http://localhost:3000/visits/stats';
+  private readonly eventsApiUrl = `${environment.apiUrl}/events`;
+  private readonly publicationsApiUrl = `${environment.apiUrl}/publications`;
+  private readonly usersApiUrl = `${environment.apiUrl}/users`;
+  private readonly tagsApiUrl = `${environment.apiUrl}/tag`;
+  private readonly visitsApiUrl = `${environment.apiUrl}/visits/stats`;
 
   readonly visitStats = signal<VisitStats | null>(null);
 
-  // # Este bloque tiene como objetivo establecer la pestaña 'home' como la opción activa predeterminada al ingresar al panel de administración
-  readonly activeTab = signal<AdminTab>('home');
+  // Pestaña activa del panel, sincronizada con la URL
+  readonly activeTab = signal<AdminTab>('metrics');
 
   // Modal para ver tarjeta abierta completa
   readonly selectedEventDetail = signal<AdminEventItem | null>(null);
@@ -474,12 +503,18 @@ export class AdminComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadEvents();
-    this.loadPublications();
-    this.loadUsers();
-    this.loadTags();
-    this.loadSurveys();
-    this.loadVisitStats();
+    // Sincronizar pestaña activa con la subruta en la URL (/admin/:tab)
+    this.route.paramMap.subscribe((params) => {
+      const tabParam = (params.get('tab') || '').toLowerCase().trim();
+      if (tabParam && ADMIN_ROUTE_TAB_MAP[tabParam]) {
+        const mappedTab = ADMIN_ROUTE_TAB_MAP[tabParam];
+        this.applyTab(mappedTab);
+      } else if (!tabParam) {
+        void this.router.navigate(['/admin', 'metricas'], { replaceUrl: true });
+      } else {
+        void this.router.navigate(['/admin', 'metricas'], { replaceUrl: true });
+      }
+    });
 
     // Conectar cambios del formulario al signal reactivo
     this.eventForm.valueChanges.subscribe(() => {
@@ -488,6 +523,15 @@ export class AdminComponent implements OnInit {
   }
 
   setTab(tab: AdminTab): void {
+    const routeName = this.tabToRoute(tab);
+    void this.router.navigate(['/admin', routeName]);
+  }
+
+  tabToRoute(tab: AdminTab): string {
+    return ADMIN_TAB_TO_ROUTE[tab] || 'metricas';
+  }
+
+  private applyTab(tab: AdminTab): void {
     this.activeTab.set(tab);
     this.clearAlerts();
     if (tab === 'users') {
@@ -982,7 +1026,7 @@ export class AdminComponent implements OnInit {
         } else if (err?.status === 403) {
           this.error = 'No tienes permiso de administrador para publicar este evento.';
         } else {
-          this.error = 'No fue posible guardar el evento en el servidor (http://localhost:3000/events).';
+          this.error = `No fue posible guardar el evento en el servidor (${this.eventsApiUrl}).`;
         }
       },
     });

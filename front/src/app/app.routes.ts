@@ -23,7 +23,11 @@ export const routes: Routes = [
     {
       path: 'admin',
       canActivate: [adminGuard],
-      loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent),
+      canActivateChild: [adminGuard],
+      children: [
+        { path: '', redirectTo: 'metricas', pathMatch: 'full' },
+        { path: ':tab', loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent) },
+      ],
     },
     { path: '**', redirectTo: '' },
 ];

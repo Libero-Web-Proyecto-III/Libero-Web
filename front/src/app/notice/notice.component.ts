@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
 import { Comment, Publication, PublicationMedia, ReactionType } from './publication.model';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-notice',
@@ -15,7 +16,7 @@ import { Comment, Publication, PublicationMedia, ReactionType } from './publicat
 })
 export class NoticeComponent implements OnInit {
   private readonly http = inject(HttpClient);
-  private readonly publicationsApiUrl = 'http://localhost:3000/publications';
+  private readonly publicationsApiUrl = `${environment.apiUrl}/publications`;
 
   selectedUuid = signal<string | null>(null);
   newCommentDraft = signal<string>('');

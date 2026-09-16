@@ -199,6 +199,7 @@ export class MailService {
    * Genera el contenido HTML con diseño corporativo oscuro y dorado (Libero Cobre)
    */
   private buildEventEmailTemplate(userName: string, event: EventEmailData): string {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
     const safeName = userName || 'Usuario de Libero Web';
     const subtitleHtml = event.subtitle
       ? `<p style="margin: 4px 0 0 0; color: #a1a1aa; font-size: 14px; font-style: italic;">${event.subtitle}</p>`
@@ -293,7 +294,7 @@ export class MailService {
                     <table width="100%" cellspacing="0" cellpadding="0">
                       <tr>
                         <td align="center">
-                          <a href="http://localhost:4200/eventos" style="display: inline-block; background: linear-gradient(135deg, #d7a65a 0%, #b88636 100%); color: #000000; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase;">
+                          <a href="${frontendUrl}/eventos" style="display: inline-block; background: linear-gradient(135deg, #d7a65a 0%, #b88636 100%); color: #000000; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase;">
                             Ver Más Eventos en Líbero
                           </a>
                         </td>

@@ -144,7 +144,7 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
 
   goToAdministration(): void {
     this.closeMenu();
-    void this.router.navigate(['/admin']);
+    void this.router.navigate(['/admin/metricas']);
   }
 
   @HostListener('window:scroll', [])

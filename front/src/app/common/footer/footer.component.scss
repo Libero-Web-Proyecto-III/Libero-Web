@@ -31,16 +31,14 @@ $color-profundidad: #F5FDFF;    /* Ternario: Profundidad (Blanco puro / Superfic
   }
 
   &__wave-path {
-    fill: $color-naranja-oscuro;
+    fill: $color-principal;
   }
 
   &__body {
-    background: linear-gradient(135deg, rgba(140, 45, 8, 0.96) 0%, rgba(168, 56, 10, 0.94) 100%),
-                url('/banner.png') center / cover no-repeat;
+    background: $color-principal;
     padding: 3.5rem 0 2.5rem;
     width: 100%;
     box-sizing: border-box;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   &__container {
@@ -136,7 +134,7 @@ $color-profundidad: #F5FDFF;    /* Ternario: Profundidad (Blanco puro / Superfic
 
     &:hover {
       background: #FFFFFF;
-      color: $color-naranja-oscuro;
+      color: $color-principal;
       border-color: #FFFFFF;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
@@ -227,9 +225,9 @@ $color-profundidad: #F5FDFF;    /* Ternario: Profundidad (Blanco puro / Superfic
   }
 
   &__bottom {
-    background: #000000;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0.5rem 0;
+    background: $color-principal;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0.75rem 0;
 
     .footer__container {
       grid-template-columns: 1fr;

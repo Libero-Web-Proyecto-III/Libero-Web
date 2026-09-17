@@ -10,6 +10,7 @@ import { UserModule } from './modules/user/user.module';
 import { PublicationModule } from './modules/publication/publication.module';
 import { EventModule } from './modules/event/event.module';
 import { FacebookModule } from './modules/facebook/facebook.module';
+import { CategoryModule } from './modules/category/category.module';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
@@ -38,7 +39,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
     TagModule, RolModule,
     UserModule, PublicationModule, ReactionModule,
-    EventModule, AuthModule, CommentModule, FacebookModule
+    CategoryModule, EventModule, AuthModule, CommentModule, FacebookModule
 ],
   controllers: [AppController],
   providers: [

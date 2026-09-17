@@ -16,6 +16,7 @@ import { Exclude } from 'class-transformer';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { CommentEntity } from 'src/modules/comment/entities/comment.entity';
 import { ReactionEntity } from 'src/modules/reaction/entities/reaction.entity';
+import { CategoryEntity } from 'src/modules/category/entities/category.entity';
 
 @Entity('publication')
 export class PublicationEntity {
@@ -40,6 +41,16 @@ export class PublicationEntity {
     nullable: true,
   })
   author: UserEntity;
+
+  @ApiPropertyOptional({
+    description: 'Categoría de la publicación',
+    type: () => CategoryEntity,
+  })
+  @JoinColumn({ name: 'category' })
+  @ManyToOne(() => CategoryEntity, (category) => category.publications, {
+    nullable: true,
+  })
+  category: CategoryEntity;
 
   @ApiProperty({
     description: 'Título de la publicación',

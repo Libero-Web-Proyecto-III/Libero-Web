@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { AuthService } from '../../auth/services/auth.service';
-import { Publication, PublicationMedia, ReactionType } from '../publication.model';
+import { Category, Publication, PublicationMedia } from '../publication.model';
 
 interface PaginationMeta {
   totalItems: number;
@@ -18,11 +18,17 @@ interface PaginatedResponse<T> {
 }
 
 interface RawReaction {
-  type: ReactionType;
+  type: 'like' | 'dislike';
 }
 
 interface RawCommentLite {
   uuid: string;
+}
+
+interface RawCategory {
+  uuid: string;
+  name: string;
+  color: string;
 }
 
 interface RawPublication {
@@ -32,20 +38,31 @@ interface RawPublication {
   content: string;
   media: string[];
   author: { index: number; uuid: string; name: string };
+  category: RawCategory | null;
   createdAt: string;
   updatedAt: string;
   comments?: RawCommentLite[];
   reactions?: RawReaction[];
 }
 
+interface PublicationPayload {
+  title: string;
+  content: string;
+  media: string[];
+  categoryUuid?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class NoticeService {
   private readonly apiUrl = 'http://localhost:3000/publications';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
-  findAll(page = 1, limit = 10): Observable<{ data: Publication[]; meta: PaginationMeta }> {
-    const params = new HttpParams().set('page', page).set('limit', limit);
+  findAll(page = 1, limit = 10, categoryUuid?: string): Observable<{ data: Publication[]; meta: PaginationMeta }> {
+    let params = new HttpParams().set('page', page).set('limit', limit);
+    if (categoryUuid) {
+      params = params.set('categoryUuid', categoryUuid);
+    }
 
     return this.http.get<PaginatedResponse<RawPublication>>(this.apiUrl, { params }).pipe(
       map(res => ({
@@ -61,13 +78,13 @@ export class NoticeService {
     );
   }
 
-  create(payload: { title: string; content: string; media: string[] }): Observable<Publication> {
+  create(payload: PublicationPayload): Observable<Publication> {
     return this.http
       .post<RawPublication>(this.apiUrl, payload, { headers: this.authHeaders() })
       .pipe(map(item => this.mapPublication(item)));
   }
 
-  update(uuid: string, payload: { title: string; content: string; media: string[] }): Observable<unknown> {
+  update(uuid: string, payload: PublicationPayload): Observable<unknown> {
     return this.http.patch(`${this.apiUrl}/${uuid}`, payload, { headers: this.authHeaders() });
   }
 
@@ -94,6 +111,7 @@ export class NoticeService {
       content: item.content,
       media: (item.media ?? []).map(url => this.mapMedia(url)),
       author: item.author?.name ?? 'Redacción',
+      category: item.category ? { uuid: item.category.uuid, name: item.category.name, color: item.category.color } : null,
       createdAt: new Date(item.createdAt),
       likes: reactions.filter(r => r.type === 'like').length,
       dislikes: reactions.filter(r => r.type === 'dislike').length,
@@ -103,7 +121,22 @@ export class NoticeService {
   }
 
   private mapMedia(url: string): PublicationMedia {
+    const youtubeId = this.extractYoutubeId(url);
+    if (youtubeId) {
+      return {
+        url,
+        type: 'video',
+        poster: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
+        embedUrl: `https://www.youtube.com/embed/${youtubeId}`
+      };
+    }
+
     const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
     return { url, type: isVideo ? 'video' : 'image' };
+  }
+
+  private extractYoutubeId(url: string): string | null {
+    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
   }
 }

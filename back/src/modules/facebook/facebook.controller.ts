@@ -14,10 +14,10 @@ export class FacebookController {
     summary: 'Obtener últimas publicaciones de Facebook',
     description: 'Devuelve las 3 publicaciones más recientes de la página oficial de Facebook de Libero Cobre.',
   })
-  @ApiQuery({ name: 'limit', required: false, example: 3, description: 'Número máximo de publicaciones a retornar' })
+  @ApiQuery({ name: 'limit', required: false, example: 6, description: 'Número máximo de publicaciones a retornar' })
   @ApiResponse({ status: 200, description: 'Listado de publicaciones de Facebook' })
   async getPosts(@Query('limit') limit?: number): Promise<FacebookPost[]> {
-    const count = limit ? Number(limit) : 3;
+    const count = limit ? Number(limit) : 6;
     return this.facebookService.getLatestPosts(count);
   }
 

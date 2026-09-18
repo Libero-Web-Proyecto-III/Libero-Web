@@ -264,6 +264,19 @@ export class HomeComponent implements OnInit, OnDestroy {
               ? p.full_picture.replace(/&amp;/g, '&').replace(/&amp;amp;/g, '&')
               : undefined,
           }));
+
+          // Si por alguna razón llegaron menos de 3 publicaciones, complementar para mantener el carrusel completo
+          if (cleaned.length < 3) {
+            const fallbacks = this.getFallbackFacebookPosts();
+            for (const fb of fallbacks) {
+              const exists = cleaned.some(c => c.id === fb.id || (c.message && fb.message && c.message.slice(0, 30) === fb.message.slice(0, 30)));
+              if (!exists) {
+                cleaned.push(fb);
+              }
+              if (cleaned.length >= 6) break;
+            }
+          }
+
           this.facebookPosts.set(cleaned);
         } else {
           this.facebookPosts.set(this.getFallbackFacebookPosts());

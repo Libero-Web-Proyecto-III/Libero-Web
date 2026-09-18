@@ -28,7 +28,14 @@ export class FacebookService implements OnModuleInit {
   }
 
   onModuleInit() {
-    // Al arrancar el servidor, comprobar si hace falta scrapear
+    // Al arrancar el servidor, precargar inmediatamente publicaciones disponibles en memoria
+    this.cachedPosts = this.getLocalScrapedPosts();
+    if (this.cachedPosts && this.cachedPosts.length > 0) {
+      this.lastFetchTime = Date.now();
+      this.logger.log(`Precargadas ${this.cachedPosts.length} publicaciones de Facebook en memoria.`);
+    }
+
+    // Comprobar si hace falta scrapear
     this.checkAndAutoScrape();
 
     // Programar actualización automática cada 6 horas en segundo plano
@@ -65,9 +72,13 @@ export class FacebookService implements OnModuleInit {
       child.on('close', (code) => {
         this.isScraping = false;
         this.logger.log(`Scraper automático finalizado con código: ${code}`);
-        // Limpiar caché en memoria para que la próxima petición tome los datos nuevos
-        this.cachedPosts = null;
-        this.lastFetchTime = 0;
+        // Recargar datos nuevos inmediatamente en memoria si el scraper generó publicaciones válidas
+        const freshPosts = this.getLocalScrapedPosts();
+        if (freshPosts && freshPosts.length > 0) {
+          this.cachedPosts = freshPosts;
+          this.lastFetchTime = Date.now();
+          this.logger.log(`Caché en memoria actualizada con ${freshPosts.length} publicaciones.`);
+        }
       });
 
       child.on('error', (err) => {
@@ -123,6 +134,7 @@ export class FacebookService implements OnModuleInit {
     const diskFileMtime = this.getScrapedFileMtime();
     const isCacheValid =
       this.cachedPosts &&
+      this.cachedPosts.length >= limit &&
       now - this.lastFetchTime < this.CACHE_TTL_MS &&
       this.lastFetchTime >= diskFileMtime;
 
@@ -139,43 +151,54 @@ export class FacebookService implements OnModuleInit {
     const isValidPageId =
       pageId && pageId.trim().length > 0 && !pageId.includes('tu_facebook_page_id');
 
+    let posts: FacebookPost[] = [];
+
     // 1. Intentar Meta Graph API oficial si las credenciales están configuradas
     if (isValidToken && isValidPageId) {
       const graphPosts = await this.fetchFromGraphApi(pageId.trim(), accessToken.trim(), limit);
       if (graphPosts && graphPosts.length > 0) {
-        this.cachedPosts = graphPosts;
-        this.lastFetchTime = now;
-        return graphPosts.slice(0, limit);
+        posts = graphPosts;
       }
     }
 
-    // 2. Intentar publicaciones extraídas por el Scraper de JavaScript (facebook-posts.json)
-    const scrapedPosts = this.getLocalScrapedPosts();
-    if (scrapedPosts && scrapedPosts.length > 0) {
-      this.cachedPosts = scrapedPosts;
-      this.lastFetchTime = now;
-      return scrapedPosts.slice(0, limit);
-    }
-
-    // 3. Intentar RSS como alternativa terciaria
-    const rssUrl = this.configService.get<string>('FACEBOOK_RSS_URL');
-    const isValidRss = rssUrl && !rssUrl.includes('tu_feed_id') && rssUrl.trim().length > 0;
-
-    if (isValidRss) {
-      const rssPosts = await this.fetchFromRss(rssUrl);
-      if (rssPosts && rssPosts.length > 0) {
-        this.cachedPosts = rssPosts;
-        this.lastFetchTime = now;
-        return rssPosts.slice(0, limit);
+    // 2. Si no hay publicaciones de Graph API, usar las extraídas por el Scraper
+    if (posts.length === 0) {
+      const scrapedPosts = this.getLocalScrapedPosts();
+      if (scrapedPosts && scrapedPosts.length > 0) {
+        posts = scrapedPosts;
       }
     }
 
-    // 4. Fallback estático en caso de que todos fallen
-    this.logger.warn('Utilizando publicaciones de respaldo predeterminadas para Facebook.');
-    const fallbackPosts = this.getFallbackPosts();
-    this.cachedPosts = fallbackPosts;
+    // 3. Intentar RSS como alternativa terciaria si aún está vacío
+    if (posts.length === 0) {
+      const rssUrl = this.configService.get<string>('FACEBOOK_RSS_URL');
+      const isValidRss = rssUrl && !rssUrl.includes('tu_feed_id') && rssUrl.trim().length > 0;
+      if (isValidRss) {
+        const rssPosts = await this.fetchFromRss(rssUrl);
+        if (rssPosts && rssPosts.length > 0) {
+          posts = rssPosts;
+        }
+      }
+    }
+
+    // 4. Garantizar que SIEMPRE se retorne al menos el número de publicaciones solicitado (limit)
+    // Complementando con respaldos oficiales de alta calidad en caso de que falten publicaciones
+    if (posts.length < limit) {
+      const fallbacks = this.getFallbackPosts();
+      for (const fb of fallbacks) {
+        const alreadyIncluded = posts.some(
+          (p) => p.id === fb.id || (p.message && fb.message && p.message.slice(0, 30) === fb.message.slice(0, 30)),
+        );
+        if (!alreadyIncluded) {
+          posts.push(fb);
+        }
+        if (posts.length >= limit) break;
+      }
+    }
+
+    this.cachedPosts = posts;
     this.lastFetchTime = now;
-    return fallbackPosts.slice(0, limit);
+    return posts.slice(0, limit);
   }
 
   private getScrapedFileMtime(): number {

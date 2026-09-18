@@ -8,12 +8,6 @@
         <h1 class="page-title">Noticias</h1>
         <p class="page-subtitle">Mantente al día con las novedades de Libero Cobre</p>
       </div>
-      @if (canManagePublications()) {
-      <div class="results-actions">
-        <button class="manage-categories-btn" (click)="openCategoryModal()">Gestionar categorías</button>
-        <button class="new-notice-btn" (click)="openCreateModal()">+ Nueva noticia</button>
-      </div>
-      }
     </div>
 
     @if (!showListView()) {
@@ -254,28 +248,6 @@
     <div class="modal-card" (click)="$event.stopPropagation()">
       <button class="modal-close" (click)="closeModal()">✕</button>
 
-      @if (canManagePublications()) {
-      <div class="manage-bar">
-        <button class="manage-btn edit-btn" (click)="openEditModal(item)">✎ Editar</button>
-        <button class="manage-btn delete-btn" (click)="requestDelete(item.uuid)">🗑 Eliminar</button>
-      </div>
-      }
-
-      @if (confirmDeleteUuid() === item.uuid) {
-      <div class="delete-confirm">
-        <p>¿Seguro que deseas eliminar "{{ item.title }}"? Esta acción no se puede deshacer.</p>
-        @if (deleteError()) {
-        <p class="create-error">{{ deleteError() }}</p>
-        }
-        <div class="delete-confirm-actions">
-          <button class="modal-cancel-btn" (click)="cancelDelete()">Cancelar</button>
-          <button class="delete-confirm-btn" [disabled]="deleting()" (click)="confirmDelete()">
-            {{ deleting() ? 'Eliminando...' : 'Sí, eliminar' }}
-          </button>
-        </div>
-      </div>
-      }
-
       @if (item.media.length > 0) {
       <div class="modal-media">
         @if (item.media[0].type === 'video') {
@@ -354,120 +326,6 @@
           }
         </div>
       </section>
-    </div>
-  </div>
-  }
-
-  <!-- Modal de crear / editar -->
-  @if (isFormModalOpen()) {
-  <div class="modal-backdrop" (click)="closeFormModal()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <button class="modal-close" (click)="closeFormModal()">✕</button>
-
-      <div class="modal-header">
-        <span class="modal-meta">{{ isEditing() ? 'Editar publicación' : 'Nueva publicación' }}</span>
-        <h2 class="modal-title">{{ isEditing() ? 'Editar noticia' : 'Crear noticia' }}</h2>
-      </div>
-
-      @if (formError()) {
-      <p class="create-error">{{ formError() }}</p>
-      }
-
-      <div class="create-form">
-        <label>Título</label>
-        <input type="text" placeholder="Título de la noticia" [ngModel]="formTitle()"
-          (ngModelChange)="formTitle.set($event)" />
-
-        <label>Contenido</label>
-        <textarea placeholder="Contenido de la noticia" [ngModel]="formContent()"
-          (ngModelChange)="formContent.set($event)"></textarea>
-
-        <label>Categoría</label>
-        <select [ngModel]="formCategoryUuid()" (ngModelChange)="formCategoryUuid.set($event)">
-          <option value="">Sin categoría</option>
-          @for (cat of categories(); track cat.uuid) {
-          <option [value]="cat.uuid">{{ cat.name }}</option>
-          }
-        </select>
-
-        <label>Multimedia (URLs de imágenes o videos)</label>
-        @for (url of formMediaUrls(); track $index) {
-        <div class="media-field">
-          <input type="text" placeholder="https://..." [ngModel]="url"
-            (ngModelChange)="updateMediaField($index, $event)" />
-          @if (formMediaUrls().length > 1) {
-          <button type="button" class="remove-media-btn" (click)="removeMediaField($index)">✕</button>
-          }
-        </div>
-        }
-        <button type="button" class="add-media-btn" (click)="addMediaField()">+ Agregar otro archivo</button>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="modal-cancel-btn" (click)="closeFormModal()">Cancelar</button>
-        <button type="button" class="modal-confirm-btn" [disabled]="saving()" (click)="submitForm()">
-          {{ saving() ? 'Guardando...' : (isEditing() ? 'Guardar cambios' : 'Publicar noticia') }}
-        </button>
-      </div>
-    </div>
-  </div>
-  }
-
-  @if (isCategoryModalOpen()) {
-  <div class="modal-backdrop" (click)="closeCategoryModal()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <button class="modal-close" (click)="closeCategoryModal()">✕</button>
-
-      <div class="modal-header">
-        <span class="modal-meta">Administración</span>
-        <h2 class="modal-title">Gestionar categorías</h2>
-      </div>
-
-      @if (categoryError()) {
-      <p class="create-error">{{ categoryError() }}</p>
-      }
-
-      <div class="category-form">
-        <input type="text" placeholder="Nombre de la categoría" [ngModel]="categoryFormName()"
-          (ngModelChange)="categoryFormName.set($event)" />
-        <input type="color" [ngModel]="categoryFormColor()" (ngModelChange)="categoryFormColor.set($event)" />
-        <div class="emoji-picker">
-          @for (emoji of emojiOptions; track emoji) {
-          <button type="button" class="emoji-option" [class.selected]="categoryFormIcon() === emoji"
-            (click)="categoryFormIcon.set(emoji)">
-            {{ emoji }}
-          </button>
-          }
-        </div>
-        <button type="button" class="modal-confirm-btn" [disabled]="categorySaving()" (click)="submitCategoryForm()">
-          {{ categorySaving() ? 'Guardando...' : (editingCategoryUuid() ? 'Guardar' : 'Agregar') }}
-        </button>
-        @if (editingCategoryUuid()) {
-        <button type="button" class="modal-cancel-btn" (click)="cancelEditCategory()">Cancelar edición</button>
-        }
-      </div>
-
-      <div class="category-manage-list">
-        @for (cat of categories(); track cat.uuid) {
-        <div class="category-manage-item">
-          <span class="category-pill" [style.background]="cat.color">{{ cat.icon }} {{ cat.name }}</span>
-
-          @if (categoryDeleteUuid() === cat.uuid) {
-          <div class="category-delete-confirm">
-            <span>¿Eliminar?</span>
-            <button class="delete-confirm-btn" [disabled]="categoryDeleting()"
-              (click)="confirmDeleteCategory()">Sí</button>
-            <button class="modal-cancel-btn" (click)="cancelDeleteCategory()">No</button>
-          </div>
-          } @else {
-          <div class="category-manage-actions">
-            <button class="manage-btn" (click)="startEditCategory(cat)">✎</button>
-            <button class="manage-btn delete-btn" (click)="requestDeleteCategory(cat.uuid)">🗑</button>
-          </div>
-          }
-        </div>
-        }
-      </div>
     </div>
   </div>
   }

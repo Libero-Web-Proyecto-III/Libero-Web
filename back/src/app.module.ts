@@ -20,7 +20,6 @@ import { ReactionModule } from './modules/reaction/reaction.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { SurveyModule } from './modules/survey/survey.module';
 import { VisitModule } from './modules/visit/visit.module';
-import { FacebookModule } from './modules/facebook/facebook.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 

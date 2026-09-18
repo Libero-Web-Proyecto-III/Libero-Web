@@ -1023,78 +1023,175 @@
     </section>
 
     <!-- ====================================================================
-         3. PESTAÑA NOTICIAS
+         3. PESTAÑA NOTICIAS (GESTIÓN COMPLETA: CREACIÓN, EDICIÓN Y CATEGORÍAS)
          ==================================================================== -->
     <section *ngIf="activeTab() === 'news'" class="tab-panel animate-fade-in">
       <div class="section-intro">
-        <h2>Gestión de Noticias y Publicaciones</h2>
-        <p>Publica comunicados, editoriales y artículos para la portada de Líbero.</p>
+        <div class="news-intro-flex">
+          <div>
+            <h2>Gestión de Noticias y Publicaciones</h2>
+            <p>Crea, edita y administra comunicados, editoriales y artículos para la portada y sección de noticias de Líbero.</p>
+          </div>
+          <button type="button" class="btn-manage-categories-admin" (click)="openCategoryModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+            <span>Gestionar Categorías ({{ categories().length }})</span>
+          </button>
+        </div>
       </div>
 
       <div class="admin-grid-2col">
-        <!-- Formulario de Creación -->
-        <div class="card form-card" *ngIf="authService.isAdmin()">
+        <!-- Formulario de Creación / Edición -->
+        <div class="card form-card" id="publication-form-section" *ngIf="authService.hasManagementRole()">
           <div class="card-header">
-            <h3>Nueva Publicación</h3>
+            <div class="form-header-title">
+              <h3>{{ isEditingPublication() ? 'Editar Noticia' : 'Nueva Noticia' }}</h3>
+              <span *ngIf="isEditingPublication()" class="badge-edit-mode">Modo edición</span>
+            </div>
+            <button *ngIf="isEditingPublication()" type="button" class="btn-cancel-edit-head" (click)="cancelEditPublication()">
+              ✕ Cancelar edición
+            </button>
           </div>
           <div class="card-body">
-            <form [formGroup]="publicationForm" (ngSubmit)="createPublication()">
+            <!-- Alerta local dentro del formulario de noticias -->
+            <div *ngIf="error && activeTab() === 'news'" class="alert-box error" style="margin-bottom: 1.25rem;">
+              <span class="alert-icon">⚠️</span>
+              <div class="alert-text">{{ error }}</div>
+              <button type="button" class="alert-close" (click)="error = ''">✕</button>
+            </div>
+
+            <div *ngIf="message && activeTab() === 'news'" class="alert-box success" style="margin-bottom: 1.25rem;">
+              <span class="alert-icon">✓</span>
+              <div class="alert-text">{{ message }}</div>
+              <button type="button" class="alert-close" (click)="message = ''">✕</button>
+            </div>
+
+            <form [formGroup]="publicationForm" (ngSubmit)="savePublication()">
               <div class="form-group">
-                <label for="publication-title">Título del Artículo *</label>
-                <input id="publication-title" type="text" formControlName="title" placeholder="Ej. Lanzamiento de la nueva edición 2026" />
+                <label for="publication-title">Título de la Noticia *</label>
+                <input 
+                  id="publication-title" 
+                  type="text" 
+                  formControlName="title" 
+                  [class.input-invalid]="isPublicationFieldInvalid('title')"
+                  placeholder="Ej. Avance en el proyecto de sostenibilidad ambiental" 
+                />
+                <span class="field-error-msg" *ngIf="isPublicationFieldInvalid('title')">* Título obligatorio (mínimo 3 caracteres)</span>
+              </div>
+
+              <div class="form-group">
+                <label for="publication-category">Categoría</label>
+                <select id="publication-category" formControlName="categoryUuid" class="form-select">
+                  <option value="">Sin categoría asignada</option>
+                  <option *ngFor="let cat of categories()" [value]="cat.uuid">
+                    {{ cat.icon || '📁' }} {{ cat.name }}
+                  </option>
+                </select>
               </div>
 
               <div class="form-group">
                 <div class="form-label-row">
-                  <label for="publication-img">URL de Imagen / Portada (Opcional)</label>
-                  <div class="upload-badge-wrapper">
-                    <span class="upload-badge-text">o subir una foto</span>
-                    <button type="button" class="btn-subir-foto" (click)="openFilePicker('publication')">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                      <span>Subir foto</span>
-                    </button>
-                  </div>
+                  <label>Multimedia (URLs o Subir Foto)</label>
+                  <button type="button" class="btn-subir-foto" (click)="openFilePicker('publication')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>Subir y recortar foto</span>
+                  </button>
                 </div>
-                <input id="publication-img" type="text" formControlName="imageUrl" placeholder="https://... o sube tu foto" />
+
+                <div class="media-inputs-container">
+                  <div *ngFor="let url of publicationMediaUrls(); let i = index" class="media-input-row">
+                    <input type="text" [value]="url" (input)="updatePublicationMediaField(i, $any($event.target).value)" placeholder="https://... URL de imagen o video" />
+                    <button *ngIf="publicationMediaUrls().length > 1" type="button" class="btn-remove-media" (click)="removePublicationMediaField(i)" title="Eliminar URL">✕</button>
+                  </div>
+                  <button type="button" class="btn-add-media-row" (click)="addPublicationMediaField()">
+                    + Agregar otra URL multimedia
+                  </button>
+                </div>
               </div>
 
               <div class="form-group">
-                <label for="publication-content">Cuerpo de la Noticia *</label>
-                <textarea id="publication-content" formControlName="content" rows="5" placeholder="Escribe el contenido completo del artículo..."></textarea>
+                <label for="publication-content">Cuerpo / Contenido de la Noticia *</label>
+                <textarea 
+                  id="publication-content" 
+                  formControlName="content" 
+                  rows="6" 
+                  [class.input-invalid]="isPublicationFieldInvalid('content')"
+                  placeholder="Escribe el texto completo de la noticia o comunicado..."
+                ></textarea>
+                <span class="field-error-msg" *ngIf="isPublicationFieldInvalid('content')">* Contenido obligatorio</span>
               </div>
 
-              <div class="form-actions">
-                <button type="submit" class="btn-primary" [disabled]="publicationForm.invalid">
-                  <span>Publicar Noticia</span>
+              <div class="form-actions-row">
+                <button type="submit" class="btn-primary" [disabled]="publicationSaving()">
+                  <span>{{ publicationSaving() ? 'Guardando...' : (isEditingPublication() ? 'Guardar Cambios' : 'Publicar Noticia') }}</span>
+                </button>
+                <button *ngIf="isEditingPublication()" type="button" class="btn-secondary-cancel" (click)="cancelEditPublication()">
+                  Cancelar
                 </button>
               </div>
             </form>
           </div>
         </div>
 
-        <!-- Listado de Noticias -->
+        <!-- Listado de Noticias y Artículos -->
         <div class="card list-card">
           <div class="card-header list-header">
-            <h3>Artículos Publicados</h3>
-            <span class="counter-badge">{{ publications().length }}</span>
-          </div>
-          <div class="card-body">
-            <div *ngIf="!publications().length" class="empty-state">
-              <p>No hay noticias publicadas aún.</p>
+            <div class="list-title-row">
+              <h3>Artículos Publicados</h3>
+              <span class="counter-badge">{{ filteredPublications().length }}</span>
             </div>
-            <div *ngIf="publications().length" class="items-list">
-              <div *ngFor="let pub of publications()" class="item-row">
-                <div class="item-main">
-                  <span class="item-title">{{ pub.title }}</span>
-                  <div class="item-meta">
-                    <span class="meta-tag">{{ pub.author?.name || 'Autor' }}</span>
+          </div>
+
+          <!-- Barra de Búsqueda y Filtro de Categoría -->
+          <div class="news-filter-toolbar">
+            <div class="search-input-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" [ngModel]="publicationSearchQuery()" (ngModelChange)="publicationSearchQuery.set($event)" placeholder="Buscar noticias..." />
+              <button *ngIf="publicationSearchQuery()" class="clear-search-btn" (click)="publicationSearchQuery.set('')">✕</button>
+            </div>
+
+            <select [ngModel]="publicationCategoryFilter()" (ngModelChange)="publicationCategoryFilter.set($event)" class="category-filter-select">
+              <option value="all">Todas las categorías</option>
+              <option value="none">Sin categoría</option>
+              <option *ngFor="let cat of categories()" [value]="cat.uuid">
+                {{ cat.icon }} {{ cat.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="card-body">
+            <div *ngIf="!filteredPublications().length" class="empty-state">
+              <p *ngIf="!publications().length">No hay noticias publicadas aún. ¡Usa el formulario para crear una!</p>
+              <p *ngIf="publications().length">No se encontraron noticias con los filtros aplicados.</p>
+            </div>
+            <div *ngIf="filteredPublications().length" class="items-list news-items-list">
+              <div *ngFor="let pub of filteredPublications()" class="pub-card-row">
+                <div class="pub-thumb-wrap">
+                  <img *ngIf="pub.media && pub.media.length > 0" [src]="pub.media[0]" [alt]="pub.title" onerror="this.src='/logo.png'" />
+                  <img *ngIf="!pub.media || pub.media.length === 0" src="/logo.png" [alt]="pub.title" class="fallback-img" />
+                </div>
+                <div class="pub-info-col">
+                  <div class="pub-top-meta">
+                    <span *ngIf="pub.category" class="pub-category-pill" [style.background]="pub.category.color">
+                      {{ pub.category.icon }} {{ pub.category.name }}
+                    </span>
+                    <span class="pub-date">{{ pub.createdAt | date: 'd MMM y' }}</span>
+                  </div>
+                  <h4 class="pub-title">{{ pub.title }}</h4>
+                  <div class="pub-author-meta">
+                    <span>Por <strong>{{ pub.author?.name || 'Autor' }}</strong></span>
                     <small *ngIf="pub.author?.rol?.name">({{ pub.author?.rol?.name }})</small>
                   </div>
                 </div>
-                <button type="button" class="btn-delete" (click)="deletePublication(pub.uuid)" title="Eliminar publicación">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                  <span>Eliminar</span>
-                </button>
+                <div class="pub-actions-col">
+                  <button type="button" class="btn-action-edit" (click)="editPublication(pub)" title="Editar noticia">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <span>Editar</span>
+                  </button>
+                  <button type="button" class="btn-action-delete-news" (click)="deletePublication(pub.uuid)" title="Eliminar noticia">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1994,5 +2091,82 @@
       </div>
     </div>
   }
+
+  <!-- ====================================================================
+       MODAL DE GESTIÓN DE CATEGORÍAS (DASHBOARD)
+       ==================================================================== -->
+  <div *ngIf="isCategoryModalOpen()" class="admin-modal-backdrop" (click)="closeCategoryModal()">
+    <div class="admin-category-modal" (click)="$event.stopPropagation()">
+      <div class="modal-top-bar">
+        <div>
+          <span class="modal-kicker">Noticias y Publicaciones</span>
+          <h3 class="modal-headline">Gestionar Categorías</h3>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeCategoryModal()">✕</button>
+      </div>
+
+      <div *ngIf="categoryError()" class="category-error-alert">
+        {{ categoryError() }}
+      </div>
+
+      <div class="category-builder-card">
+        <h4>{{ editingCategoryUuid() ? 'Editar Categoría' : 'Nueva Categoría' }}</h4>
+        <div class="category-form-inputs">
+          <div class="cat-input-row">
+            <input type="text" placeholder="Nombre de la categoría..." [ngModel]="categoryFormName()" (ngModelChange)="categoryFormName.set($event)" class="cat-text-input" />
+            <div class="color-picker-wrap" title="Seleccionar color">
+              <input type="color" [ngModel]="categoryFormColor()" (ngModelChange)="categoryFormColor.set($event)" class="cat-color-input" />
+            </div>
+          </div>
+
+          <div class="emoji-picker-container">
+            <label class="emoji-picker-label">Ícono / Emoji representativo:</label>
+            <div class="emoji-picker-grid">
+              <button *ngFor="let emoji of emojiOptions" type="button" class="emoji-pick-btn" [class.active]="categoryFormIcon() === emoji" (click)="categoryFormIcon.set(emoji)">
+                {{ emoji }}
+              </button>
+            </div>
+          </div>
+
+          <div class="category-btn-row">
+            <button type="button" class="btn-primary-cat" [disabled]="categorySaving()" (click)="submitCategoryForm()">
+              {{ categorySaving() ? 'Guardando...' : (editingCategoryUuid() ? 'Guardar Cambios' : '+ Agregar Categoría') }}
+            </button>
+            <button *ngIf="editingCategoryUuid()" type="button" class="btn-cancel-cat" (click)="cancelEditCategory()">
+              Cancelar Edición
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="categories-admin-list">
+        <div class="categories-list-head">
+          <h4>Categorías Existentes</h4>
+          <span class="counter-badge">{{ categories().length }}</span>
+        </div>
+
+        <div *ngIf="!categories().length" class="empty-cats-text">
+          No hay categorías registradas aún. ¡Crea la primera arriba!
+        </div>
+
+        <div *ngFor="let cat of categories()" class="category-item-tile">
+          <span class="category-badge-chip" [style.background]="cat.color">
+            {{ cat.icon }} {{ cat.name }}
+          </span>
+
+          <div *ngIf="categoryDeleteUuid() === cat.uuid" class="confirm-del-cat">
+            <span>¿Eliminar categoría?</span>
+            <button type="button" class="btn-del-yes" [disabled]="categoryDeleting()" (click)="confirmDeleteCategory()">Sí</button>
+            <button type="button" class="btn-del-no" (click)="cancelDeleteCategory()">No</button>
+          </div>
+
+          <div *ngIf="categoryDeleteUuid() !== cat.uuid" class="cat-tile-actions">
+            <button type="button" class="btn-cat-action edit" (click)="startEditCategory(cat)" title="Editar categoría">✎</button>
+            <button type="button" class="btn-cat-action delete" (click)="requestDeleteCategory(cat.uuid)" title="Eliminar categoría">🗑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </div>

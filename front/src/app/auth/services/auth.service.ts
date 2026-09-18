@@ -4,12 +4,20 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface AuthUser {
+  id: number;
+  uuid?: string;
+  username: string;
+  email: string;
+  role: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   message: string;
   data: {
     accessToken: string;
-    user: { id: number; username: string; email: string; role: string };
+    user: AuthUser;
   };
 }
 
@@ -23,7 +31,6 @@ export interface PasswordResetResponse {
   message: string;
 }
 
-export type AuthUser = AuthResponse['data']['user'];
 export type UserSession = AuthUser;
 
 // # Este bloque tiene como objetivo gestionar el estado global de autenticación, almacenamiento de tokens JWT e información del usuario
@@ -88,12 +95,13 @@ export class AuthService {
   }
 
   // # Este bloque tiene como objetivo retornar de forma segura los datos del usuario logueado evitando valores undefined
-  getUser(): { id: number; username: string; email: string; role: string } | null {
+  getUser(): AuthUser | null {
     const user = this.currentUser();
     if (!user || !this.getToken()) return null;
 
     return {
       id: user.id,
+      uuid: user.uuid,
       username: user.username || (user as any).name || 'Usuario',
       email: user.email || '',
       role: user.role || 'user',

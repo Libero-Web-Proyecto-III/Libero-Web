@@ -8,6 +8,8 @@ import { SurveyBuilderComponent } from '../survey/components/survey-builder/surv
 import { SurveyResultsComponent } from '../survey/components/survey-results/survey-results.component';
 import { SurveyService } from '../survey/services/survey.service';
 import { Survey, SurveyStatusEnum } from '../survey/models/survey.model';
+import { Category } from '../notice/publication.model';
+import { CategoryService } from '../notice/services/category.service';
 import { environment } from '../../environments/environment';
 
 export type AdminTab = 'metrics' | 'home' | 'events' | 'news' | 'polls' | 'users' | 'settings';
@@ -73,11 +75,14 @@ export interface UserItem {
   tags?: TagItem[];
 }
 
-interface Publication {
+export interface Publication {
+  index?: number;
   uuid: string;
   title: string;
   content?: string;
-  author?: { name: string; rol?: { name: string } };
+  media?: string[];
+  author?: { index?: number; uuid?: string; name: string; rol?: { name: string } };
+  category?: Category | null;
   createdAt?: string;
 }
 
@@ -120,6 +125,7 @@ export class AdminComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly formBuilder = inject(FormBuilder);
   private readonly surveyService = inject(SurveyService);
+  private readonly categoryService = inject(CategoryService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   readonly authService = inject(AuthService);
@@ -154,11 +160,46 @@ export class AdminComponent implements OnInit {
   // Signal para rastrear cambios en tiempo real del formulario para las vistas previas
   readonly formValueSignal = signal(this.eventForm.getRawValue());
 
-  // Formulario de Noticias / Publicaciones
+  // Formulario de Noticias / Publicaciones (Crear y Editar con soporte de Categorías y Múltiple Multimedia)
   readonly publicationForm = this.formBuilder.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
-    content: ['', Validators.required],
-    imageUrl: [''],
+    categoryUuid: [''],
+    content: ['', [Validators.required]],
+  });
+  readonly publicationMediaUrls = signal<string[]>(['']);
+  readonly isEditingPublication = signal<boolean>(false);
+  readonly editingPublicationUuid = signal<string | null>(null);
+  readonly publicationSaving = signal<boolean>(false);
+
+  // Gestión de Categorías de Noticias
+  readonly categories = signal<Category[]>([]);
+  readonly isCategoryModalOpen = signal<boolean>(false);
+  readonly editingCategoryUuid = signal<string | null>(null);
+  readonly categoryFormName = signal<string>('');
+  readonly categoryFormColor = signal<string>('#D84E18');
+  readonly categoryFormIcon = signal<string>('📢');
+  readonly categorySaving = signal<boolean>(false);
+  readonly categoryError = signal<string | null>(null);
+  readonly categoryDeleteUuid = signal<string | null>(null);
+  readonly categoryDeleting = signal<boolean>(false);
+  readonly emojiOptions: string[] = ['📢', '🌱', '⚙️', '📅', '👥', '💼', '🔬', '🏗️', '💧', '⚡', '📁'];
+
+  // Filtros de búsqueda en el listado de noticias del dashboard
+  readonly publicationSearchQuery = signal<string>('');
+  readonly publicationCategoryFilter = signal<string>('all');
+  readonly filteredPublications = computed(() => {
+    const q = this.publicationSearchQuery().toLowerCase().trim();
+    const cat = this.publicationCategoryFilter();
+    return this.publications().filter(pub => {
+      const matchSearch = !q ||
+        pub.title.toLowerCase().includes(q) ||
+        (pub.author?.name && pub.author.name.toLowerCase().includes(q)) ||
+        (pub.content && pub.content.toLowerCase().includes(q));
+      const matchCategory = cat === 'all' ||
+        (cat === 'none' && !pub.category) ||
+        (pub.category?.uuid === cat);
+      return matchSearch && matchCategory;
+    });
   });
 
   // Modal de Recorte de Imagen (Estilo red social / portada)
@@ -477,6 +518,11 @@ export class AdminComponent implements OnInit {
     return control.invalid && (control.touched || control.dirty);
   }
 
+  isPublicationFieldInvalid(name: 'title' | 'content'): boolean {
+    const control = this.publicationForm.controls[name];
+    return control.invalid && (control.touched || control.dirty);
+  }
+
   // Vista Previa reactiva que se actualiza al escribir en el formulario
   readonly livePreview = computed<AdminEventItem>(() => {
     const val = this.formValueSignal();
@@ -541,11 +587,13 @@ export class AdminComponent implements OnInit {
       this.loadSurveys();
     } else if (tab === 'news') {
       this.loadPublications();
+      this.loadCategories();
     } else if (tab === 'events') {
       this.loadEvents();
     } else if (tab === 'metrics' || tab === 'home') {
       this.loadEvents();
       this.loadPublications();
+      this.loadCategories();
       this.loadUsers();
       this.loadTags();
       this.loadSurveys();
@@ -1093,29 +1141,126 @@ export class AdminComponent implements OnInit {
     this.selectedEventDetail.set(null);
   }
 
-  // Creador de Publicaciones
+  // =========================================================================
+  // GESTIÓN COMPLETA DE NOTICIAS Y PUBLICACIONES (DASHBOARD)
+  // =========================================================================
+
+  addPublicationMediaField(): void {
+    this.publicationMediaUrls.update(list => [...list, '']);
+  }
+
+  removePublicationMediaField(index: number): void {
+    this.publicationMediaUrls.update(list => {
+      const updated = list.filter((_, i) => i !== index);
+      return updated.length > 0 ? updated : [''];
+    });
+  }
+
+  updatePublicationMediaField(index: number, value: string): void {
+    this.publicationMediaUrls.update(list => list.map((u, i) => i === index ? value : u));
+  }
+
   createPublication(): void {
-    if (!this.authService.hasManagementRole() || this.publicationForm.invalid) return;
+    this.savePublication();
+  }
+
+  savePublication(): void {
+    this.clearAlerts();
+
+    if (!this.authService.hasManagementRole()) {
+      this.error = 'No tienes permisos de administración para publicar noticias.';
+      return;
+    }
+
+    if (this.publicationForm.invalid) {
+      this.publicationForm.markAllAsTouched();
+      const missing: string[] = [];
+      if (this.publicationForm.controls.title.invalid) {
+        missing.push('Título (mínimo 3 letras)');
+      }
+      if (this.publicationForm.controls.content.invalid) {
+        missing.push('Contenido de la noticia');
+      }
+      this.error = `Por favor completa los campos requeridos: ${missing.join(', ')}.`;
+      return;
+    }
+
     const raw = this.publicationForm.getRawValue();
-    const payload: { title: string; content: string; media?: string[] } = {
-      title: raw.title,
-      content: raw.content,
+    const mediaUrls = this.publicationMediaUrls()
+      .map(u => u.trim())
+      .filter(u => u.length > 0);
+
+    const payload: { title: string; content: string; media?: string[]; categoryUuid?: string } = {
+      title: raw.title.trim(),
+      content: raw.content.trim(),
     };
-    if (raw.imageUrl && raw.imageUrl.trim()) {
-      payload.media = [raw.imageUrl.trim()];
+    if (mediaUrls.length > 0) {
+      payload.media = mediaUrls;
+    }
+    if (raw.categoryUuid && raw.categoryUuid.trim()) {
+      payload.categoryUuid = raw.categoryUuid.trim();
+    }
+
+    this.publicationSaving.set(true);
+
+    if (this.isEditingPublication() && this.editingPublicationUuid()) {
+      const uuid = this.editingPublicationUuid()!;
+      this.http.patch(`${this.publicationsApiUrl}/${uuid}`, payload, this.options).subscribe({
+        next: () => {
+          this.message = '¡Publicación actualizada exitosamente!';
+          this.publicationSaving.set(false);
+          this.cancelEditPublication();
+          this.loadPublications();
+          this.clearAlertsSoon();
+        },
+        error: (err) => {
+          this.publicationSaving.set(false);
+          this.error = err?.error?.message || 'No fue posible actualizar la publicación.';
+        },
+      });
+      return;
     }
 
     this.http.post(this.publicationsApiUrl, payload, this.options).subscribe({
       next: () => {
         this.message = '¡Publicación creada exitosamente!';
-        this.publicationForm.reset();
+        this.publicationSaving.set(false);
+        this.cancelEditPublication();
         this.loadPublications();
         this.clearAlertsSoon();
       },
-      error: () => {
-        this.error = 'No fue posible crear la publicación.';
+      error: (err) => {
+        this.publicationSaving.set(false);
+        this.error = err?.error?.message || 'No fue posible crear la publicación.';
       },
     });
+  }
+
+  editPublication(pub: Publication): void {
+    this.isEditingPublication.set(true);
+    this.editingPublicationUuid.set(pub.uuid);
+    this.publicationForm.patchValue({
+      title: pub.title,
+      content: pub.content || '',
+      categoryUuid: pub.category?.uuid || '',
+    });
+    this.publicationMediaUrls.set(pub.media && pub.media.length > 0 ? [...pub.media] : ['']);
+
+    const formEl = document.getElementById('publication-form-section');
+    if (formEl) {
+      formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  cancelEditPublication(): void {
+    this.isEditingPublication.set(false);
+    this.editingPublicationUuid.set(null);
+    this.publicationForm.reset({
+      title: '',
+      content: '',
+      categoryUuid: '',
+    });
+    this.publicationMediaUrls.set(['']);
   }
 
   deletePublication(uuid: string): void {
@@ -1128,6 +1273,116 @@ export class AdminComponent implements OnInit {
       },
       error: () => {
         this.error = 'No tienes permiso para eliminar esta publicación.';
+      },
+    });
+  }
+
+  // =========================================================================
+  // GESTIÓN DE CATEGORÍAS (DASHBOARD)
+  // =========================================================================
+
+  loadCategories(): void {
+    this.categoryService.findAll().subscribe({
+      next: (categories) => this.categories.set(categories || []),
+      error: () => {},
+    });
+  }
+
+  openCategoryModal(): void {
+    this.editingCategoryUuid.set(null);
+    this.categoryFormName.set('');
+    this.categoryFormColor.set('#D84E18');
+    this.categoryFormIcon.set('📢');
+    this.categoryError.set(null);
+    this.categoryDeleteUuid.set(null);
+    this.isCategoryModalOpen.set(true);
+  }
+
+  closeCategoryModal(): void {
+    this.isCategoryModalOpen.set(false);
+    this.cancelEditCategory();
+  }
+
+  startEditCategory(cat: Category): void {
+    this.editingCategoryUuid.set(cat.uuid);
+    this.categoryFormName.set(cat.name);
+    this.categoryFormColor.set(cat.color || '#D84E18');
+    this.categoryFormIcon.set(cat.icon || '📢');
+    this.categoryError.set(null);
+  }
+
+  cancelEditCategory(): void {
+    this.editingCategoryUuid.set(null);
+    this.categoryFormName.set('');
+    this.categoryFormColor.set('#D84E18');
+    this.categoryFormIcon.set('📢');
+    this.categoryError.set(null);
+  }
+
+  submitCategoryForm(): void {
+    const name = this.categoryFormName().trim();
+    if (!name) {
+      this.categoryError.set('El nombre de la categoría es obligatorio.');
+      return;
+    }
+    const color = this.categoryFormColor();
+    const icon = this.categoryFormIcon();
+    this.categorySaving.set(true);
+    this.categoryError.set(null);
+
+    const editingUuid = this.editingCategoryUuid();
+    if (editingUuid) {
+      this.categoryService.update(editingUuid, { name, color, icon }).subscribe({
+        next: () => {
+          this.categorySaving.set(false);
+          this.cancelEditCategory();
+          this.loadCategories();
+          this.loadPublications();
+        },
+        error: (err) => {
+          this.categorySaving.set(false);
+          this.categoryError.set(err?.error?.message ?? 'No se pudo actualizar la categoría.');
+        },
+      });
+      return;
+    }
+
+    this.categoryService.create({ name, color, icon }).subscribe({
+      next: () => {
+        this.categorySaving.set(false);
+        this.cancelEditCategory();
+        this.loadCategories();
+      },
+      error: (err) => {
+        this.categorySaving.set(false);
+        this.categoryError.set(err?.error?.message ?? 'No se pudo crear la categoría.');
+      },
+    });
+  }
+
+  requestDeleteCategory(uuid: string): void {
+    this.categoryDeleteUuid.set(uuid);
+    this.categoryError.set(null);
+  }
+
+  cancelDeleteCategory(): void {
+    this.categoryDeleteUuid.set(null);
+  }
+
+  confirmDeleteCategory(): void {
+    const uuid = this.categoryDeleteUuid();
+    if (!uuid) return;
+    this.categoryDeleting.set(true);
+    this.categoryService.remove(uuid).subscribe({
+      next: () => {
+        this.categoryDeleting.set(false);
+        this.categoryDeleteUuid.set(null);
+        this.loadCategories();
+        this.loadPublications();
+      },
+      error: (err) => {
+        this.categoryDeleting.set(false);
+        this.categoryError.set(err?.error?.message ?? 'No se pudo eliminar la categoría.');
       },
     });
   }
@@ -1342,8 +1597,11 @@ export class AdminComponent implements OnInit {
       this.formValueSignal.set(this.eventForm.getRawValue());
       this.message = '¡Foto recortada y aplicada a la portada del evento!';
     } else {
-      this.publicationForm.patchValue({ imageUrl: croppedDataUrl });
-      this.message = '¡Foto recortada y aplicada a la publicación!';
+      this.publicationMediaUrls.update(urls => {
+        const filtered = urls.filter(u => u.trim().length > 0);
+        return [croppedDataUrl, ...filtered];
+      });
+      this.message = '¡Foto recortada y agregada a la publicación!';
     }
 
     this.clearAlertsSoon();

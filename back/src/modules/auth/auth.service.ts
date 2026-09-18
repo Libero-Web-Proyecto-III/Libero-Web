@@ -53,6 +53,7 @@ export class AuthService {
 
     const authUser: AuthUser = {
       id: user.index,
+      uuid: user.uuid,
       username: user.name,
       email: user.email,
       role: user.rol?.name || 'user',

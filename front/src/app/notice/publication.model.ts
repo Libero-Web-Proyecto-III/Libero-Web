@@ -3,8 +3,8 @@ export type MediaType = 'image' | 'video';
 export interface PublicationMedia {
   url: string;
   type: MediaType;
-  /* Solo aplica para videos: imagen de portada mientras no se reproduce */
   poster?: string;
+  embedUrl?: string;
 }
 
 export type ReactionType = 'like' | 'dislike';
@@ -19,12 +19,20 @@ export interface Comment {
   userReaction: ReactionType | null;
 }
 
+export interface Category {
+  uuid: string;
+  name: string;
+  color: string;
+  icon: string;
+}
+
 export interface Publication {
   uuid: string;
   title: string;
   content: string;
   media: PublicationMedia[];
   author: string;
+  category: Category | null;
   createdAt: Date;
   likes: number;
   dislikes: number;

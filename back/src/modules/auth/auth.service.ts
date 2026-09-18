@@ -104,6 +104,7 @@ export class AuthService {
 
     return {
       id: user.index,
+      uuid: user.uuid,
       username: user.name,
       email: user.email,
       role: user.rol?.name || 'user',

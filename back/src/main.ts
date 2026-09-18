@@ -6,9 +6,13 @@ import cors from "cors";
 import { json, urlencoded } from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+
+  //////////// CORS /////////////
 
 
   ///////// GLOBAL ///////////
@@ -31,6 +35,7 @@ async function bootstrap() {
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ extended: true, limit: '10mb' }));
   app.set('trust proxy', 'loopback');
+  app.use(helmet());
 
 
   //// SWAGGER / SCALAR ////////

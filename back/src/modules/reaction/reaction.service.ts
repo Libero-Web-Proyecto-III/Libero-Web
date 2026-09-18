@@ -28,18 +28,8 @@ export class ReactionService {
     private readonly commentRepository: Repository<CommentEntity>,
     @InjectRepository(PublicationEntity)
     private readonly publicationRepository: Repository<PublicationEntity>,
-  ) {}
+  ) { }
 
-  /**
-   * Lógica central del módulo (toggle), válida tanto para reaccionar a un
-   * COMENTARIO como a una PUBLICACIÓN (se manda uno solo de los dos uuid).
-   *
-   * Un usuario solo puede tener UNA reacción por comentario/publicación,
-   * nunca like y dislike al mismo tiempo sobre el mismo elemento:
-   *   - No existe reacción todavía        -> se crea.
-   *   - Ya existe con el MISMO tipo        -> se elimina (quitar el like/dislike).
-   *   - Ya existe con tipo DISTINTO        -> se actualiza al nuevo tipo.
-   */
   async react(dto: CreateReactionDto, author: UserEntity): Promise<ReactResult> {
     if (dto.commentUuid && dto.publicationUuid) {
       throw new BadRequestException('Solo puedes reaccionar a un comentario O a una publicación, no a ambos');

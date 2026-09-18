@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsArray, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsUUID, MinLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreatePublicationDto {
@@ -26,4 +26,12 @@ export class CreatePublicationDto {
   @IsArray()
   @IsString({ each: true })
   media?: string[];
+
+  @ApiPropertyOptional({
+    description: 'UUID de la categoría de la publicación',
+    example: '9c858901-8a57-4791-81fe-4c455b099bc9',
+  })
+  @IsOptional()
+  @IsUUID()
+  categoryUuid?: string;
 }

@@ -9,6 +9,8 @@ import { RolModule } from './modules/rol/rol.module';
 import { UserModule } from './modules/user/user.module';
 import { PublicationModule } from './modules/publication/publication.module';
 import { EventModule } from './modules/event/event.module';
+import { FacebookModule } from './modules/facebook/facebook.module';
+import { CategoryModule } from './modules/category/category.module';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
@@ -19,6 +21,7 @@ import { CommentModule } from './modules/comment/comment.module';
 import { SurveyModule } from './modules/survey/survey.module';
 import { VisitModule } from './modules/visit/visit.module';
 import { FacebookModule } from './modules/facebook/facebook.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 
 @Module({
@@ -29,17 +32,27 @@ import { FacebookModule } from './modules/facebook/facebook.module';
       envFilePath: '.env'
     }),
 
+    ThrottlerModule.forRoot([{
+      ttl: 60_000,
+      limit: 45,
+      skipIf: () => false
+    }]),
+
     DatabaseModule,
 
     TagModule, RolModule,
     UserModule, PublicationModule, ReactionModule,
     EventModule, AuthModule, CommentModule, SurveyModule,
-    VisitModule, FacebookModule
-],
+    VisitModule, FacebookModule, CategoryModule
+  ],
   controllers: [AppController],
   providers: [
     AppService,
-    
+
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
@@ -50,4 +63,4 @@ import { FacebookModule } from './modules/facebook/facebook.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

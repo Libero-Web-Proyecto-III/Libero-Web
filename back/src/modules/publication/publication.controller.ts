@@ -8,10 +8,12 @@ import {
   Param,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
+  ApiBearerAuth,
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
@@ -20,14 +22,20 @@ import { CreatePublicationDto } from './dto/create-publication.dto';
 import { UpdatePublicationDto } from './dto/update-publication.dto';
 import { GetAllPublicationQueryDto } from './dto/get-publication-query.dto';
 import { PublicationEntity } from './entities/publication.entity';
+import { UserEntity } from 'src/modules/user/entities/user.entity';
+
+import { JwtAuthGuard } from '../../common/guard/jwt-auth.guard';
+import { RolesGuard } from '../../common/guard/roles.guard';
 import { PRIVATE } from 'src/common/decorator/private.decorator';
 import { ROLES } from 'src/common/decorator/roles.decorator';
 import { enumRol } from 'src/common/enums/rol.enum';
 
 @ApiTags('Publications')
+@ApiBearerAuth()
 @Controller('publications')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class PublicationController {
-  constructor(private readonly publicationService: PublicationService) {}
+  constructor(private readonly publicationService: PublicationService) { }
 
   @Get()
   @ApiOperation({
@@ -51,19 +59,23 @@ export class PublicationController {
     return this.publicationService.findOneBy.uuid(uuid);
   }
 
+  @PRIVATE()
+  @ROLES([enumRol.MOD, enumRol.ADMIN])
   @Post()
   @PRIVATE()
   @ROLES([enumRol.ADMIN, enumRol.MOD])
   @ApiOperation({
     summary: 'Crear una publicación',
-    description: 'Crea una nueva publicación asociada al usuario autenticado.',
+    description: 'Crea una nueva publicación asociada al usuario autenticado. Solo moderadores o administradores.',
   })
   @ApiResponse({ status: 201, description: 'Publicación creada exitosamente', type: PublicationEntity })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
   create(@Body() createPublicationDto: CreatePublicationDto, @Req() req: any) {
-    return this.publicationService.create(createPublicationDto, req.user);
+    return this.publicationService.create(createPublicationDto, { index: req.user.id } as UserEntity);
   }
 
+  @PRIVATE()
+  @ROLES([enumRol.MOD, enumRol.ADMIN])
   @Patch(':uuid')
   @PRIVATE()
   @ROLES([enumRol.ADMIN, enumRol.MOD])
@@ -78,12 +90,14 @@ export class PublicationController {
     return this.publicationService.update(uuid, updatePublicationDto);
   }
 
+  @PRIVATE()
+  @ROLES([enumRol.MOD, enumRol.ADMIN])
   @Delete(':uuid')
   @PRIVATE()
   @ROLES([enumRol.MOD, enumRol.ADMIN])
   @ApiOperation({
     summary: 'Eliminar una publicación',
-    description: 'Elimina lógicamente una publicación (soft delete).',
+    description: 'Elimina lógicamente una publicación (soft delete). Solo moderador o admin.',
   })
   @ApiParam({ name: 'uuid', description: 'UUID de la publicación', example: 'f6e5d4c3-b2a1-4c3d-9e8f-7a6b5c4d3e2f' })
   @ApiResponse({ status: 200, description: 'Publicación eliminada' })

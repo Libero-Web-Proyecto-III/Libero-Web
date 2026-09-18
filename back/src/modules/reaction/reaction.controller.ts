@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -11,13 +12,19 @@ import {
 } from '@nestjs/swagger';
 import { ReactionService } from './reaction.service';
 import { CreateReactionDto } from './dto/create-reaction.dto';
-import { PRIVATE } from 'src/common/decorator/private.decorator';
+import { JwtAuthGuard } from '../../common/guard/jwt-auth.guard';
+import { RolesGuard } from '../../common/guard/roles.guard';
+import { PRIVATE } from '../../common/decorator/private.decorator';
+import { UserEntity } from '../user/entities/user.entity';
 
 @ApiTags('reactions')
+@ApiBearerAuth()
 @Controller('reactions')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ReactionController {
-  constructor(private readonly reactionService: ReactionService) {}
+  constructor(private readonly reactionService: ReactionService) { }
 
+  @PRIVATE()
   @Post()
   @PRIVATE()
   @ApiOperation({
@@ -66,7 +73,7 @@ export class ReactionController {
     },
   })
   react(@Body() dto: CreateReactionDto, @Req() req: any) {
-    return this.reactionService.react(dto, req.user);
+    return this.reactionService.react(dto, { index: req.user.id } as UserEntity);
   }
 
   @Get('comment/:uuid')

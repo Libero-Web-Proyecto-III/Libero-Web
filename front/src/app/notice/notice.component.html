@@ -2,145 +2,473 @@
   <app-navbar></app-navbar>
 
   <main class="notice-container">
-    <div class="results-bar">
-      <span class="results-count">
-        MOSTRANDO <strong>{{ news().length }}</strong> NOTICIA(S)
-      </span>
-    </div>
 
-    <div class="notice-list">
-      @for (item of news(); track item.uuid) {
-        <article class="notice-card" (click)="openModal(item.uuid)">
-
-          <div class="card-image-wrapper">
-            @if (item.media && item.media[0] && item.media[0].type === 'video') {
-              <img [src]="item.media[0].poster || item.media[0].url" [alt]="item.title" class="card-img" />
-              <span class="play-badge">▶</span>
-            } @else {
-              <img [src]="item.media && item.media[0] ? item.media[0].url : 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1400&q=80'" [alt]="item.title" class="card-img" />
-            }
-            <div class="card-img-overlay"></div>
-          </div>
-
-          <div class="card-content">
-            <div class="card-meta">
-              <span>{{ item.author }}</span>
-              <span>·</span>
-              <span>{{ item.createdAt | date: 'longDate' }}</span>
-            </div>
-
-            <h2 class="card-title">{{ item.title }}</h2>
-            <p class="card-description">{{ item.content }}</p>
-
-            <div class="card-footer">
-              <div class="reaction-preview">
-                <span>👍 {{ item.likes }}</span>
-                <span>👎 {{ item.dislikes }}</span>
-                <span class="comment-count">💬 {{ item.comments ? item.comments.length : 0 }}</span>
-              </div>
-
-              <button class="cta-btn" (click)="openModal(item.uuid); $event.stopPropagation()">
-                LEER MÁS
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-        </article>
+    <div class="page-header-row">
+      <div>
+        <h1 class="page-title">Noticias</h1>
+        <p class="page-subtitle">Mantente al día con las novedades de Libero Cobre</p>
+      </div>
+      @if (canManagePublications()) {
+      <div class="results-actions">
+        <button class="manage-categories-btn" (click)="openCategoryModal()">Gestionar categorías</button>
+        <button class="new-notice-btn" (click)="openCreateModal()">+ Nueva noticia</button>
+      </div>
       }
     </div>
+
+    @if (!showListView()) {
+    <!-- ===== Vista de exploración (Destacada + Recientes + Últimas + Categorías) ===== -->
+
+    <div class="explore-columns">
+      <div class="explore-main">
+
+        @if (featured(); as item) {
+        <article class="hero-card" (click)="openModal(item.uuid)">
+          <div class="hero-image-wrapper" [class.no-media]="item.media.length === 0">
+            @if (item.media.length > 0) {
+            <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+              (error)="onImageError($event)" />
+            } @else {
+            <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+            }
+            <span class="hero-badge">DESTACADO</span>
+            <div class="hero-floating-meta">
+              <span>📅 {{ item.createdAt | date: 'd MMM. y' }}</span>
+              <span>💬 {{ item.comments.length }} comentarios</span>
+            </div>
+          </div>
+          <div class="hero-content">
+            <span class="hero-eyebrow">NOTICIAS</span>
+            <h2 class="hero-title">{{ item.title }}</h2>
+            <p class="hero-description">{{ item.content }}</p>
+            <button class="hero-cta-btn" (click)="openModal(item.uuid); $event.stopPropagation()">Leer más →</button>
+          </div>
+        </article>
+        }
+
+        @if (recentThree().length > 0) {
+        <section class="recent-section">
+          <div class="section-header">
+            <h2>Noticias recientes</h2>
+            <button class="ver-todas-btn" (click)="showAllNews()">Ver todas →</button>
+          </div>
+          <div class="recent-grid">
+            @for (item of recentThree(); track item.uuid) {
+            <article class="recent-card" (click)="openModal(item.uuid)">
+              <div class="recent-image-wrapper" [class.no-media]="item.media.length === 0">
+                @if (item.media.length > 0) {
+                <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url"
+                  [alt]="item.title" (error)="onImageError($event)" />
+                } @else {
+                <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+                }
+              </div>
+              <div class="recent-card-body">
+                @if (item.category) {
+                <span class="category-pill" [style.color]="item.category.color"
+                  [style.borderColor]="item.category.color">{{ item.category.name }}</span>
+                }
+                <h3>{{ item.title }}</h3>
+                <span class="recent-meta">📅 {{ item.createdAt | date: 'd MMM. y' }} &nbsp;·&nbsp; 💬 {{
+                  item.comments.length }} comentarios</span>
+              </div>
+            </article>
+            }
+          </div>
+        </section>
+        }
+
+      </div>
+
+      <aside class="sidebar-latest">
+        <div class="section-header">
+          <h3>Últimas noticias</h3>
+          <button class="ver-todas-btn" (click)="showAllNews()">Ver todas →</button>
+        </div>
+        @for (item of sidebarLatest(); track item.uuid) {
+        <div class="sidebar-item" (click)="openModal(item.uuid)">
+          <div class="sidebar-thumb" [class.no-media]="item.media.length === 0">
+            @if (item.media.length > 0) {
+            <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+              (error)="onImageError($event)" />
+            } @else {
+            <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+            }
+          </div>
+          <div>
+            @if (item.category) {
+            <span class="sidebar-category" [style.color]="item.category.color">{{ item.category.name | uppercase
+              }}</span>
+            }
+            <p class="sidebar-title">{{ item.title }}</p>
+            <span class="sidebar-date">📅 {{ item.createdAt | date: 'd MMM. y' }}</span>
+          </div>
+        </div>
+        }
+      </aside>
+    </div>
+
+    @if (categories().length > 0) {
+    <section class="category-explore">
+      <div class="section-header">
+        <h2>Explora por categoría</h2>
+        <button class="ver-todas-btn" (click)="showAllNews()">Ver todas →</button>
+      </div>
+      <div class="category-buttons">
+        @for (cat of categories(); track cat.uuid) {
+        <button class="category-card-btn" (click)="goToCategory(cat.uuid)">
+          <span class="category-icon" [style.background]="cat.color">{{ cat.icon }}</span>
+          <span class="category-card-name">{{ cat.name }}</span>
+        </button>
+        }
+      </div>
+    </section>
+    }
+
+    } @else {
+    <!-- ===== Vista de categoría (estilo página de sección) ===== -->
+
+    <div class="category-page-layout">
+
+      <aside class="category-sidebar-nav">
+        <button class="back-link" (click)="clearCategoryFilter()">← Todas las categorías</button>
+        @for (cat of categories(); track cat.uuid) {
+        <button class="category-nav-item" [class.active]="cat.uuid === selectedCategoryUuid()"
+          (click)="goToCategory(cat.uuid)">
+          <span class="nav-icon">{{ cat.icon }}</span>
+          {{ cat.name }}
+        </button>
+        }
+      </aside>
+
+      <div class="category-main">
+        <div class="category-header-block">
+          <div class="category-header-title">
+            @if (selectedCategoryUuid()) {
+            <span class="category-header-icon"
+              [style.background]="categories().find(c => c.uuid === selectedCategoryUuid())?.color">
+              {{ categories().find(c => c.uuid === selectedCategoryUuid())?.icon }}
+            </span>
+            }
+            <div>
+              <h1>{{ selectedCategoryUuid() ? selectedCategoryName() : 'Todas las noticias' }}</h1>
+              <p>{{ news().length }} publicaciones disponibles</p>
+            </div>
+          </div>
+
+          <select class="sort-select" [ngModel]="sortOption()" (ngModelChange)="setSortOption($event)">
+            <option value="recent">Más recientes</option>
+            <option value="comments">Más comentadas</option>
+            <option value="likes">Más gustadas</option>
+          </select>
+        </div>
+
+        @if (featuredInCategory(); as item) {
+        <article class="category-featured" (click)="openModal(item.uuid)">
+          <div class="category-featured-media" [class.no-media]="item.media.length === 0">
+            @if (item.media.length > 0) {
+            <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+              (error)="onImageError($event)" />
+            } @else {
+            <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+            }
+          </div>
+          <div class="category-featured-overlay">
+            @if (item.category) {
+            <span class="category-pill solid" [style.background]="item.category.color">{{ item.category.name }}</span>
+            }
+            <h2>{{ item.title }}</h2>
+            <div class="category-featured-meta">
+              <span>📅 {{ item.createdAt | date: 'd MMM. y' }}</span>
+              <span>💬 {{ item.comments.length }} comentarios</span>
+            </div>
+          </div>
+          <button class="category-featured-btn" (click)="openModal(item.uuid); $event.stopPropagation()">Leer más
+            →</button>
+        </article>
+        }
+
+        @if (restInCategory().length > 0) {
+        <div class="recent-grid category-grid">
+          @for (item of restInCategory(); track item.uuid) {
+          <article class="recent-card" (click)="openModal(item.uuid)">
+            <div class="recent-image-wrapper" [class.no-media]="item.media.length === 0">
+              @if (item.media.length > 0) {
+              <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+                (error)="onImageError($event)" />
+              } @else {
+              <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+              }
+            </div>
+            <div class="recent-card-body">
+              @if (item.category) {
+              <span class="category-pill" [style.color]="item.category.color"
+                [style.borderColor]="item.category.color">{{ item.category.name }}</span>
+              }
+              <h3>{{ item.title }}</h3>
+              <p class="recent-desc">{{ item.content }}</p>
+              <span class="recent-meta">📅 {{ item.createdAt | date: 'd MMM. y' }} &nbsp;·&nbsp; 💬 {{
+                item.comments.length }} comentarios</span>
+            </div>
+          </article>
+          }
+        </div>
+        }
+
+        @if (!featuredInCategory()) {
+        <p class="empty-category">No hay noticias en esta categoría todavía.</p>
+        }
+      </div>
+
+      <aside class="ranking-sidebar">
+        <h3>🔥 Más leídas @if (selectedCategoryUuid()) { en {{ selectedCategoryName() }} }</h3>
+        @for (item of topRead(); track item.uuid; let i = $index) {
+        <div class="ranking-item" (click)="openModal(item.uuid)">
+          <span class="ranking-number">{{ i + 1 }}</span>
+          <div class="ranking-thumb" [class.no-media]="item.media.length === 0">
+            @if (item.media.length > 0) {
+            <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+              (error)="onImageError($event)" />
+            } @else {
+            <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+            }
+          </div>
+          <div>
+            <p class="ranking-title">{{ item.title }}</p>
+            <span class="ranking-meta">{{ item.createdAt | date: 'd MMM. y' }} · 💬 {{ item.comments.length }}</span>
+          </div>
+        </div>
+        }
+      </aside>
+
+    </div>
+    }
+
   </main>
 
   <app-footer></app-footer>
 
+  <!-- Modal de vista previa -->
   @if (selectedForModal(); as item) {
-    <div class="modal-backdrop" (click)="closeModal()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="closeModal()">✕</button>
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeModal()">✕</button>
 
-        <div class="modal-media">
-          @if (item.media && item.media[0] && item.media[0].type === 'video') {
-            <video controls [poster]="item.media[0].poster">
-              <source [src]="item.media[0].url" type="video/mp4" />
-            </video>
-          } @else if (item.media && item.media[0]) {
-            <img [src]="item.media[0].url" [alt]="item.title" />
-          }
-        </div>
+      @if (canManagePublications()) {
+      <div class="manage-bar">
+        <button class="manage-btn edit-btn" (click)="openEditModal(item)">✎ Editar</button>
+        <button class="manage-btn delete-btn" (click)="requestDelete(item.uuid)">🗑 Eliminar</button>
+      </div>
+      }
 
-        <div class="modal-header">
-          <span class="modal-meta">{{ item.author }} · {{ item.createdAt | date: 'longDate' }}</span>
-          <h2 class="modal-title">{{ item.title }}</h2>
-        </div>
-
-        <p class="modal-content-text">{{ item.content }}</p>
-
-        <div class="reaction-bar">
-          <button
-            class="reaction-btn"
-            [class.active]="item.userReaction === 'like'"
-            (click)="toggleReaction(item.uuid, 'like')"
-          >
-            👍 <span>{{ item.likes }}</span>
-          </button>
-          <button
-            class="reaction-btn"
-            [class.active]="item.userReaction === 'dislike'"
-            (click)="toggleReaction(item.uuid, 'dislike')"
-          >
-            👎 <span>{{ item.dislikes }}</span>
+      @if (confirmDeleteUuid() === item.uuid) {
+      <div class="delete-confirm">
+        <p>¿Seguro que deseas eliminar "{{ item.title }}"? Esta acción no se puede deshacer.</p>
+        @if (deleteError()) {
+        <p class="create-error">{{ deleteError() }}</p>
+        }
+        <div class="delete-confirm-actions">
+          <button class="modal-cancel-btn" (click)="cancelDelete()">Cancelar</button>
+          <button class="delete-confirm-btn" [disabled]="deleting()" (click)="confirmDelete()">
+            {{ deleting() ? 'Eliminando...' : 'Sí, eliminar' }}
           </button>
         </div>
+      </div>
+      }
 
-        <section class="comments-section">
-          <h3 class="comments-title">Comentarios ({{ item.comments.length }})</h3>
+      @if (item.media.length > 0) {
+      <div class="modal-media">
+        @if (item.media[0].type === 'video') {
+        @if (item.media[0].embedUrl) {
+        <iframe [src]="item.media[0].embedUrl | safeUrl" frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+        } @else {
+        <video controls [poster]="item.media[0].poster">
+          <source [src]="item.media[0].url" type="video/mp4" />
+        </video>
+        }
+        } @else {
+        <img [src]="item.media[0].url" [alt]="item.title" (error)="onImageError($event)" />
+        }
+      </div>
+      }
 
-          <div class="comment-form">
-            <textarea
-              placeholder="Escribe un comentario..."
-              [ngModel]="newCommentDraft()"
-              (ngModelChange)="newCommentDraft.set($event)"
-            ></textarea>
-            <button class="submit-comment-btn" (click)="addComment(item.uuid)">Comentar</button>
-          </div>
+      <div class="modal-header">
+        <span class="modal-meta">{{ item.author }} · {{ item.createdAt | date: 'longDate' }}</span>
+        <h2 class="modal-title">{{ item.title }}</h2>
+      </div>
 
-          @if (item.comments.length === 0) {
-            <p class="no-comments">Sé el primero en comentar esta noticia.</p>
-          }
+      <p class="modal-content-text">{{ item.content }}</p>
 
-          <div class="comments-list">
-            @for (comment of item.comments; track comment.uuid) {
-              <div class="comment-item">
-                <div class="comment-avatar">{{ comment.author.charAt(0) }}</div>
-                <div class="comment-body">
-                  <div class="comment-head">
-                    <span class="comment-author">{{ comment.author }}</span>
-                    <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
-                  </div>
-                  <p class="comment-text">{{ comment.content }}</p>
-                  <div class="comment-reactions">
-                    <button
-                      [class.active]="comment.userReaction === 'like'"
-                      (click)="toggleCommentReaction(item.uuid, comment.uuid, 'like')"
-                    >
-                      👍 {{ comment.likes }}
-                    </button>
-                    <button
-                      [class.active]="comment.userReaction === 'dislike'"
-                      (click)="toggleCommentReaction(item.uuid, comment.uuid, 'dislike')"
-                    >
-                      👎 {{ comment.dislikes }}
-                    </button>
-                  </div>
-                </div>
+      @if (reactionError()) {
+      <p class="create-error">{{ reactionError() }}</p>
+      }
+
+      <div class="reaction-bar">
+        <button class="reaction-btn" [class.active]="item.userReaction === 'like'"
+          (click)="toggleReaction(item.uuid, 'like')">
+          👍 <span>{{ item.likes }}</span>
+        </button>
+        <button class="reaction-btn" [class.active]="item.userReaction === 'dislike'"
+          (click)="toggleReaction(item.uuid, 'dislike')">
+          👎 <span>{{ item.dislikes }}</span>
+        </button>
+      </div>
+
+      <section class="comments-section">
+        <h3 class="comments-title">Comentarios ({{ item.comments.length }})</h3>
+
+        <div class="comment-form">
+          <textarea placeholder="Escribe un comentario..." [ngModel]="newCommentDraft()"
+            (ngModelChange)="newCommentDraft.set($event)"></textarea>
+          <button class="submit-comment-btn" (click)="addComment(item.uuid)">Comentar</button>
+        </div>
+
+        @if (item.comments.length === 0) {
+        <p class="no-comments">Sé el primero en comentar esta noticia.</p>
+        }
+
+        <div class="comments-list">
+          @for (comment of item.comments; track comment.uuid) {
+          <div class="comment-item">
+            <div class="comment-avatar">{{ comment.author.charAt(0) }}</div>
+            <div class="comment-body">
+              <div class="comment-head">
+                <span class="comment-author">{{ comment.author }}</span>
+                <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
               </div>
-            }
+              <p class="comment-text">{{ comment.content }}</p>
+              <div class="comment-reactions">
+                <button [class.active]="comment.userReaction === 'like'"
+                  (click)="toggleCommentReaction(item.uuid, comment.uuid, 'like')">
+                  👍 {{ comment.likes }}
+                </button>
+                <button [class.active]="comment.userReaction === 'dislike'"
+                  (click)="toggleCommentReaction(item.uuid, comment.uuid, 'dislike')">
+                  👎 {{ comment.dislikes }}
+                </button>
+              </div>
+            </div>
           </div>
-        </section>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+  }
+
+  <!-- Modal de crear / editar -->
+  @if (isFormModalOpen()) {
+  <div class="modal-backdrop" (click)="closeFormModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeFormModal()">✕</button>
+
+      <div class="modal-header">
+        <span class="modal-meta">{{ isEditing() ? 'Editar publicación' : 'Nueva publicación' }}</span>
+        <h2 class="modal-title">{{ isEditing() ? 'Editar noticia' : 'Crear noticia' }}</h2>
+      </div>
+
+      @if (formError()) {
+      <p class="create-error">{{ formError() }}</p>
+      }
+
+      <div class="create-form">
+        <label>Título</label>
+        <input type="text" placeholder="Título de la noticia" [ngModel]="formTitle()"
+          (ngModelChange)="formTitle.set($event)" />
+
+        <label>Contenido</label>
+        <textarea placeholder="Contenido de la noticia" [ngModel]="formContent()"
+          (ngModelChange)="formContent.set($event)"></textarea>
+
+        <label>Categoría</label>
+        <select [ngModel]="formCategoryUuid()" (ngModelChange)="formCategoryUuid.set($event)">
+          <option value="">Sin categoría</option>
+          @for (cat of categories(); track cat.uuid) {
+          <option [value]="cat.uuid">{{ cat.name }}</option>
+          }
+        </select>
+
+        <label>Multimedia (URLs de imágenes o videos)</label>
+        @for (url of formMediaUrls(); track $index) {
+        <div class="media-field">
+          <input type="text" placeholder="https://..." [ngModel]="url"
+            (ngModelChange)="updateMediaField($index, $event)" />
+          @if (formMediaUrls().length > 1) {
+          <button type="button" class="remove-media-btn" (click)="removeMediaField($index)">✕</button>
+          }
+        </div>
+        }
+        <button type="button" class="add-media-btn" (click)="addMediaField()">+ Agregar otro archivo</button>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="modal-cancel-btn" (click)="closeFormModal()">Cancelar</button>
+        <button type="button" class="modal-confirm-btn" [disabled]="saving()" (click)="submitForm()">
+          {{ saving() ? 'Guardando...' : (isEditing() ? 'Guardar cambios' : 'Publicar noticia') }}
+        </button>
       </div>
     </div>
+  </div>
+  }
+
+  @if (isCategoryModalOpen()) {
+  <div class="modal-backdrop" (click)="closeCategoryModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeCategoryModal()">✕</button>
+
+      <div class="modal-header">
+        <span class="modal-meta">Administración</span>
+        <h2 class="modal-title">Gestionar categorías</h2>
+      </div>
+
+      @if (categoryError()) {
+      <p class="create-error">{{ categoryError() }}</p>
+      }
+
+      <div class="category-form">
+        <input type="text" placeholder="Nombre de la categoría" [ngModel]="categoryFormName()"
+          (ngModelChange)="categoryFormName.set($event)" />
+        <input type="color" [ngModel]="categoryFormColor()" (ngModelChange)="categoryFormColor.set($event)" />
+        <div class="emoji-picker">
+          @for (emoji of emojiOptions; track emoji) {
+          <button type="button" class="emoji-option" [class.selected]="categoryFormIcon() === emoji"
+            (click)="categoryFormIcon.set(emoji)">
+            {{ emoji }}
+          </button>
+          }
+        </div>
+        <button type="button" class="modal-confirm-btn" [disabled]="categorySaving()" (click)="submitCategoryForm()">
+          {{ categorySaving() ? 'Guardando...' : (editingCategoryUuid() ? 'Guardar' : 'Agregar') }}
+        </button>
+        @if (editingCategoryUuid()) {
+        <button type="button" class="modal-cancel-btn" (click)="cancelEditCategory()">Cancelar edición</button>
+        }
+      </div>
+
+      <div class="category-manage-list">
+        @for (cat of categories(); track cat.uuid) {
+        <div class="category-manage-item">
+          <span class="category-pill" [style.background]="cat.color">{{ cat.icon }} {{ cat.name }}</span>
+
+          @if (categoryDeleteUuid() === cat.uuid) {
+          <div class="category-delete-confirm">
+            <span>¿Eliminar?</span>
+            <button class="delete-confirm-btn" [disabled]="categoryDeleting()"
+              (click)="confirmDeleteCategory()">Sí</button>
+            <button class="modal-cancel-btn" (click)="cancelDeleteCategory()">No</button>
+          </div>
+          } @else {
+          <div class="category-manage-actions">
+            <button class="manage-btn" (click)="startEditCategory(cat)">✎</button>
+            <button class="manage-btn delete-btn" (click)="requestDeleteCategory(cat.uuid)">🗑</button>
+          </div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+  </div>
   }
 </div>

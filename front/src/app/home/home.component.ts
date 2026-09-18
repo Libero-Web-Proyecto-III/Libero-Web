@@ -35,50 +35,47 @@ export interface FacebookPost {
   permalink_url: string;
 }
 
-const huellitasVideoSources = [
-  { url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1426778744966032%2F&show_text=false&width=560&t=0', orientation: 'horizontal' },
-  { url: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F2032017184202759%2F&show_text=false&width=267&t=0', orientation: 'vertical' },
-  { url: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1360422689005939%2F&show_text=false&width=267&t=0', orientation: 'vertical' },
-  { url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1342744714175371%2F&show_text=false&width=560&t=0', orientation: 'horizontal' },
-  { url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1559321785827982%2F&show_text=false&width=560&t=0', orientation: 'horizontal' },
-  { url: 'https://www.facebook.com/plugins/video.php?height=312&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1058978710430502%2F&show_text=false&width=560&t=0', orientation: 'horizontal' },
-] as const;
-
 const huellitasCardSources = [
   {
-    title: 'Reforestación Activa',
-    subtitle: 'Recuperamos bosques nativos de la Amazonia colombiana sembrando especies propias del piedemonte putumayense.',
+    title: 'Feria de Arte 2026 - Huellitas Verdes',
+    subtitle: 'Jornada al aire libre de Libero Cobre con talleres de arte en plastilina y dibujo, exposición de trabajos, picnic y juegos recreativos en inflable gigante para los niños de Huellitas Verdes.',
     url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1426778744966032%2F&show_text=false&width=560&t=0',
+    orientation: 'horizontal',
     link: 'https://www.facebook.com/reel/1426778744966032/',
   },
   {
-    title: 'Biodiversidad',
-    subtitle: 'Protegemos la riqueza biológica del Putumayo mediante monitoreo continuo de flora y fauna amenazada.',
+    title: 'Huellitas Verdes - Cuentos y STEM',
+    subtitle: 'Los niños escribieron e ilustraron cuentos, y en una clase de ciencia construyeron y pintaron lámparas con circuitos eléctricos para aprender sobre electricidad.',
     url: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F2032017184202759%2F&show_text=false&width=267&t=0',
+    orientation: 'vertical',
     link: 'https://www.facebook.com/reel/2032017184202759/',
   },
   {
-    title: 'Educación Ambiental',
-    subtitle: 'Talleres y programas educativos que fortalecen la conciencia ecológica en las comunidades de Mocoa.',
+    title: 'Reporteros por un Día - Huellitas Verdes',
+    subtitle: 'Los niños de Huellitas Verdes aprendieron a identificar y verificar noticias de redes, TV, radio y prensa para fomentar pensamiento crítico.',
     url: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1360422689005939%2F&show_text=false&width=267&t=0',
+    orientation: 'vertical',
     link: 'https://www.facebook.com/reel/1360422689005939/',
   },
   {
-    title: 'Monitoreo Hídrico',
-    subtitle: 'Vigilamos la calidad y el caudal de las fuentes hídricas del municipio para garantizar su preservación.',
+    title: 'Huellitas Verdes en la Granja',
+    subtitle: 'Visita a una granja donde los niños aprendieron labores del campo, agricultura y equilibrio del ecosistema para fortalecer la conciencia ambiental y el cuidado de la naturaleza.',
     url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1342744714175371%2F&show_text=false&width=560&t=0',
+    orientation: 'horizontal',
     link: 'https://www.facebook.com/reel/1342744714175371/',
   },
   {
-    title: 'Fauna Nativa',
-    subtitle: 'Programas de rescate, rehabilitación y liberación de fauna silvestre del piedemonte amazónico.',
+    title: 'Huellitas Verdes Aprende Compostaje',
+    subtitle: 'Visita educativa donde los niños aprendieron a hacer compostaje y entender la sostenibilidad ambiental a través del aprendizaje práctico en campo.',
     url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1559321785827982%2F&show_text=false&width=560&t=0',
+    orientation: 'horizontal',
     link: 'https://www.facebook.com/reel/1559321785827982/',
   },
   {
-    title: 'Comunidad Sostenible',
-    subtitle: 'Trabajamos junto a las comunidades locales para construir un desarrollo que beneficie a Mocoa y Putumayo.',
+    title: 'Huellitas Verdes Cuida el Aire',
+    subtitle: 'Jornada educativa donde los niños aprendieron la importancia del aire y cómo cuidarlo con acciones simples como sembrar árboles, no quemar basuras, proteger bosques y promover el mantenimiento responsable de motos y carros.',
     url: 'https://www.facebook.com/plugins/video.php?height=312&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1058978710430502%2F&show_text=false&width=560&t=0',
+    orientation: 'horizontal',
     link: 'https://www.facebook.com/reel/1058978710430502/',
   },
 ] as const;
@@ -97,27 +94,27 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   slides: CarouselSlide[] = [
     {
-      title: 'Proyecto Mocoa',
-      subtitle: 'Descubriendo el potencial del cobre y molibdeno en el corazón de la Amazonia colombiana',
+      title: 'Diálogo y Liderazgo Regional',
+      subtitle: 'Espacios de concertación para el desarrollo sostenible de Mocoa',
       imageUrl: '/sliders/Conferencia.jpg',
       bgClass: 'slide-1',
     },
     {
-      title: 'Huellitas Verdes',
-      subtitle: 'Nuestra iniciativa de responsabilidad ambiental que protege la biodiversidad única de Putumayo',
+      title: 'Nuestro Talento Humano',
+      subtitle: 'El equipo comprometido con el futuro del Putumayo',
       imageUrl: '/sliders/Equipo.jpg',
       bgClass: 'slide-2',
     },
     {
-      title: 'Mocoa, Putumayo',
-      subtitle: 'Comprometidos con el desarrollo sostenible y el bienestar de las comunidades amazónicas',
-      imageUrl: '/sliders/Screenshot 2026-09-17 at 10-57-16 (3) Facebook.png',
+      title: 'Compromiso con la Comunidad',
+      subtitle: 'Crecimiento, capacitación y progreso compartido',
+      imageUrl: '/sliders/Screenshot 2026-09-17 at 10-59-38 (3) Facebook.png',
       bgClass: 'slide-3',
     },
     {
-      title: 'Transición Energética',
-      subtitle: 'El cobre de Mocoa contribuye a construir un futuro más limpio y renovable para Colombia',
-      imageUrl: '/sliders/Screenshot 2026-09-17 at 10-59-38 (3) Facebook.png',
+      title: 'Transición Energética Global',
+      subtitle: 'Posicionando el cobre colombiano en la agenda internacional',
+      imageUrl: '/sliders/slider.jpg',
       bgClass: 'slide-4',
     }
   ];
@@ -163,7 +160,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1156853673247801%2F&show_text=false&width=560&height=314';
     this.galleryVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(galleryVideoSrc);
 
-    this.huellitasVideos = huellitasVideoSources.map((video) => ({
+    this.huellitasVideos = huellitasCardSources.map((video) => ({
       url: this.sanitizer.bypassSecurityTrustResourceUrl(video.url),
       orientation: video.orientation,
     }));

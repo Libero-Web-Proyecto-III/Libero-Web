@@ -4,6 +4,9 @@ import { TagService } from './tag.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { TagEntity } from './entities/tag.entity';
+import { PRIVATE } from 'src/common/decorator/private.decorator';
+import { ROLES } from 'src/common/decorator/roles.decorator';
+import { enumRol } from 'src/common/enums/rol.enum';
 
 @ApiTags('Tag')
 @Controller('tag')
@@ -11,6 +14,8 @@ export class TagController {
   constructor(private readonly tagService: TagService) {}
 
   @Post()
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   @ApiOperation({
     summary: 'Crear un tag',
     description: 'Crea un nuevo tag para clasificar usuarios, publicaciones u otros recursos.',
@@ -64,6 +69,8 @@ export class TagController {
   }
 
   @Patch(':id')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   @ApiOperation({
     summary: 'Actualizar un tag',
     description: 'Actualiza uno o varios campos de un tag existente.',
@@ -79,6 +86,8 @@ export class TagController {
   }
 
   @Delete(':id')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   @ApiOperation({
     summary: 'Eliminar un tag',
     description: 'Elimina lógicamente un tag usando soft delete.',
@@ -92,6 +101,8 @@ export class TagController {
   }
 
   @Patch('recover/:id')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN])
   @ApiOperation({
     summary: 'Recuperar un tag eliminado',
     description: 'Restaura un tag que fue eliminado lógicamente.',

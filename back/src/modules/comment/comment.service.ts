@@ -30,12 +30,24 @@ export class CommentService {
       throw new NotFoundException('No se encontró la publicación a comentar');
     }
 
+    const authorIndex = author.index ?? author.id;
+    if (!authorIndex) {
+      throw new ForbiddenException('No se pudo identificar al autor del comentario');
+    }
+
     const comment = this.commentRepository.create({
       content: dto.content,
       publication,
-      author: { index: author.id } as UserEntity,
+      author: { index: authorIndex } as UserEntity,
     });
-    return this.commentRepository.save(comment);
+    const saved = await this.commentRepository.save(comment);
+
+    const reloaded = await this.commentRepository.findOne({
+      where: { index: saved.index },
+      relations: { author: true, publication: true },
+    });
+
+    return reloaded ?? saved;
   }
 
   async findAll(query: GetCommentQueryDto): Promise<AllResponse> {
@@ -75,15 +87,17 @@ export class CommentService {
 
   async update(uuid: string, dto: UpdateCommentDto, requester: UserEntity & { id?: number; role?: string }): Promise<CommentEntity> {
     const comment = await this.findOneBy.uuid(uuid);
-    if (requester.role !== enumRol.ADMIN) {
-      throw new ForbiddenException('Solo un administrador puede editar comentarios');
+    const requesterId = requester.index ?? requester.id;
+    if (requester.role !== enumRol.ADMIN && comment.author?.index !== requesterId) {
+      throw new ForbiddenException('Solo un administrador o el autor puede editar comentarios');
     }
     return this.commentRepository.save({ index: comment.index, ...dto });
   }
 
   async remove(uuid: string, requester: UserEntity & { id?: number; role?: string }) {
     const comment = await this.findOneBy.uuid(uuid);
-    if (requester.role !== enumRol.ADMIN && requester.role !== enumRol.MOD && comment.author.index !== requester.id) {
+    const requesterId = requester.index ?? requester.id;
+    if (requester.role !== enumRol.ADMIN && requester.role !== enumRol.MOD && comment.author?.index !== requesterId) {
       throw new ForbiddenException('No puedes eliminar un comentario que no es tuyo');
     }
     return {

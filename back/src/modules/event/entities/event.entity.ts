@@ -54,11 +54,25 @@ export class EventEntity {
   dateMonth: string;
 
   @ApiPropertyOptional({
-    description: 'Horario del evento',
+    description: 'Horario del evento formateado',
     example: '20:30 - 23:30 HRS',
   })
   @Column({ nullable: true, type: 'varchar', length: 100 })
   time: string;
+
+  @ApiPropertyOptional({
+    description: 'Hora de inicio del evento (formato HH:mm)',
+    example: '20:30',
+  })
+  @Column({ nullable: true, type: 'varchar', length: 10 })
+  startTime: string;
+
+  @ApiPropertyOptional({
+    description: 'Hora de finalización del evento (formato HH:mm)',
+    example: '23:30',
+  })
+  @Column({ nullable: true, type: 'varchar', length: 10 })
+  endTime: string;
 
   @ApiPropertyOptional({
     description: 'Lugar o recinto',

@@ -54,7 +54,14 @@ export class AuthService {
 
   readonly currentUser = signal<AuthUser | null>(this.readUser());
   readonly isLoggedIn = computed(() => this.currentUser() !== null && this.getToken() !== null);
-  readonly isAdmin = computed(() => this.currentUser()?.role === 'admin');
+  readonly isAdmin = computed(() => {
+    const role = this.currentUser()?.role?.toLowerCase()?.trim();
+    return role === 'admin' || role === 'administrador';
+  });
+  readonly isMod = computed(() => {
+    const role = this.currentUser()?.role?.toLowerCase()?.trim();
+    return role === 'mod' || role === 'moderador';
+  });
 
   constructor() {
     this.refreshProfile();
@@ -188,8 +195,7 @@ export class AuthService {
 
   // # Este bloque tiene como objetivo determinar si el usuario posee rol administrativo (admin o mod)
   hasManagementRole(): boolean {
-    const role = this.getUser()?.role;
-    return role === 'mod' || role === 'admin';
+    return this.isAdmin() || this.isMod();
   }
 
   // # Este bloque tiene como objetivo guardar la sesión en localStorage o sessionStorage
@@ -213,6 +219,10 @@ export class AuthService {
     sessionStorage.removeItem('authUser');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('authUser');
+    try {
+      localStorage.removeItem('libero_events_subscribed_active_user');
+      localStorage.removeItem('libero_events_subscribed_backup');
+    } catch {}
   }
 
   // # Este bloque tiene como objetivo leer y parsear la información guardada del usuario

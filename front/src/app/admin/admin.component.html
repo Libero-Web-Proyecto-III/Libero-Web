@@ -14,8 +14,8 @@
         </div>
         <div class="user-details">
           <span class="user-name">{{ authService.getUser()?.username || 'Administrador' }}</span>
-          <span class="user-role-badge" [class.admin]="authService.isAdmin()">
-            {{ authService.isAdmin() ? 'ADMINISTRADOR' : (authService.getUser()?.role || 'MODERADOR') | uppercase }}
+          <span class="user-role-badge admin">
+            ADMINISTRADOR
           </span>
         </div>
       </div>
@@ -602,7 +602,7 @@
                 <span class="field-error-msg" *ngIf="isFieldInvalid('subtitle')">* El subtítulo es obligatorio</span>
               </div>
 
-              <!-- Fila: Día, Mes, Horario -->
+              <!-- Fila: Día, Mes y Selector de Calendario -->
               <div class="form-row form-row-3">
                 <div class="form-group">
                   <label for="evt-day">Día *</label>
@@ -611,15 +611,16 @@
                     type="text" 
                     maxlength="2" 
                     formControlName="dateDay" 
-                    [class.input-invalid]="isFieldInvalid('dateDay')"
+                    [class.input-invalid]="isFieldInvalid('dateDay') || dateValidationState().isPastDate"
                     placeholder="Ej. 28" 
+                    (input)="onDateFieldsChange()"
                   />
-                  <span class="field-error-msg" *ngIf="isFieldInvalid('dateDay')">* Día requerido</span>
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('dateDay')">* Día requerido (1 al 31)</span>
                 </div>
 
                 <div class="form-group">
                   <label for="evt-month">Mes *</label>
-                  <select id="evt-month" formControlName="dateMonth">
+                  <select id="evt-month" formControlName="dateMonth" (change)="onDateFieldsChange()" [class.input-invalid]="dateValidationState().isPastDate">
                     <option value="ENE">ENE (Enero)</option>
                     <option value="FEB">FEB (Febrero)</option>
                     <option value="MAR">MAR (Marzo)</option>
@@ -636,16 +637,105 @@
                 </div>
 
                 <div class="form-group">
-                  <label for="evt-time">Horario *</label>
+                  <label for="evt-calendar-date">Fecha (Calendario)</label>
                   <input 
-                    id="evt-time" 
+                    id="evt-calendar-date" 
+                    type="date" 
+                    [min]="minDateString()"
+                    [value]="calendarDateValue()"
+                    (change)="onCalendarDateChange($event)"
+                    title="Selecciona la fecha en el calendario (bloquea fechas pasadas)"
+                  />
+                </div>
+              </div>
+
+              <!-- Alerta de validación en tiempo real para fechas u horas pasadas -->
+              <div class="date-validation-alert" *ngIf="!dateValidationState().isValid">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span>{{ dateValidationState().errorMessage }}</span>
+              </div>
+
+              <!-- Selector Visual de Horario: Hora de Inicio y Hora de Finalización -->
+              <div class="time-picker-card">
+                <div class="time-picker-header">
+                  <span class="time-picker-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Horario del Evento (Selector de Hora)
+                  </span>
+                  <span class="time-preview-badge">
+                    ⏰ {{ computedTimeSummary() }}
+                  </span>
+                </div>
+
+                <div class="form-row form-row-2">
+                  <div class="form-group">
+                    <label for="evt-start-time">Hora de Inicio *</label>
+                    <div class="time-input-wrapper">
+                      <input 
+                        id="evt-start-time" 
+                        type="time" 
+                        formControlName="startTime" 
+                        (change)="onTimeChange()"
+                        (input)="onTimeChange()"
+                        [min]="minStartTimeString()"
+                        [class.input-invalid]="isFieldInvalid('startTime') || dateValidationState().isPastTimeToday"
+                      />
+                    </div>
+                    <span class="field-error-msg" *ngIf="isFieldInvalid('startTime')">* Hora de inicio requerida</span>
+                    <span class="field-error-msg" *ngIf="dateValidationState().isPastTimeToday">* No puede ser una hora pasada</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="evt-end-time">Hora de Finalización *</label>
+                    <div class="time-input-wrapper">
+                      <input 
+                        id="evt-end-time" 
+                        type="time" 
+                        formControlName="endTime" 
+                        (change)="onTimeChange()"
+                        (input)="onTimeChange()"
+                        [class.input-invalid]="isFieldInvalid('endTime') || dateValidationState().isEndBeforeStart"
+                      />
+                    </div>
+                    <span class="field-error-msg" *ngIf="isFieldInvalid('endTime')">* Hora de fin requerida</span>
+                    <span class="field-error-msg" *ngIf="dateValidationState().isEndBeforeStart">* Debe ser posterior al inicio</span>
+                  </div>
+                </div>
+
+                <!-- Botones de acceso rápido para horarios habituales -->
+                <div class="time-presets-container">
+                  <span class="presets-label">Acceso rápido:</span>
+                  <div class="preset-pills">
+                    <button type="button" class="preset-pill" (click)="setTimePreset('09:00', '12:00')">☀️ 09:00 - 12:00</button>
+                    <button type="button" class="preset-pill" (click)="setTimePreset('14:00', '17:00')">🌤️ 14:00 - 17:00</button>
+                    <button type="button" class="preset-pill" (click)="setTimePreset('18:00', '21:00')">🌅 18:00 - 21:00</button>
+                    <button type="button" class="preset-pill" (click)="setTimePreset('20:00', '23:00')">🌙 20:00 - 23:00</button>
+                    <button type="button" class="preset-pill" (click)="setTimePreset('20:30', '23:30')">✨ 20:30 - 23:30</button>
+                  </div>
+                </div>
+
+                <!-- Campo para ajustar texto personalizado si se desea -->
+                <div class="form-group custom-time-group" *ngIf="showCustomTimeInput()">
+                  <label for="evt-custom-time">Texto descriptivo final del horario</label>
+                  <input 
+                    id="evt-custom-time" 
                     type="text" 
                     formControlName="time" 
-                    [class.input-invalid]="isFieldInvalid('time')"
+                    (input)="onTimeChange()"
                     placeholder="Ej. 20:30 - 23:30 HRS" 
                   />
-                  <span class="field-error-msg" *ngIf="isFieldInvalid('time')">* Horario requerido</span>
+                  <span class="field-hint">Texto que verán los usuarios en la cartelera y en los correos de recordatorio de 24 horas.</span>
                 </div>
+                <button type="button" class="toggle-custom-time-btn" (click)="toggleCustomTimeInput()">
+                  {{ showCustomTimeInput() ? '▲ Ocultar edición manual de texto' : '✎ Editar texto del horario manualmente' }}
+                </button>
               </div>
 
               <!-- Fila: Recinto / Ubicación y Sala / Ciudad -->
@@ -950,11 +1040,6 @@
                     <span>Ver Tarjeta Abierta</span>
                   </button>
 
-                  <button type="button" class="btn-action-archive" (click)="moveToPast(item)" title="Marcar como vencido">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-                    <span>Mover a Vencidos</span>
-                  </button>
-
                   <button type="button" class="btn-action-delete" (click)="deleteEvent(item)" title="Eliminar evento definitivamente">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                     <span>Eliminar</span>
@@ -1007,11 +1092,6 @@
                     <span>Ver Detalle</span>
                   </button>
 
-                  <button type="button" class="btn-action-reactivate" (click)="restoreToActive(item)" title="Reactivar y mover a eventos activos">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-                    <span>Reactivar a Activos</span>
-                  </button>
-
                   <button type="button" class="btn-action-delete" (click)="deleteEvent(item)" title="Eliminar evento definitivamente">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                     <span>Eliminar</span>
@@ -1044,7 +1124,7 @@
 
       <div class="admin-grid-2col">
         <!-- Formulario de Creación / Edición -->
-        <div class="card form-card" id="publication-form-section" *ngIf="authService.hasManagementRole()">
+        <div class="card form-card" id="publication-form-section" *ngIf="authService.isAdmin()">
           <div class="card-header">
             <div class="form-header-title">
               <h3>{{ isEditingPublication() ? 'Editar Noticia' : 'Nueva Noticia' }}</h3>
@@ -1212,12 +1292,12 @@
       </div>
 
       <!-- SECCIÓN 1: CONSTRUCTOR DE ENCUESTAS (RF-17) -->
-      <div *ngIf="authService.hasManagementRole()" class="survey-builder-wrapper">
+      <div *ngIf="authService.isAdmin()" class="survey-builder-wrapper">
         <app-survey-builder (surveyCreated)="loadSurveys()"></app-survey-builder>
       </div>
 
       <!-- SECCIÓN 2: LISTADO DE ENCUESTAS DINÁMICAS Y RESULTADOS (RF-18) -->
-      <div *ngIf="authService.hasManagementRole()" class="card surveys-list-card">
+      <div *ngIf="authService.isAdmin()" class="card surveys-list-card">
         <div class="card-header surveys-header-bar">
           <div class="surveys-header-title">
             <h3>🗳️ Encuestas Creadas en el Portal</h3>
@@ -1856,15 +1936,69 @@
     <section *ngIf="activeTab() === 'settings'" class="tab-panel animate-fade-in">
       <div class="section-intro">
         <h2>Configuración del Sistema</h2>
-        <p>Ajustes generales del portal, preferencias de notificaciones y parámetros del sistema.</p>
+        <p>Ajustes generales del portal, preferencias operativas y centro de pruebas de notificaciones.</p>
       </div>
 
-      <div class="card placeholder-card">
-        <div class="placeholder-icon">⚙️</div>
-        <h3>Módulo de Configuración</h3>
-        <p>Estructura lista para preferencias del sitio, personalización del portal y variables operativas.</p>
-        <div class="placeholder-actions">
-          <span class="status-pill active">Listo para configurar</span>
+      <div class="settings-grid">
+        <!-- Tarjeta de Pruebas de Notificaciones -->
+        <div class="settings-feature-card">
+          <div class="feature-card-header">
+            <div class="feature-icon-badge">⚡</div>
+            <div class="feature-title-group">
+              <span class="feature-kicker">PRUEBAS Y AUDITORÍA EN TIEMPO REAL</span>
+              <h3>Centro de Notificaciones y Test de Correos</h3>
+            </div>
+          </div>
+          <p class="feature-desc">
+            Visualiza en tiempo real las plantillas oficiales de correos electrónicos (Recordatorio 24h, Evento Cancelado y Evento Finalizado), inspecciona el historial de envíos del servidor y comprueba el ciclo de vida sin depender de restricciones de red o router local.
+          </p>
+
+          <div class="feature-actions-row">
+            <a 
+              href="http://localhost:3000/events/preview/dashboard" 
+              target="_blank" 
+              class="btn-open-preview-test"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+              <span>Abrir Panel de Pruebas de Notificaciones ↗</span>
+            </a>
+          </div>
+
+          <div class="quick-samples-list">
+            <span class="quick-samples-label">Acceso directo a plantillas visuales:</span>
+            <div class="sample-chips">
+              <a href="http://localhost:3000/events/preview/sample/reminder24h" target="_blank" class="chip-sample gold">
+                ⏰ Recordatorio 24h
+              </a>
+              <a href="http://localhost:3000/events/preview/sample/cancellation" target="_blank" class="chip-sample red">
+                ⚠️ Cancelación
+              </a>
+              <a href="http://localhost:3000/events/preview/sample/ended" target="_blank" class="chip-sample cyan">
+                🏁 Evento Finalizado
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Preferencias Generales -->
+        <div class="settings-feature-card secondary">
+          <div class="feature-card-header">
+            <div class="feature-icon-badge">⚙️</div>
+            <div class="feature-title-group">
+              <span class="feature-kicker">PARÁMETROS DEL SITIO</span>
+              <h3>Variables y Operaciones</h3>
+            </div>
+          </div>
+          <p class="feature-desc">
+            Ajustes generales del portal institucional, gestión de marcas y conectividad operativa.
+          </p>
+          <div class="feature-actions-row">
+            <span class="status-pill active">Operación normal</span>
+          </div>
         </div>
       </div>
     </section>
@@ -1912,6 +2046,56 @@
           <div class="modal-description-text">
             <h5>Descripción del Evento:</h5>
             <p>{{ item.description }}</p>
+          </div>
+
+          <!-- LISTA DE USUARIOS CON NOTIFICACIÓN ACTIVA -->
+          <div class="modal-subscribers-box" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h5 style="font-size: 13.5px; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 6px;">
+                🔔 Usuarios con Notificación Activa
+                <span style="background: rgba(212,175,55,0.2); color: #946c00; font-weight: 800; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                  {{ eventSubscribers().length }}
+                </span>
+              </h5>
+              <span *ngIf="loadingSubscribers()" style="font-size: 11.5px; color: #64748b;">Consultando...</span>
+            </div>
+
+            @if (loadingSubscribers()) {
+              <p style="font-size: 12px; color: #94a3b8; font-style: italic;">Cargando lista de usuarios suscritos...</p>
+            } @else if (eventSubscribers().length === 0) {
+              <p style="font-size: 12px; color: #94a3b8; font-style: italic;">Ningún usuario ha activado la notificación para este evento todavía.</p>
+            } @else {
+              <div style="max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                  <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; color: #64748b;">
+                    <tr>
+                      <th style="padding: 6px 10px;">Usuario</th>
+                      <th style="padding: 6px 10px;">Correo</th>
+                      <th style="padding: 6px 10px;">Recordatorio 24h</th>
+                      <th style="padding: 6px 10px;">Aviso Finalizado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (sub of eventSubscribers(); track sub.id) {
+                      <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 6px 10px; font-weight: 600; color: #1e293b;">{{ sub.name }}</td>
+                        <td style="padding: 6px 10px; color: #0284c7;">{{ sub.email }}</td>
+                        <td style="padding: 6px 10px;">
+                          <span [style.color]="sub.notified24h ? '#16a34a' : '#94a3b8'">
+                            {{ sub.notified24h ? '✅ Enviado' : '⏳ Pendiente' }}
+                          </span>
+                        </td>
+                        <td style="padding: 6px 10px;">
+                          <span [style.color]="sub.notifiedEnded ? '#16a34a' : '#94a3b8'">
+                            {{ sub.notifiedEnded ? '✅ Enviado' : '⏳ Pendiente' }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
           </div>
         </div>
 

@@ -135,7 +135,8 @@ export class CommentController {
     },
   })
   create(@Body() dto: CreateCommentDto, @Req() req: any) {
-    return this.commentService.create(dto, { index: req.user.id } as UserEntity);
+    const userIndex = req.user?.id ?? req.user?.index;
+    return this.commentService.create(dto, { index: userIndex, id: userIndex } as any);
   }
 
   @PRIVATE()
@@ -186,7 +187,8 @@ export class CommentController {
     },
   })
   update(@Param('uuid') uuid: string, @Body() dto: UpdateCommentDto, @Req() req: any) {
-    return this.commentService.update(uuid, dto, { index: req.user.id } as UserEntity);
+    const userIndex = req.user?.id ?? req.user?.index;
+    return this.commentService.update(uuid, dto, { index: userIndex, id: userIndex, role: req.user?.role } as any);
   }
 
   @PRIVATE()
@@ -238,6 +240,7 @@ export class CommentController {
     },
   })
   remove(@Param('uuid') uuid: string, @Req() req: any) {
-    return this.commentService.remove(uuid, { index: req.user.id } as UserEntity);
+    const userIndex = req.user?.id ?? req.user?.index;
+    return this.commentService.remove(uuid, { index: userIndex, id: userIndex, role: req.user?.role } as any);
   }
 }

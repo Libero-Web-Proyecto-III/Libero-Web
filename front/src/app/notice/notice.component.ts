@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -40,13 +40,15 @@ export class NoticeComponent implements OnInit {
   recentThree = computed(() => (this.selectedCategoryUuid() ? [] : this.news().slice(1, 4)));
   sidebarLatest = computed(() => (this.selectedCategoryUuid() ? [] : this.news().slice(0, 5)));
 
+  public readonly authService = inject(AuthService);
+  readonly currentUser = this.authService.currentUser;
+  readonly isLoggedIn = this.authService.isLoggedIn;
 
   constructor(
     private noticeService: NoticeService,
     private commentService: CommentService,
     private reactionService: ReactionService,
     private categoryService: CategoryService,
-    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router
   ) { }
@@ -244,6 +246,11 @@ export class NoticeComponent implements OnInit {
   }
 
   addComment(publicationUuid: string) {
+    if (!this.isLoggedIn()) {
+      this.reactionError.set('Debes iniciar sesión para comentar.');
+      return;
+    }
+
     const text = this.newCommentDraft().trim();
     if (!text) return;
 
@@ -255,6 +262,7 @@ export class NoticeComponent implements OnInit {
           )
         );
         this.newCommentDraft.set('');
+        this.reactionError.set(null);
       },
       error: (err: HttpErrorResponse) => {
         this.reactionError.set(

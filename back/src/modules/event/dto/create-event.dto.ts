@@ -63,6 +63,22 @@ export class CreateEventDto {
   time?: string;
 
   @ApiPropertyOptional({
+    description: 'Hora de inicio del evento (ej: 20:30)',
+    example: '20:30',
+  })
+  @IsOptional()
+  @IsString()
+  startTime?: string;
+
+  @ApiPropertyOptional({
+    description: 'Hora de finalización del evento (ej: 23:30)',
+    example: '23:30',
+  })
+  @IsOptional()
+  @IsString()
+  endTime?: string;
+
+  @ApiPropertyOptional({
     description: 'Lugar o recinto',
     example: 'Gran Teatro Metropolitano',
   })

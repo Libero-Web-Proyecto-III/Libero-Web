@@ -42,9 +42,10 @@ $color-profundidad: #F5FDFF;    /* Ternario: Profundidad (Blanco puro / Superfic
   }
 
   &__container {
-    max-width: 1200px;
+    width: 90%;
+    max-width: 1320px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0;
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
     gap: 3rem;
@@ -52,6 +53,7 @@ $color-profundidad: #F5FDFF;    /* Ternario: Profundidad (Blanco puro / Superfic
 
     @media (max-width: 900px) { grid-template-columns: 1fr 1fr; }
     @media (max-width: 580px) { grid-template-columns: 1fr; gap: 2rem; }
+    @media (max-width: 768px) { width: 92%; }
   }
 
   &__col {

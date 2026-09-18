@@ -65,9 +65,9 @@ export class ConfigComponent implements OnInit {
 
   // Rol formateado
   readonly roleDisplayName = computed(() => {
-    const role = this.currentUser()?.role;
-    if (role === 'admin') return 'ADMINISTRADOR';
-    if (role === 'mod') return 'MODERADOR';
+    const role = this.currentUser()?.role?.toLowerCase()?.trim();
+    if (role === 'admin' || role === 'administrador') return 'ADMINISTRADOR';
+    if (role === 'mod' || role === 'moderador') return 'MODERADOR';
     return 'USUARIO';
   });
 

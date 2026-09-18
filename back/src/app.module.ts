@@ -21,6 +21,7 @@ import { CommentModule } from './modules/comment/comment.module';
 import { SurveyModule } from './modules/survey/survey.module';
 import { VisitModule } from './modules/visit/visit.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 
 
 @Module({
@@ -30,6 +31,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
       isGlobal: true,
       envFilePath: '.env'
     }),
+
+    ScheduleModule.forRoot(),
 
     ThrottlerModule.forRoot([{
       ttl: 60_000,

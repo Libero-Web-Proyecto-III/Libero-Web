@@ -48,6 +48,8 @@ export interface AdminEventItem {
   dateDay: string;
   dateMonth: string;
   time: string;
+  startTime?: string;
+  endTime?: string;
   location: string;
   city: string;
   description: string;
@@ -144,6 +146,11 @@ export class AdminComponent implements OnInit {
 
   // Modal para ver tarjeta abierta completa
   readonly selectedEventDetail = signal<AdminEventItem | null>(null);
+  readonly eventSubscribers = signal<any[]>([]);
+  readonly loadingSubscribers = signal<boolean>(false);
+
+  readonly showCustomTimeInput = signal<boolean>(false);
+  readonly calendarDateValue = signal<string>('');
 
   // Formulario de eventos con los campos listos para creación desde el dashboard
   readonly eventForm = this.formBuilder.nonNullable.group({
@@ -151,7 +158,9 @@ export class AdminComponent implements OnInit {
     subtitle: ['', [Validators.required]],
     dateDay: ['', [Validators.required, Validators.maxLength(2)]],
     dateMonth: ['OCT', [Validators.required]],
-    time: ['', [Validators.required]],
+    startTime: ['20:00', [Validators.required]],
+    endTime: ['23:00', [Validators.required]],
+    time: ['20:00 - 23:00 HRS'],
     location: ['', [Validators.required]],
     city: ['', [Validators.required]],
     description: ['', [Validators.required, Validators.minLength(10)]],
@@ -514,7 +523,7 @@ export class AdminComponent implements OnInit {
   error = '';
   isLoading = false;
 
-  isFieldInvalid(name: 'title' | 'subtitle' | 'dateDay' | 'dateMonth' | 'time' | 'location' | 'city' | 'description' | 'imageUrl'): boolean {
+  isFieldInvalid(name: 'title' | 'subtitle' | 'dateDay' | 'dateMonth' | 'time' | 'startTime' | 'endTime' | 'location' | 'city' | 'description' | 'imageUrl'): boolean {
     const control = this.eventForm.controls[name];
     return control.invalid && (control.touched || control.dirty);
   }
@@ -524,16 +533,189 @@ export class AdminComponent implements OnInit {
     return control.invalid && (control.touched || control.dirty);
   }
 
+  toggleCustomTimeInput(): void {
+    this.showCustomTimeInput.update(v => !v);
+  }
+
+  setTimePreset(start: string, end: string): void {
+    this.eventForm.patchValue({
+      startTime: start,
+      endTime: end,
+      time: `${start} - ${end} HRS`,
+    });
+    this.formValueSignal.set(this.eventForm.getRawValue());
+  }
+
+  onTimeChange(): void {
+    const start = this.eventForm.controls.startTime.value?.trim();
+    const end = this.eventForm.controls.endTime.value?.trim();
+    if (start && end) {
+      this.eventForm.controls.time.setValue(`${start} - ${end} HRS`);
+    } else if (start) {
+      this.eventForm.controls.time.setValue(`${start} HRS`);
+    }
+    this.formValueSignal.set(this.eventForm.getRawValue());
+  }
+
+  readonly computedTimeSummary = computed<string>(() => {
+    const val = this.formValueSignal();
+    if (val.time?.trim()) return val.time.trim();
+    if (val.startTime && val.endTime) return `${val.startTime} - ${val.endTime} HRS`;
+    if (val.startTime) return `${val.startTime} HRS`;
+    return 'Por definir';
+  });
+
+  readonly minDateString = computed<string>(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  });
+
+  readonly minStartTimeString = computed<string>(() => {
+    const now = new Date();
+    const formVal = this.formValueSignal();
+    const monthMap: Record<string, number> = {
+      ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
+      JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11,
+    };
+    const day = parseInt(formVal.dateDay?.trim(), 10);
+    const month = monthMap[formVal.dateMonth?.trim()?.toUpperCase()];
+    if (day === now.getDate() && month === now.getMonth()) {
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      return `${h}:${m}`;
+    }
+    return '00:00';
+  });
+
+  readonly dateValidationState = computed<{
+    isValid: boolean;
+    isPastDate: boolean;
+    isPastTimeToday: boolean;
+    isEndBeforeStart: boolean;
+    errorMessage: string | null;
+  }>(() => {
+    const now = new Date();
+    const formVal = this.formValueSignal();
+    const monthMap: Record<string, number> = {
+      ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
+      JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11,
+    };
+    const day = parseInt(formVal.dateDay?.trim(), 10);
+    const monthKey = formVal.dateMonth?.trim()?.toUpperCase();
+    const month = monthMap[monthKey];
+
+    if (!formVal.dateDay?.trim() || isNaN(day) || month === undefined) {
+      return { isValid: true, isPastDate: false, isPastTimeToday: false, isEndBeforeStart: false, errorMessage: null };
+    }
+
+    const currentYear = now.getFullYear();
+    const chosenDate = new Date(currentYear, month, day);
+    const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // 1. Validar si la fecha está en el pasado
+    if (chosenDate.getTime() < todayZero.getTime()) {
+      return {
+        isValid: false,
+        isPastDate: true,
+        isPastTimeToday: false,
+        isEndBeforeStart: false,
+        errorMessage: 'La fecha seleccionada ya pasó. No se pueden programar eventos en fechas pasadas.',
+      };
+    }
+
+    // 2. Si es el mismo día, validar que la hora no sea una hora pasada
+    const isToday = chosenDate.getTime() === todayZero.getTime();
+    if (isToday && formVal.startTime) {
+      const [sh, sm] = formVal.startTime.split(':').map((p: string) => parseInt(p, 10));
+      if (!isNaN(sh) && !isNaN(sm)) {
+        const startTotalMinutes = sh * 60 + sm;
+        const nowTotalMinutes = now.getHours() * 60 + now.getMinutes();
+        if (startTotalMinutes <= nowTotalMinutes) {
+          return {
+            isValid: false,
+            isPastDate: false,
+            isPastTimeToday: true,
+            isEndBeforeStart: false,
+            errorMessage: 'Para eventos programados para hoy, la hora de inicio no puede ser una hora pasada.',
+          };
+        }
+      }
+    }
+
+    // 3. Validar que la hora de fin sea posterior a la de inicio
+    if (formVal.startTime && formVal.endTime) {
+      const [sh, sm] = formVal.startTime.split(':').map((p: string) => parseInt(p, 10));
+      const [eh, em] = formVal.endTime.split(':').map((p: string) => parseInt(p, 10));
+      if (!isNaN(sh) && !isNaN(sm) && !isNaN(eh) && !isNaN(em)) {
+        if (eh * 60 + em <= sh * 60 + sm) {
+          return {
+            isValid: false,
+            isPastDate: false,
+            isPastTimeToday: false,
+            isEndBeforeStart: true,
+            errorMessage: 'La hora de finalización debe ser posterior a la hora de inicio.',
+          };
+        }
+      }
+    }
+
+    return { isValid: true, isPastDate: false, isPastTimeToday: false, isEndBeforeStart: false, errorMessage: null };
+  });
+
+  onCalendarDateChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input?.value) return;
+    const parts = input.value.split('-');
+    if (parts.length === 3) {
+      const day = parts[2];
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const MONTH_CODES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+      const monthCode = MONTH_CODES[monthIdx] || 'ENE';
+
+      this.calendarDateValue.set(input.value);
+      this.eventForm.patchValue({
+        dateDay: day,
+        dateMonth: monthCode,
+      });
+      this.formValueSignal.set(this.eventForm.getRawValue());
+    }
+  }
+
+  onDateFieldsChange(): void {
+    const formVal = this.eventForm.getRawValue();
+    this.formValueSignal.set(formVal);
+
+    const monthMap: Record<string, number> = {
+      ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6,
+      JUL: 7, AGO: 8, SEP: 9, OCT: 10, NOV: 11, DIC: 12,
+    };
+    const day = parseInt(formVal.dateDay?.trim(), 10);
+    const mNum = monthMap[formVal.dateMonth?.trim()?.toUpperCase()];
+    if (!isNaN(day) && mNum !== undefined) {
+      const now = new Date();
+      const y = now.getFullYear();
+      const mStr = String(mNum).padStart(2, '0');
+      const dStr = String(day).padStart(2, '0');
+      this.calendarDateValue.set(`${y}-${mStr}-${dStr}`);
+    }
+  }
+
   // Vista Previa reactiva que se actualiza al escribir en el formulario
   readonly livePreview = computed<AdminEventItem>(() => {
     const val = this.formValueSignal();
+    const timeDisplay = val.time?.trim() || (val.startTime ? `${val.startTime}${val.endTime ? ' - ' + val.endTime : ''} HRS` : '20:00 - 23:00 HRS');
     return {
       uuid: 'preview-uuid-temp',
       title: val.title?.trim() || 'TÍTULO DEL EVENTO EN VIVO',
       subtitle: val.subtitle?.trim() || 'Subtítulo descriptivo o temática del evento para la comunidad',
       dateDay: val.dateDay?.trim() || '28',
       dateMonth: val.dateMonth?.trim() || 'OCT',
-      time: val.time?.trim() || '20:00 - 23:00 HRS',
+      time: timeDisplay,
+      startTime: val.startTime || '20:00',
+      endTime: val.endTime || '23:00',
       location: val.location?.trim() || 'Gran Teatro Metropolitano',
       city: val.city?.trim() || 'Sala Principal',
       description: val.description?.trim() || 'Disfruta de una experiencia única. Un encuentro exclusivo donde la música, el arte y la cultura se fusionan en un espacio diseñado para inspirar...',
@@ -550,6 +732,11 @@ export class AdminComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (!this.authService.isAdmin()) {
+      void this.router.navigate(['/']);
+      return;
+    }
+
     // Sincronizar pestaña activa con la subruta en la URL (/admin/:tab)
     this.route.paramMap.subscribe((params) => {
       const tabParam = (params.get('tab') || '').toLowerCase().trim();
@@ -767,8 +954,8 @@ export class AdminComponent implements OnInit {
         if (isSelf) {
           this.authService.updateCurrentUserRole(newRole);
 
-          // Si el nuevo rol ya no es administrativo ('admin' o 'mod'), redirigir automáticamente fuera del panel al Home
-          if (newRole !== 'admin' && newRole !== 'mod') {
+          // Si el nuevo rol ya no es admin, redirigir automáticamente fuera del panel al Home
+          if (newRole !== 'admin') {
             this.router.navigate(['/']);
             return;
           }
@@ -1015,6 +1202,8 @@ export class AdminComponent implements OnInit {
       if (this.eventForm.controls.title.invalid) missing.push('Título (mínimo 3 letras)');
       if (this.eventForm.controls.subtitle.invalid) missing.push('Subtítulo');
       if (this.eventForm.controls.dateDay.invalid) missing.push('Día (ej. 28)');
+      if (this.eventForm.controls.startTime.invalid) missing.push('Hora de inicio');
+      if (this.eventForm.controls.endTime.invalid) missing.push('Hora de fin');
       if (this.eventForm.controls.location.invalid) missing.push('Lugar / Recinto');
       if (this.eventForm.controls.description.invalid) missing.push('Descripción (mínimo 10 letras)');
 
@@ -1022,24 +1211,77 @@ export class AdminComponent implements OnInit {
       return;
     }
 
+    const valState = this.dateValidationState();
+    if (!valState.isValid) {
+      this.error = valState.errorMessage || 'Verifica la fecha y hora seleccionadas.';
+      return;
+    }
+
     this.isLoading = true;
     const formVal = this.eventForm.getRawValue();
     const now = new Date();
-    const nextWeek = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+    const currentYear = now.getFullYear();
+    const monthMap: Record<string, number> = {
+      ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
+      JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11,
+    };
+    const day = parseInt(formVal.dateDay.trim(), 10) || now.getDate();
+    const monthIndex = monthMap[formVal.dateMonth.trim().toUpperCase()] ?? now.getMonth();
+
+    let startHour = 20;
+    let startMinute = 0;
+    if (formVal.startTime) {
+      const parts = formVal.startTime.trim().split(':');
+      if (parts.length >= 2) {
+        startHour = parseInt(parts[0], 10);
+        startMinute = parseInt(parts[1], 10);
+      }
+    }
+
+    let endHour = startHour + 3;
+    let endMinute = startMinute;
+    if (formVal.endTime) {
+      const parts = formVal.endTime.trim().split(':');
+      if (parts.length >= 2) {
+        endHour = parseInt(parts[0], 10);
+        endMinute = parseInt(parts[1], 10);
+      }
+    }
+
+    const eventStart = new Date(currentYear, monthIndex, day, startHour, startMinute, 0);
+    if (eventStart.getTime() < now.getTime()) {
+      this.isLoading = false;
+      this.error = 'No se pueden programar eventos en fechas u horas pasadas.';
+      return;
+    }
+
+    let eventEnd = new Date(eventStart);
+    eventEnd.setHours(endHour, endMinute, 0, 0);
+    if (eventEnd.getTime() <= eventStart.getTime()) {
+      this.isLoading = false;
+      this.error = 'La hora de finalización debe ser posterior a la hora de inicio.';
+      return;
+    }
+
+    const finalTime = formVal.time?.trim() || (formVal.endTime
+      ? `${formVal.startTime} - ${formVal.endTime} HRS`
+      : `${formVal.startTime} HRS`);
 
     const payload = {
       title: formVal.title.trim().toUpperCase(),
       subtitle: formVal.subtitle.trim(),
       dateDay: formVal.dateDay.trim().padStart(2, '0'),
       dateMonth: formVal.dateMonth.trim().toUpperCase(),
-      time: formVal.time.trim(),
+      time: finalTime,
+      startTime: formVal.startTime.trim(),
+      endTime: formVal.endTime.trim(),
       location: formVal.location.trim(),
       city: formVal.city.trim(),
       description: formVal.description.trim(),
       imageUrl: formVal.imageUrl.trim() || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
       status: 'active',
-      startDate: now.toISOString(),
-      endDate: nextWeek.toISOString(),
+      startDate: eventStart.toISOString(),
+      endDate: eventEnd.toISOString(),
     };
 
     this.http.post<AdminEventItem>(this.eventsApiUrl, payload, this.options).subscribe({
@@ -1054,12 +1296,15 @@ export class AdminComponent implements OnInit {
           subtitle: '',
           dateDay: '',
           dateMonth: 'OCT',
-          time: '',
+          startTime: '20:00',
+          endTime: '23:00',
+          time: '20:00 - 23:00 HRS',
           location: '',
           city: '',
           description: '',
           imageUrl: '',
         });
+        this.calendarDateValue.set('');
         this.formValueSignal.set(this.eventForm.getRawValue());
         this.loadEvents();
       },
@@ -1136,10 +1381,25 @@ export class AdminComponent implements OnInit {
 
   openEventModal(event: AdminEventItem): void {
     this.selectedEventDetail.set(event);
+    this.eventSubscribers.set([]);
+    if (event?.uuid) {
+      this.loadingSubscribers.set(true);
+      this.http.get<any>(`${this.eventsApiUrl}/${event.uuid}/subscribers`, this.options).subscribe({
+        next: (res) => {
+          this.loadingSubscribers.set(false);
+          this.eventSubscribers.set(res?.subscribers || []);
+        },
+        error: () => {
+          this.loadingSubscribers.set(false);
+          this.eventSubscribers.set([]);
+        },
+      });
+    }
   }
 
   closeEventModal(): void {
     this.selectedEventDetail.set(null);
+    this.eventSubscribers.set([]);
   }
 
   // =========================================================================
@@ -1168,7 +1428,7 @@ export class AdminComponent implements OnInit {
   savePublication(): void {
     this.clearAlerts();
 
-    if (!this.authService.hasManagementRole()) {
+    if (!this.authService.isAdmin()) {
       this.error = 'No tienes permisos de administración para publicar noticias.';
       return;
     }

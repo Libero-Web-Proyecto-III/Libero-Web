@@ -258,7 +258,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (posts) => {
         if (posts && posts.length > 0) {
           // Decodificar &amp; en las URLs de imágenes (RSS las devuelve con entidades HTML)
-          const cleaned = posts.map(p => ({
+          const cleaned: FacebookPost[] = posts.map(p => ({
             ...p,
             full_picture: p.full_picture
               ? p.full_picture.replace(/&amp;/g, '&').replace(/&amp;amp;/g, '&')

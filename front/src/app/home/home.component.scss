@@ -78,22 +78,24 @@
    Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .presentation-section {
   background: var(--color-base, #F5FDFF);
-  padding: 2.5rem 0.5rem 0;
+  padding: 3.5rem 0 0;
 
-  @media (max-width: 768px) { padding: 1.5rem 0.25rem 0; }
+  @media (max-width: 768px) { padding: 2rem 0 0; }
 }
 
 .presentation-section__hero {
-  width: 95%;
+  width: 90%;
+  max-width: 1320px;
   margin: 0 auto;
   background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #006581 100%);
-  padding: 5rem 2rem 4.5rem;
+  padding: clamp(3rem, 5vw, 4.5rem) clamp(1.5rem, 4vw, 3rem);
   display: flex;
   justify-content: center;
   border-radius: 24px;
   overflow: hidden;
+  box-sizing: border-box;
 
-  @media (max-width: 768px) { width: 98%; border-radius: 16px; padding: 3.5rem 1.5rem 3rem; }
+  @media (max-width: 768px) { width: 92%; border-radius: 16px; padding: 2.5rem 1.25rem; }
 }
 
 .presentation-section__hero-inner {
@@ -186,15 +188,20 @@
    SECCIÃƒâ€œN 4: HIGHLIGHTS / INDICADORES CLAVE
    Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .highlights-section {
-  padding: 6rem 0;
+  padding: 5.5rem 0;
   background: #fff;
   border-top: 1px solid #e2e8f0;
 
   &__container {
-    max-width: 1600px;
+    width: 90%;
+    max-width: 1320px;
     margin: 0 auto;
-    padding: 0 0.25rem;
+    padding: 0;
     box-sizing: border-box;
+
+    @media (max-width: 768px) {
+      width: 92%;
+    }
   }
 
   &__header {
@@ -266,10 +273,10 @@
 .highlights-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  gap: clamp(1rem, 2vw, 1.5rem);
   margin-bottom: 3rem;
 
-  @media (max-width: 768px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 1024px) { grid-template-columns: repeat(2, 1fr); }
   @media (max-width: 480px) { grid-template-columns: 1fr; }
 }
 
@@ -486,31 +493,37 @@
    SECCIÃƒâ€œN 2: COLLAGE DE FOTOS
    Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .collage-section {
-  padding: 4rem 0;
+  padding: 4.5rem 0;
   background: white;
   width: 100%;
   box-sizing: border-box;
 
   &__header {
-    max-width: 1600px;
+    width: 90%;
+    max-width: 1320px;
     margin: 0 auto 2rem;
-    padding: 0 0.25rem;
+    padding: 0;
     box-sizing: border-box;
+
+    @media (max-width: 768px) {
+      width: 92%;
+    }
   }
 }
 
 .collage-grid {
-  width: 100%;
-  max-width: 1600px;
+  width: 90%;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 0 0.25rem;
+  padding: 0;
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: minmax(0, 2.7fr) minmax(280px, 1fr);
-  grid-template-rows: repeat(3, 150px);
-  gap: 12px;
+  grid-template-columns: 1.5fr 1fr;
+  grid-template-rows: repeat(3, clamp(130px, 14vw, 170px));
+  gap: clamp(10px, 1.2vw, 16px);
 
   @media (max-width: 900px) {
+    width: 92%;
     grid-template-columns: 1fr;
     grid-template-rows: auto;
 
@@ -673,22 +686,24 @@
 }
 
 .facebook-section {
-  padding: 6rem 0;
+  padding: 5.5rem 0;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
   width: 100%;
   position: relative;
+  overflow: hidden;
 
   &__container {
-    max-width: 1600px;
+    width: 90%;
+    max-width: 1320px;
     margin: 0 auto;
-    padding: 0 0.5rem;
+    padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
 
     @media (max-width: 768px) {
-      padding: 0 0.5rem;
+      width: 92%;
     }
   }
 
@@ -709,7 +724,7 @@
 
 .fb-slider-track {
   display: flex;
-  gap: 2.25rem;
+  gap: clamp(1.25rem, 2vw, 2rem);
   width: 100%;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -731,13 +746,13 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  width: 56px;
-  height: 56px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   border: 2px solid #e5e7eb;
   background: #ffffff;
   color: #1b4332;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -745,52 +760,44 @@
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 
   svg {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
 
   &:hover {
     background: #1b4332;
     color: #ffffff;
     border-color: #1b4332;
-    transform: translateY(-50%) scale(1.12);
-    box-shadow: 0 12px 30px rgba(27, 67, 50, 0.3);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 10px 28px rgba(27, 67, 50, 0.25);
   }
 
   &--prev {
-    left: -52px;
+    left: -20px;
 
-    @media (max-width: 1024px) {
-      left: -20px;
-    }
-
-    @media (max-width: 640px) {
-      left: -8px;
+    @media (max-width: 768px) {
+      left: 4px;
     }
   }
 
   &--next {
-    right: -52px;
+    right: -20px;
 
-    @media (max-width: 1024px) {
-      right: -20px;
-    }
-
-    @media (max-width: 640px) {
-      right: -8px;
+    @media (max-width: 768px) {
+      right: 4px;
     }
   }
 }
 
-/* Tarjetas EstÃƒÂ¡ticas MÃƒÂ¡s Grandes Verticalmente ("A nuestra forma") */
+/* Tarjetas Estáticas Más Grandes Verticalmente ("A nuestra forma") */
 .fb-card {
-  flex: 0 0 440px;
-  width: 440px;
+  flex: 0 0 clamp(320px, 28vw, 410px);
+  width: clamp(320px, 28vw, 410px);
   height: 480px;
   max-width: 85vw;
   scroll-snap-align: start;
   background: #ffffff;
-  border-radius: 24px;
+  border-radius: 22px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   display: flex;
@@ -946,21 +953,26 @@
    SECCIÃƒâ€œN 3: QUIÃƒâ€°NES SOMOS
    Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .about-section {
-  padding: 6rem 0;
+  padding: 5.5rem 0;
   background: var(--color-base, #F5FDFF);
   border-top: 1px solid var(--color-border-light, #e2e8f0);
 
   &__container {
-    max-width: 1600px;
+    width: 90%;
+    max-width: 1320px;
     margin: 0 auto;
-    padding: 0 0.25rem;
+    padding: 0;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: clamp(2rem, 5vw, 4rem);
     align-items: center;
     box-sizing: border-box;
 
-    @media (max-width: 900px) { grid-template-columns: 1fr; gap: 2.5rem; }
+    @media (max-width: 960px) {
+      width: 92%;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
   }
 
   &__text {
@@ -1044,11 +1056,16 @@
 
   &__container {
     position: relative;
-    max-width: 1600px;
+    width: 90%;
+    max-width: 1320px;
     margin: 0 auto;
-    padding: 0 0.25rem;
+    padding: 0;
     z-index: 1;
     box-sizing: border-box;
+
+    @media (max-width: 768px) {
+      width: 92%;
+    }
   }
 
   &__header { text-align: center; margin-bottom: 3.5rem; }
@@ -1086,11 +1103,11 @@
 .huellitas-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: clamp(1rem, 2vw, 1.75rem);
   margin-bottom: 2rem;
 
-  @media (max-width: 1024px) { grid-template-columns: repeat(2, 1fr); }
-  @media (max-width: 600px)  { grid-template-columns: 1fr; }
+  @media (max-width: 1080px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 640px)  { grid-template-columns: 1fr; }
 }
 
 .huellitas-card {
@@ -1209,21 +1226,23 @@
 }
 
 .map-section {
-  padding: 6rem 0;
+  padding: 5.5rem 0;
   background: white;
   border-top: 1px solid var(--color-border-light, #e2e8f0);
 
   &__container {
-    max-width: 1600px;
+    width: 90%;
+    max-width: 1320px;
     margin: 0 auto;
-    padding: 0 0.25rem;
+    padding: 0;
     display: grid;
     grid-template-columns: 0.9fr 1.1fr;
-    gap: 4rem;
+    gap: clamp(2rem, 5vw, 4rem);
     align-items: center;
     box-sizing: border-box;
 
-    @media (max-width: 900px) {
+    @media (max-width: 960px) {
+      width: 92%;
       grid-template-columns: 1fr;
       gap: 2.5rem;
     }
@@ -1311,14 +1330,21 @@
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬ Encuestas y ParticipaciÃƒÂ³n Ciudadana (RF-17 / RF-18) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .home-surveys-section {
-  padding: 5rem 2rem;
+  padding: 5.5rem 0;
   background: #F5FDFF;
   border-top: 1px solid #E4EBED;
   border-bottom: 1px solid #E4EBED;
 
   .home-surveys-container {
-    max-width: 1600px;
+    width: 90%;
+    max-width: 1320px;
     margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+
+    @media (max-width: 768px) {
+      width: 92%;
+    }
   }
 
   .surveys-header {
@@ -1336,7 +1362,7 @@
 
   /* # Este bloque tiene como objetivo dar estilos responsivos e interactivos al carrusel de encuestas en Home con la paleta de colores institucional */
   .surveys-carousel-wrapper {
-    max-width: 1100px;
+    max-width: 1050px;
     width: 100%;
     margin: 0 auto;
   }

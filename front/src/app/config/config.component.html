@@ -429,6 +429,47 @@
           </div>
         </section>
 
+        <!-- =========================================================
+             TARJETA: PRUEBAS Y AUDITORÍA DE NOTIFICACIONES
+             ========================================================= -->
+        @if (roleDisplayName() === 'ADMINISTRADOR' || roleDisplayName() === 'MODERADOR') {
+          <section class="config-card" aria-labelledby="notifications-test-title">
+            <div class="config-card__header">
+              <div class="config-card__icon-wrap" style="color: #d4af37; background: rgba(212, 175, 55, 0.12); border-color: rgba(212, 175, 55, 0.3);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 id="notifications-test-title" class="config-card__title">Centro de Pruebas de Notificaciones</h2>
+                <p class="config-card__desc">Auditoría en tiempo real de correos electrónicos, plantillas oficiales e historial de envíos.</p>
+              </div>
+            </div>
+
+            <div class="config-card__body">
+              <p style="font-size: 14px; color: #a1a1aa; line-height: 1.6; margin-bottom: 20px;">
+                Accede al panel del servidor para visualizar los correos generados (Recordatorio 24h, Evento Cancelado y Evento Finalizado) y comprobar el ciclo de vida sin restricciones de red o router local.
+              </p>
+
+              <div class="card-action-row">
+                <a
+                  href="http://localhost:3000/events/preview/dashboard"
+                  target="_blank"
+                  class="btn-secondary-action"
+                  style="border-color: #d4af37; color: #d4af37; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                  <span>Abrir Panel de Pruebas de Notificaciones ↗</span>
+                </a>
+              </div>
+            </div>
+          </section>
+        }
 
         <!-- =========================================================
              TARJETA 3: ZONA DE PELIGRO - ELIMINAR CUENTA

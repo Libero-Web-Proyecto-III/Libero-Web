@@ -46,8 +46,8 @@
         } @else {
           <!-- Acciones para usuario autenticado -->
           <button type="button" (click)="goToConfig()">Configuración</button>
-          @if (authService.hasManagementRole()) {
-            <!-- Panel habilitado para moderadores y administradores -->
+          @if (authService.isAdmin()) {
+            <!-- Panel habilitado únicamente para administradores -->
             <button type="button" (click)="requestAdministration()">Panel de Administración</button>
           }
           <button type="button" (click)="signOut()">Cerrar sesión</button>

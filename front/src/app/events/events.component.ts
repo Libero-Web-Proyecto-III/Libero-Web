@@ -43,6 +43,8 @@ export class EventsComponent implements OnInit {
   isNotifying = signal<boolean>(false);
   notificationError = signal<string | null>(null);
   notificationSuccessEmail = signal<string>('');
+  notificationMessage = signal<string>('');
+  notifiedImmediately = signal<boolean>(false);
 
   events = signal<EventItem[]>([]);
   isLoading = signal<boolean>(false);
@@ -51,10 +53,17 @@ export class EventsComponent implements OnInit {
     effect(() => {
       const user = this.authService.currentUser();
       this.syncSubscriptionsFromStorage(user);
+      if (user) {
+        this.loadUserSubscriptions();
+      }
     }, { allowSignalWrites: true });
   }
 
   ngOnInit(): void {
+    try {
+      localStorage.removeItem('libero_events_subscribed_active_user');
+      localStorage.removeItem('libero_events_subscribed_backup');
+    } catch {}
     this.loadEvents();
   }
 
@@ -68,11 +77,49 @@ export class EventsComponent implements OnInit {
           const activeList = data.filter(e => e.status !== 'past');
           this.events.set(activeList);
           this.syncSubscriptionsFromStorage(this.authService.currentUser());
+          this.loadUserSubscriptions();
         }
       },
       error: () => {
         this.isLoading.set(false);
       }
+    });
+  }
+
+  loadUserSubscriptions(): void {
+    if (!this.authService.isLoggedIn()) return;
+    const token = this.authService.getToken();
+    const user = this.authService.currentUser();
+    if (!token || !user) return;
+
+    const userKey = this.getStorageKey(user);
+    if (!userKey) return;
+
+    this.http.get<string[]>(`${this.apiUrl}/user/subscriptions`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (uuids) => {
+        if (Array.isArray(uuids)) {
+          try {
+            localStorage.setItem(userKey, JSON.stringify(uuids));
+          } catch {}
+
+          this.events.update(list =>
+            list.map(item => ({
+              ...item,
+              isSubscribed: uuids.includes(String(item.uuid)),
+            }))
+          );
+
+          const curModal = this.selectedEventForModal();
+          if (curModal) {
+            this.selectedEventForModal.update(ev =>
+              ev ? { ...ev, isSubscribed: uuids.includes(String(ev.uuid)) } : null
+            );
+          }
+        }
+      },
+      error: () => {}
     });
   }
 
@@ -88,41 +135,39 @@ export class EventsComponent implements OnInit {
     });
   });
 
-  private getStorageKey(user: UserSession | null): string {
-    const email = user?.email ? user.email.toLowerCase().trim() : 'active_user';
-    return `libero_events_subscribed_${email}`;
+  private getStorageKey(user: UserSession | null): string | null {
+    if (!user || !user.email) return null;
+    return `libero_events_subscribed_${user.email.toLowerCase().trim()}`;
   }
 
   private syncSubscriptionsFromStorage(user: UserSession | null): void {
     const userKey = this.getStorageKey(user);
+    if (!userKey) {
+      // Si el usuario no ha iniciado sesión o no tiene email, ningún evento debe figurar suscrito
+      this.events.update(list =>
+        list.map(item => ({ ...item, isSubscribed: false }))
+      );
+      const currentModal = this.selectedEventForModal();
+      if (currentModal && currentModal.isSubscribed) {
+        this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: false } : null);
+      }
+      return;
+    }
+
     const idSet = new Set<string>();
-
-    const readAndCollect = (key: string) => {
-      try {
-        const raw = localStorage.getItem(key);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            parsed.forEach((id: any) => {
-              if (id !== undefined && id !== null) idSet.add(String(id));
-            });
-          }
+    try {
+      const raw = localStorage.getItem(userKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((id: any) => {
+            if (id !== undefined && id !== null) idSet.add(String(id));
+          });
         }
-      } catch {}
-    };
-
-    readAndCollect(userKey);
-    readAndCollect('libero_events_subscribed_active_user');
-    readAndCollect('libero_events_subscribed_backup');
+      }
+    } catch {}
 
     const subscribedIds = Array.from(idSet);
-
-    if (subscribedIds.length > 0) {
-      try {
-        localStorage.setItem(userKey, JSON.stringify(subscribedIds));
-        localStorage.setItem('libero_events_subscribed_backup', JSON.stringify(subscribedIds));
-      } catch {}
-    }
 
     this.events.update(list =>
       list.map(item => {
@@ -179,19 +224,18 @@ export class EventsComponent implements OnInit {
     }
 
     const userKey = this.getStorageKey(currentUser);
-    const keysToUpdate = [userKey, 'libero_events_subscribed_active_user', 'libero_events_subscribed_backup'];
     const currentIdentifier = String(current.uuid);
 
-    keysToUpdate.forEach(key => {
+    if (userKey) {
       try {
-        const raw = localStorage.getItem(key);
+        const raw = localStorage.getItem(userKey);
         const ids: string[] = raw ? JSON.parse(raw).map((i: any) => String(i)) : [];
         if (!ids.includes(currentIdentifier)) {
           ids.push(currentIdentifier);
-          localStorage.setItem(key, JSON.stringify(ids));
+          localStorage.setItem(userKey, JSON.stringify(ids));
         }
       } catch {}
-    });
+    }
 
     this.events.update(list =>
       list.map(item => {
@@ -204,30 +248,37 @@ export class EventsComponent implements OnInit {
     this.isNotifying.set(true);
     this.notificationError.set(null);
 
-    const payload = {
-      title: current.title,
-      subtitle: current.subtitle,
-      date: `${current.dateDay || ''} de ${current.dateMonth || ''} 2026`,
-      time: current.time,
-      location: `${current.location} (${current.city})`,
-      description: current.description,
-      imageUrl: current.imageUrl,
-    };
-
-    this.http.post<any>(`${this.apiUrl}/notify`, payload, {
+    this.http.post<any>(`${this.apiUrl}/${current.uuid}/subscribe`, {}, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     }).subscribe({
-      next: () => {
+      next: (res) => {
         this.isNotifying.set(false);
         this.notificationSuccessEmail.set(currentUser?.email || 'tu correo registrado');
+        this.notifiedImmediately.set(!!res?.notifiedImmediately);
+        this.notificationMessage.set(res?.message || '');
         this.subscriptionSuccess.set(true);
       },
-      error: () => {
+      error: (err) => {
         this.isNotifying.set(false);
-        this.notificationSuccessEmail.set(currentUser?.email || 'tu correo registrado');
-        this.subscriptionSuccess.set(true);
+        const msg = err?.error?.message;
+        const errorText = Array.isArray(msg) ? msg.join(', ') : (msg || 'Error al registrar el recordatorio.');
+        this.notificationError.set(errorText);
+
+        // Revertir en caso de fallo
+        if (userKey) {
+          try {
+            const raw = localStorage.getItem(userKey);
+            let ids: string[] = raw ? JSON.parse(raw).map((i: any) => String(i)) : [];
+            ids = ids.filter(id => id !== currentIdentifier);
+            localStorage.setItem(userKey, JSON.stringify(ids));
+          } catch {}
+        }
+        this.events.update(list =>
+          list.map(item => String(item.uuid) === currentIdentifier ? { ...item, isSubscribed: false } : item)
+        );
+        this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: false } : null);
       },
     });
   }
@@ -245,20 +296,20 @@ export class EventsComponent implements OnInit {
     }
 
     const currentUser = this.authService.currentUser();
+    const token = this.authService.getToken();
     const userKey = this.getStorageKey(currentUser);
-    const keysToClean = [userKey, 'libero_events_subscribed_active_user', 'libero_events_subscribed_backup'];
     const currentIdentifier = String(current.uuid);
 
-    keysToClean.forEach(key => {
+    if (userKey) {
       try {
-        const stored = localStorage.getItem(key);
+        const stored = localStorage.getItem(userKey);
         if (stored) {
           let ids: string[] = JSON.parse(stored).map((i: any) => String(i));
           ids = ids.filter(id => id !== currentIdentifier);
-          localStorage.setItem(key, JSON.stringify(ids));
+          localStorage.setItem(userKey, JSON.stringify(ids));
         }
       } catch {}
-    });
+    }
 
     this.events.update(list =>
       list.map(item => {
@@ -271,6 +322,15 @@ export class EventsComponent implements OnInit {
     if (curModal && String(curModal.uuid) === currentIdentifier) {
       this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: false } : null);
       this.subscriptionSuccess.set(false);
+    }
+
+    if (token) {
+      this.http.delete<any>(`${this.apiUrl}/${current.uuid}/subscribe`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).subscribe({
+        next: () => {},
+        error: () => {},
+      });
     }
   }
 }

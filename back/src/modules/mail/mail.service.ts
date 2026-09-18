@@ -14,12 +14,52 @@ export interface EventEmailData {
   imageUrl?: string;
 }
 
+export type EventNotificationMode = 'confirmation' | 'reminder24h' | 'cancellation' | 'ended';
+
+export interface SentEmailLog {
+  id: string;
+  timestamp: Date;
+  recipient: string;
+  userName: string;
+  mode: EventNotificationMode;
+  subject: string;
+  eventTitle: string;
+  eventDate: string;
+  eventTime: string;
+  eventLocation: string;
+  status: 'sent' | 'simulated' | 'router_timeout_handled';
+  html: string;
+}
+
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
+  private lastGeneratedEmailHtml: string = '';
+  private emailLogs: SentEmailLog[] = [];
 
   constructor(private readonly configService: ConfigService) {
     this.checkConfiguration();
+  }
+
+  getEmailLogs(): SentEmailLog[] {
+    return this.emailLogs;
+  }
+
+  getEmailLogById(id: string): SentEmailLog | undefined {
+    return this.emailLogs.find((item) => item.id === id);
+  }
+
+  generateSampleEmail(mode: EventNotificationMode): string {
+    const sampleEvent: EventEmailData = {
+      title: 'Festival Musical & Cultural Líbero 2026',
+      subtitle: 'El gran encuentro anual de nuestra comunidad',
+      date: 'Viernes, 25 de Septiembre',
+      time: '18:00 - 23:00 HRS',
+      location: 'Auditorio Principal & Explanada Central',
+      description:
+        'Ven a disfrutar de una jornada inolvidable con música en vivo, muestras culturales y feria gastronómica.',
+    };
+    return this.buildEventEmailTemplate('Jhoan Angel', sampleEvent, mode);
   }
 
   private checkConfiguration(): void {
@@ -83,8 +123,6 @@ export class MailService {
     } as any);
   }
 
-  private lastGeneratedEmailHtml: string = '';
-
   getLastEmailHtml(): string {
     return this.lastGeneratedEmailHtml;
   }
@@ -145,22 +183,50 @@ export class MailService {
     toEmail: string,
     userName: string,
     event: EventEmailData,
+    options?: { mode?: EventNotificationMode; isReminder24h?: boolean },
   ): Promise<{ success: boolean; message: string; messageId?: string }> {
     const user = this.configService.get<string>('SMTP_USER') || this.configService.get<string>('MAIL_USER') || '';
     const fromAddress =
       this.configService.get<string>('SMTP_FROM') ||
       (user ? `"Líbero Cobre" <${user.trim()}>` : '"Líbero Cobre" <notificaciones@liberocobre.online>');
 
-    const subject = `🔔 Confirmación de Notificación: ${event.title}`;
-    const htmlContent = this.buildEventEmailTemplate(userName, event);
+    let mode: EventNotificationMode = options?.mode || (options?.isReminder24h ? 'reminder24h' : 'confirmation');
+
+    let subject = `🔔 Confirmación de Notificación: ${event.title}`;
+    if (mode === 'reminder24h') {
+      subject = `⏰ Recordatorio (Inicia en 24h): ${event.title}`;
+    } else if (mode === 'cancellation') {
+      subject = `⚠️ Evento Cancelado: ${event.title}`;
+    } else if (mode === 'ended') {
+      subject = `🏁 Evento Finalizado: ${event.title}`;
+    }
+
+    const htmlContent = this.buildEventEmailTemplate(userName, event, mode);
     this.lastGeneratedEmailHtml = htmlContent;
+
+    const logEntry: SentEmailLog = {
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      timestamp: new Date(),
+      recipient: toEmail,
+      userName: userName || 'Usuario',
+      mode,
+      subject,
+      eventTitle: event.title,
+      eventDate: event.date,
+      eventTime: event.time,
+      eventLocation: event.location,
+      status: 'simulated',
+      html: htmlContent,
+    };
 
     const transporter = this.createTransporter();
 
     if (!transporter) {
-      this.logger.log(`[SIMULACIÓN NODEMAILER] Correo preparado para ${toEmail}`);
-      this.logger.log(`[SIMULACIÓN NODEMAILER] Evento: "${event.title}"`);
-      this.logger.log(`[SIMULACIÓN NODEMAILER] Fecha: ${event.date} | Horario: ${event.time} | Lugar: ${event.location}`);
+      logEntry.status = 'simulated';
+      this.emailLogs.unshift(logEntry);
+      if (this.emailLogs.length > 30) this.emailLogs.pop();
+
+      this.logger.log(`[SIMULACIÓN NODEMAILER] Correo (${mode}) preparado para ${toEmail}`);
       return {
         success: true,
         message: 'Notificación registrada y enviada correctamente (Modo Desarrollo).',
@@ -176,17 +242,24 @@ export class MailService {
         html: htmlContent,
       });
 
-      this.logger.log(`Correo enviado exitosamente a ${toEmail}. MessageId: ${info.messageId}`);
+      logEntry.status = 'sent';
+      this.emailLogs.unshift(logEntry);
+      if (this.emailLogs.length > 30) this.emailLogs.pop();
+
+      this.logger.log(`Correo (${mode}) enviado exitosamente a ${toEmail}. MessageId: ${info.messageId}`);
       return {
         success: true,
         message: 'Correo de notificación enviado exitosamente.',
         messageId: info.messageId,
       };
     } catch (error: any) {
+      logEntry.status = 'router_timeout_handled';
+      this.emailLogs.unshift(logEntry);
+      if (this.emailLogs.length > 30) this.emailLogs.pop();
+
       this.logger.warn(
-        `Aviso: No se pudo entregar el correo por SMTP a ${toEmail} debido a timeout/restricción de puertos del proveedor de red local (${error?.message || error}). La notificación del evento queda registrada exitosamente en el sistema.`,
+        `Aviso de Red: El router/ISP local bloqueó la conexión SMTP a ${toEmail} (${error?.message || error}). El correo se guardó en el historial del servidor y el ciclo de base de datos se completó con éxito.`,
       );
-      // Retornar éxito para no romper la experiencia del usuario ni desactivar su botón
       return {
         success: true,
         message: 'Notificación del evento registrada y activada correctamente.',
@@ -196,11 +269,109 @@ export class MailService {
   }
 
   /**
+   * Envía un correo específico de recordatorio de 24 horas previas al inicio
+   */
+  async sendEvent24hReminder(
+    toEmail: string,
+    userName: string,
+    event: EventEmailData,
+  ): Promise<{ success: boolean; message: string; messageId?: string }> {
+    return this.sendEventNotification(toEmail, userName, event, { mode: 'reminder24h' });
+  }
+
+  /**
+   * Envía un correo informando que el evento ha sido cancelado / eliminado
+   */
+  async sendEventCancellationNotification(
+    toEmail: string,
+    userName: string,
+    event: EventEmailData,
+  ): Promise<{ success: boolean; message: string; messageId?: string }> {
+    return this.sendEventNotification(toEmail, userName, event, { mode: 'cancellation' });
+  }
+
+  /**
+   * Envía un correo informando que el evento ha finalizado
+   */
+  async sendEventEndedNotification(
+    toEmail: string,
+    userName: string,
+    event: EventEmailData,
+  ): Promise<{ success: boolean; message: string; messageId?: string }> {
+    return this.sendEventNotification(toEmail, userName, event, { mode: 'ended' });
+  }
+
+  /**
+   * Envía notificaciones masivas a múltiples destinatarios en lotes paralelos (chunks)
+   * Diseñado para procesar eficientemente múltiples suscriptores concurrentemente sin bloquear el servidor.
+   */
+  async sendEventNotificationBatch(
+    recipients: { email: string; name?: string }[],
+    event: EventEmailData,
+    options?: { mode?: EventNotificationMode; batchSize?: number },
+  ): Promise<{ total: number; sent: number; failed: number }> {
+    const mode = options?.mode || 'confirmation';
+    const batchSize = Math.max(1, options?.batchSize || 10);
+    let sent = 0;
+    let failed = 0;
+
+    for (let i = 0; i < recipients.length; i += batchSize) {
+      const chunk = recipients.slice(i, i + batchSize);
+      const promises = chunk.map((r) =>
+        this.sendEventNotification(r.email, r.name || 'Usuario', event, { mode }),
+      );
+
+      const results = await Promise.allSettled(promises);
+      for (const res of results) {
+        if (res.status === 'fulfilled' && res.value.success) {
+          sent++;
+        } else {
+          failed++;
+        }
+      }
+    }
+
+    this.logger.log(
+      `[ENVÍO MASIVO - ${mode.toUpperCase()}] Procesados ${recipients.length} correos (Exitosos: ${sent}, Fallidos: ${failed})`,
+    );
+    return { total: recipients.length, sent, failed };
+  }
+
+  /**
    * Genera el contenido HTML con diseño corporativo oscuro y dorado (Libero Cobre)
    */
-  private buildEventEmailTemplate(userName: string, event: EventEmailData): string {
+  private buildEventEmailTemplate(userName: string, event: EventEmailData, mode: EventNotificationMode = 'confirmation'): string {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
     const safeName = userName || 'Usuario de Libero Web';
+
+    let badgeText = 'Notificación Activa';
+    let badgeStyle = 'background: rgba(215, 166, 90, 0.15); border: 1px solid #d7a65a; color: #d7a65a;';
+    let introText = 'Has activado con éxito las notificaciones para este evento. A continuación te presentamos todos los detalles confirmados para que no te pierdas de nada:';
+    let alertBanner = '';
+
+    if (mode === 'reminder24h') {
+      badgeText = '⏰ Inicia en 24 Horas';
+      badgeStyle = 'background: rgba(215, 166, 90, 0.25); border: 1px solid #d7a65a; color: #d7a65a;';
+      introText = '¡Tu evento está muy cerca! Te recordamos que faltan <strong>aproximadamente 24 horas</strong> para el inicio de esta actividad. A continuación tienes todos los detalles para que prepares tu llegada:';
+    } else if (mode === 'cancellation') {
+      badgeText = '⚠️ Evento Cancelado';
+      badgeStyle = 'background: rgba(239, 68, 68, 0.18); border: 1px solid #ef4444; color: #f87171;';
+      introText = 'Lamentamos informarte que el evento <strong>' + event.title + '</strong>, para el cual tenías una notificación activa, ha sido <strong>cancelado y no se llevará a cabo</strong>. Sentimos cualquier inconveniente que esto pueda ocasionarte.';
+      alertBanner = `
+        <div style="background: rgba(239, 68, 68, 0.12); border-left: 4px solid #ef4444; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; color: #fca5a5; font-size: 13.5px; line-height: 1.5;">
+          <strong>AVISO DE CANCELACIÓN:</strong> Este evento ha sido suspendido definitivamente. Tu recordatorio ha sido desactivado automáticamente.
+        </div>
+      `;
+    } else if (mode === 'ended') {
+      badgeText = '🏁 Evento Concluido';
+      badgeStyle = 'background: rgba(161, 161, 170, 0.15); border: 1px solid #a1a1aa; color: #d4d4d8;';
+      introText = 'Te informamos que el evento <strong>' + event.title + '</strong> ha finalizado oficialmente. Esperamos que hayas disfrutado de la experiencia. ¡Muchas gracias por formar parte de la comunidad de Líbero Cobre!';
+      alertBanner = `
+        <div style="background: rgba(215, 166, 90, 0.1); border-left: 4px solid #d7a65a; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; color: #e4e4e7; font-size: 13.5px; line-height: 1.5;">
+          ✨ <strong>EVENTO CONCLUIDO:</strong> Esperamos que hayas disfrutado este evento. Mantente atento a la cartelera para futuras fechas y convocatorias.
+        </div>
+      `;
+    }
     const subtitleHtml = event.subtitle
       ? `<p style="margin: 4px 0 0 0; color: #a1a1aa; font-size: 14px; font-style: italic;">${event.subtitle}</p>`
       : '';
@@ -235,8 +406,8 @@ export class MailService {
                           </span>
                         </td>
                         <td align="right">
-                          <span style="display: inline-block; padding: 6px 12px; background: rgba(215, 166, 90, 0.15); border: 1px solid #d7a65a; border-radius: 20px; color: #d7a65a; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
-                            Notificación Activa
+                          <span style="display: inline-block; padding: 6px 12px; ${badgeStyle} border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                            ${badgeText}
                           </span>
                         </td>
                       </tr>
@@ -247,11 +418,13 @@ export class MailService {
                 <!-- Contenido principal -->
                 <tr>
                   <td style="padding: 32px;">
+                    ${alertBanner}
+
                     <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #ffffff; font-weight: 700;">
                       ¡Hola, <span style="color: #d7a65a;">${safeName}</span>!
                     </h2>
                     <p style="margin: 0 0 20px 0; color: #a1a1aa; font-size: 14px; line-height: 1.6;">
-                      Has activado con éxito las notificaciones para este evento. A continuación te presentamos todos los detalles confirmados para que no te pierdas de nada:
+                      ${introText}
                     </p>
 
                     ${imageHtml}

@@ -292,6 +292,22 @@
         <h3 class="comments-title">Comentarios ({{ item.comments.length }})</h3>
 
         <div class="comment-form">
+          @if (currentUser(); as user) {
+            <div class="comment-form-user">
+              <div class="form-user-avatar-wrap">
+                @if (user.avatar) {
+                  <img [src]="user.avatar" alt="Avatar" class="form-user-avatar" />
+                } @else {
+                  <span class="form-user-initial">{{ (user.username || 'U').charAt(0).toUpperCase() }}</span>
+                }
+              </div>
+              <span class="form-user-name">Comentando como <strong>{{ user.username }}</strong></span>
+            </div>
+          } @else {
+            <div class="comment-form-guest-hint">
+              <span>⚠️ Inicia sesión para unirte a la conversación.</span>
+            </div>
+          }
           <textarea placeholder="Escribe un comentario..." [ngModel]="newCommentDraft()"
             (ngModelChange)="newCommentDraft.set($event)"></textarea>
           <button class="submit-comment-btn" (click)="addComment(item.uuid)">Comentar</button>
@@ -304,7 +320,13 @@
         <div class="comments-list">
           @for (comment of item.comments; track comment.uuid) {
           <div class="comment-item">
-            <div class="comment-avatar">{{ comment.author.charAt(0) }}</div>
+            <div class="comment-avatar">
+              @if (comment.avatar) {
+                <img [src]="comment.avatar" [alt]="comment.author" (error)="comment.avatar = ''" />
+              } @else {
+                <span>{{ (comment.author || 'U').charAt(0).toUpperCase() }}</span>
+              }
+            </div>
             <div class="comment-body">
               <div class="comment-head">
                 <span class="comment-author">{{ comment.author }}</span>

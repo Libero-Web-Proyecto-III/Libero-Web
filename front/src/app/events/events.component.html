@@ -100,10 +100,10 @@
               } @else {
                 <div class="subscribed-actions">
                   <span class="active-badge" (click)="openModal(event); $event.stopPropagation()">
-                    ✓ Notificado
+                    ✓ Recordatorio 24h activo
                   </span>
                   <button class="cta-btn unsubscribe-card-btn" (click)="removeSubscription(event); $event.stopPropagation()">
-                    ✕ Quitar notificación
+                    ✕ Quitar recordatorio
                   </button>
                 </div>
               }
@@ -169,25 +169,39 @@
               <button type="button" class="modal-confirm-btn" [disabled]="isNotifying()" (click)="confirmSubscription()">
                 @if (isNotifying()) {
                   <span class="btn-spinner"></span>
-                  Enviando notificación...
+                  Programando recordatorio...
                 } @else {
-                  🔔 Notificarme Evento
+                  🔔 Recordarme 24h antes
                 }
               </button>
             } @else {
               <button type="button" class="modal-unsubscribe-btn" [disabled]="isNotifying()" (click)="removeSubscription()">
-                ✕ Quitar Notificación
+                ✕ Quitar Recordatorio
               </button>
             }
           </div>
         } @else {
           <div class="booking-success-state">
             <div class="success-icon">✓</div>
-            <h3>¡Notificación Enviada al Correo!</h3>
-            <p>Hemos enviado un correo con todos los detalles del evento a:</p>
+            @if (notifiedImmediately()) {
+              <div style="display:inline-block; margin-bottom: 8px; padding: 4px 12px; border-radius: 20px; background: rgba(212,175,55,0.2); border: 1px solid #d4af37; color: #f5c842; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">
+                ⚡ INICIA EN MENOS DE 24H &mdash; NOTIFICADO DE GOLPE
+              </div>
+              <h3>¡Recordatorio Enviado de Golpe!</h3>
+              <p>El evento inicia en menos de 24 horas. Hemos enviado la información inmediatamente a:</p>
+            } @else {
+              <h3>¡Recordatorio Programado (24h Antes)!</h3>
+              <p>Te enviaremos un correo con todos los detalles del evento exactamente 24 horas antes de su inicio a:</p>
+            }
             <p class="email-highlight">{{ notificationSuccessEmail() }}</p>
             <p class="event-name-highlight">"{{ item.title }}"</p>
-            <p class="subtext">Recibirás los avisos y recordatorios para este evento con suficiente antelación.</p>
+            <p class="subtext">
+              @if (notifiedImmediately()) {
+                Revisa tu bandeja de entrada para ver la información del evento.
+              } @else {
+                Te notificaremos con anticipación para que tengas todo listo para tu asistencia.
+              }
+            </p>
             <button type="button" class="modal-confirm-btn" style="margin-top: 1.5rem;" (click)="closeModal()">
               Entendido
             </button>

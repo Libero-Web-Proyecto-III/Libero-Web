@@ -234,6 +234,22 @@ export class ConfigComponent implements OnInit {
     img.src = src;
   }
 
+  // Alternar visibilidad de contraseñas (botón del ojo)
+  toggleShowCurrentPassword(event?: MouseEvent): void {
+    if (event) event.preventDefault();
+    this.showCurrentPassword.update((v) => !v);
+  }
+
+  toggleShowNewPassword(event?: MouseEvent): void {
+    if (event) event.preventDefault();
+    this.showNewPassword.update((v) => !v);
+  }
+
+  toggleShowConfirmPassword(event?: MouseEvent): void {
+    if (event) event.preventDefault();
+    this.showConfirmPassword.update((v) => !v);
+  }
+
   // Manejo de cambio en el input de contraseña actual
   onCurrentPasswordInput(value: string): void {
     this.currentPassword.set(value);

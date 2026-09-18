@@ -399,17 +399,18 @@ $border-input: #cbd5e1;
   display: flex;
   align-items: center;
 
-  svg:first-child {
+  > svg:first-child {
     position: absolute;
     left: 1rem;
     color: $color-delineados;
     pointer-events: none;
+    z-index: 2;
   }
 }
 
 .styled-text-input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  padding: 0.75rem 2.75rem 0.75rem 2.75rem;
   border-radius: 10px;
   background: #ffffff;
   border: 1px solid $border-input;
@@ -449,20 +450,38 @@ $border-input: #cbd5e1;
 
 .toggle-pass-btn {
   position: absolute;
-  right: 0.75rem;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #64748b;
   cursor: pointer;
-  padding: 0.35rem;
-  display: grid;
-  place-items: center;
+  padding: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
-  transition: color 0.2s ease, background 0.2s ease;
+  z-index: 10;
+  pointer-events: auto;
+  transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+
+  svg {
+    position: static !important;
+    left: auto !important;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+    transition: stroke 0.2s ease;
+  }
 
   &:hover:not(:disabled) {
-    color: $color-resalte;
-    background: #f1f5f9;
+    color: $color-principal;
+    background: rgba(216, 78, 24, 0.08);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(-50%) scale(0.95);
   }
 
   &:disabled {

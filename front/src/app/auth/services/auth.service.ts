@@ -10,6 +10,7 @@ export interface AuthUser {
   username: string;
   email: string;
   role: string;
+  avatar?: string;
 }
 
 export interface AuthResponse {
@@ -31,6 +32,17 @@ export interface PasswordResetResponse {
   message: string;
 }
 
+export interface UpdateProfileResponse {
+  success: boolean;
+  message: string;
+  data: AuthUser;
+}
+
+export interface ActionResponse {
+  success: boolean;
+  message: string;
+}
+
 export type UserSession = AuthUser;
 
 // # Este bloque tiene como objetivo gestionar el estado global de autenticación, almacenamiento de tokens JWT e información del usuario
@@ -44,11 +56,33 @@ export class AuthService {
   readonly isLoggedIn = computed(() => this.currentUser() !== null && this.getToken() !== null);
   readonly isAdmin = computed(() => this.currentUser()?.role === 'admin');
 
-  // # Este bloque tiene como objetivo actualizar el rol del usuario autenticado en la sesión activa (sessionStorage o localStorage) en tiempo real
-  updateCurrentUserRole(newRole: string): void {
+  constructor() {
+    this.refreshProfile();
+  }
+
+  // # Este bloque tiene como objetivo sincronizar el perfil con el backend si ya existe una sesión activa
+  refreshProfile(): void {
+    if (this.isLoggedIn()) {
+      this.getProfile().subscribe({
+        next: (profile) => {
+          this.updateCurrentUser({
+            username: profile.username,
+            avatar: profile.avatar || '',
+            email: profile.email,
+            role: profile.role,
+            uuid: profile.uuid,
+          });
+        },
+        error: () => {},
+      });
+    }
+  }
+
+  // # Este bloque tiene como objetivo actualizar propiedades del usuario autenticado en la sesión activa en tiempo real
+  updateCurrentUser(partial: Partial<AuthUser>): void {
     const user = this.currentUser();
     if (user) {
-      const updatedUser = { ...user, role: newRole };
+      const updatedUser = { ...user, ...partial };
       if (sessionStorage.getItem('authUser')) {
         sessionStorage.setItem('authUser', JSON.stringify(updatedUser));
       }
@@ -59,7 +93,50 @@ export class AuthService {
     }
   }
 
-  // # Este bloque tiene como objetivo realizar la petición HTTP de inicio de sesión y almacenar las credenciales según la preferencia de mantener sesión
+  // # Este bloque tiene como objetivo actualizar el rol del usuario autenticado en la sesión activa
+  updateCurrentUserRole(newRole: string): void {
+    this.updateCurrentUser({ role: newRole });
+  }
+
+  // # Este bloque tiene como objetivo obtener los datos más recientes del perfil desde el backend
+  getProfile(): Observable<AuthUser> {
+    return this.http.get<AuthUser>(`${this.apiUrl}/profile`);
+  }
+
+  // # Este bloque tiene como objetivo actualizar el nombre y la foto del usuario autenticado
+  updateProfile(payload: { name?: string; avatar?: string }): Observable<UpdateProfileResponse> {
+    return this.http.patch<UpdateProfileResponse>(`${this.apiUrl}/profile`, payload).pipe(
+      tap(response => {
+        if (response.data) {
+          this.updateCurrentUser({
+            username: response.data.username,
+            avatar: response.data.avatar || '',
+          });
+        }
+      }),
+    );
+  }
+
+  // # Este bloque tiene como objetivo verificar si la contraseña actual introducida por el usuario es correcta
+  verifyPassword(password: string): Observable<ActionResponse> {
+    return this.http.post<ActionResponse>(`${this.apiUrl}/verify-password`, { password });
+  }
+
+  // # Este bloque tiene como objetivo cambiar la contraseña del usuario autenticado
+  changePassword(payload: { newPassword: string; currentPassword: string }): Observable<ActionResponse> {
+    return this.http.patch<ActionResponse>(`${this.apiUrl}/change-password`, payload);
+  }
+
+  // # Este bloque tiene como objetivo eliminar definitivamente la cuenta del usuario autenticado
+  deleteAccount(): Observable<ActionResponse> {
+    return this.http.delete<ActionResponse>(`${this.apiUrl}/account`).pipe(
+      tap(() => {
+        this.logout();
+      }),
+    );
+  }
+
+  // # Este bloque tiene como objetivo realizar la petición HTTP de inicio de sesión y almacenar las credenciales
   login(payload: { identifier: string; password: string; rememberMe?: boolean }): Observable<AuthResponse> {
     const { identifier, password, rememberMe = false } = payload;
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { identifier, password }).pipe(
@@ -82,14 +159,14 @@ export class AuthService {
     return this.http.post<PasswordResetResponse>(`${this.apiUrl}/reset-password`, { token, password });
   }
 
-  // # Este bloque tiene como objetivo destruir los tokens de sesión y limpiar el estado de autenticación (logout), redirigiendo al inicio
+  // # Este bloque tiene como objetivo destruir los tokens de sesión y limpiar el estado de autenticación (logout)
   logout(): void {
     this.clearStorage();
     this.currentUser.set(null);
     this.router.navigate(['/']);
   }
 
-  // # Este bloque tiene como objetivo obtener el token JWT de acceso guardado (en sessionStorage o localStorage)
+  // # Este bloque tiene como objetivo obtener el token JWT de acceso guardado
   getToken(): string | null {
     return sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');
   }
@@ -105,6 +182,7 @@ export class AuthService {
       username: user.username || (user as any).name || 'Usuario',
       email: user.email || '',
       role: user.role || 'user',
+      avatar: user.avatar || '',
     };
   }
 
@@ -114,7 +192,7 @@ export class AuthService {
     return role === 'mod' || role === 'admin';
   }
 
-  // # Este bloque tiene como objetivo guardar la sesión en localStorage si rememberMe es true o en sessionStorage si es false
+  // # Este bloque tiene como objetivo guardar la sesión en localStorage o sessionStorage
   private saveSession(token: string, user: AuthUser, rememberMe: boolean): void {
     this.clearStorage();
 
@@ -129,7 +207,7 @@ export class AuthService {
     this.currentUser.set(user);
   }
 
-  // # Este bloque tiene como objetivo limpiar tokens y sesión de ambos almacenamientos (sessionStorage y localStorage)
+  // # Este bloque tiene como objetivo limpiar tokens y sesión de ambos almacenamientos
   private clearStorage(): void {
     sessionStorage.removeItem('accessToken');
     sessionStorage.removeItem('authUser');
@@ -137,7 +215,7 @@ export class AuthService {
     localStorage.removeItem('authUser');
   }
 
-  // # Este bloque tiene como objetivo leer y parsear la información guardada del usuario en sessionStorage o localStorage
+  // # Este bloque tiene como objetivo leer y parsear la información guardada del usuario
   private readUser(): AuthUser | null {
     const value = sessionStorage.getItem('authUser') || localStorage.getItem('authUser');
     if (!value) return null;

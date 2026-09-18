@@ -3,6 +3,7 @@ import { About } from './about/about';
 import { AppComponent } from './app';
 import { NoticeComponent } from './notice/notice.component';
 import { adminGuard } from './admin/admin.guard';
+import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
   {
@@ -20,6 +21,11 @@ export const routes: Routes = [
     },
     { path: 'about', component: About },
     { path: 'noticias', component: NoticeComponent },
+    {
+      path: 'config',
+      canActivate: [authGuard],
+      loadComponent: () => import('./config/config.component').then(m => m.ConfigComponent),
+    },
     {
       path: 'admin',
       canActivate: [adminGuard],

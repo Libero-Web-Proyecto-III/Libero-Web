@@ -48,10 +48,19 @@ $color-profundidad: #F5FDFF;    /* Ternario: Profundidad (Blanco puro / Superfic
   display: grid;
   place-items: center;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(135deg, $color-principal 0%, $color-complementario 100%);
   color: $color-profundidad;
   font-weight: 800;
   box-shadow: 0 2px 8px rgba(216, 78, 24, 0.35);
+}
+
+.profile-menu__avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-menu__trigger-avatar {

@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Patch,
   Post,
   Request,
   UseGuards,
@@ -54,7 +56,40 @@ export class AuthController {
   @PRIVATE()
   @Get('profile')
   getProfile(@Request() req: any) {
-    return req.user;
+    return this.authService.getProfile(req.user.id);
+  }
+
+  @PRIVATE()
+  @Patch('profile')
+  updateProfile(
+    @Request() req: any,
+    @Body() dto: { name?: string; avatar?: string },
+  ) {
+    return this.authService.updateProfile(req.user.id, dto);
+  }
+
+  @PRIVATE()
+  @Post('verify-password')
+  verifyPassword(
+    @Request() req: any,
+    @Body('password') password: string,
+  ) {
+    return this.authService.verifyPassword(req.user.id, password);
+  }
+
+  @PRIVATE()
+  @Patch('change-password')
+  changePassword(
+    @Request() req: any,
+    @Body() dto: { newPassword: string; currentPassword: string },
+  ) {
+    return this.authService.changePassword(req.user.id, dto);
+  }
+
+  @PRIVATE()
+  @Delete('account')
+  deleteAccount(@Request() req: any) {
+    return this.authService.deleteAccount(req.user.id);
   }
 
   @PRIVATE()

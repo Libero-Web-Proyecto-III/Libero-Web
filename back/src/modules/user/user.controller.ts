@@ -54,7 +54,7 @@ export class UserController {
   @Patch(':uuid')
   updateUser(
     @Param('uuid') uuid: string,
-    @Body() body: { name?: string; email?: string },
+    @Body() body: { name?: string; email?: string; avatar?: string },
   ) {
     return this.userService.update(uuid, body);
   }

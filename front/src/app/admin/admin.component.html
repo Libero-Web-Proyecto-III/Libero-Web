@@ -8,7 +8,10 @@
         <span class="brand-sub">PANEL DE ADMINISTRACIÓN</span>
       </div>
       <div class="user-chip">
-        <div class="user-avatar">{{ userInitials() }}</div>
+        <div class="user-avatar">
+          <img *ngIf="authService.currentUser()?.avatar" [src]="authService.currentUser()?.avatar" alt="Avatar" class="user-avatar-img" />
+          <span *ngIf="!authService.currentUser()?.avatar">{{ userInitials() }}</span>
+        </div>
         <div class="user-details">
           <span class="user-name">{{ authService.getUser()?.username || 'Administrador' }}</span>
           <span class="user-role-badge" [class.admin]="authService.isAdmin()">
@@ -1445,7 +1448,8 @@
                   <td>
                     <div class="user-identity-cell">
                       <div class="user-avatar-bubble" [class.admin]="(userItem.rol?.name || userItem.role) === 'admin'" [class.mod]="(userItem.rol?.name || userItem.role) === 'mod'">
-                        {{ userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U' }}
+                        <img *ngIf="userItem.avatar" [src]="userItem.avatar" [alt]="userItem.name" class="user-avatar-img" />
+                        <span *ngIf="!userItem.avatar">{{ userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U' }}</span>
                       </div>
                       <div class="user-identity-info">
                         <strong class="user-name-text">{{ userItem.name }}</strong>

@@ -189,11 +189,17 @@ export class UserService {
     return await this.UserRepository.save(user);
   }
 
-  // # Este bloque tiene como objetivo actualizar la información básica de un usuario (nombre, correo)
-  async update(uuid: string, updateData: { name?: string; email?: string }): Promise<UserEntity> {
+  // # Este bloque tiene como objetivo guardar directamente los cambios de una entidad de usuario
+  async save(user: UserEntity): Promise<UserEntity> {
+    return await this.UserRepository.save(user);
+  }
+
+  // # Este bloque tiene como objetivo actualizar la información básica de un usuario (nombre, correo, avatar)
+  async update(uuid: string, updateData: { name?: string; email?: string; avatar?: string }): Promise<UserEntity> {
     const user = await this.findOneBy.uuid(uuid);
     if (updateData.name) user.name = updateData.name;
     if (updateData.email) user.email = updateData.email;
+    if (updateData.avatar !== undefined) user.avatar = updateData.avatar;
     return await this.UserRepository.save(user);
   }
 

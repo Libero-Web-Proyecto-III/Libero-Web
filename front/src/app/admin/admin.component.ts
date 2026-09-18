@@ -71,6 +71,7 @@ export interface UserItem {
   role?: string;
   tag?: TagItem | null;
   tags?: TagItem[];
+  avatar?: string;
 }
 
 interface Publication {

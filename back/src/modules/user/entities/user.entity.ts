@@ -42,7 +42,7 @@ export class UserEntity extends BaseEntity {
         description: 'Dirección local o DNS de la imagen',
         example: enumProperty.avatar
     })
-    @Column({ nullable: true })
+    @Column({ type: 'longtext', nullable: true })
     avatar: string;
 
     @ApiProperty({

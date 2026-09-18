@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -53,9 +54,11 @@ export class AuthService {
 
     const authUser: AuthUser = {
       id: user.index,
+      uuid: user.uuid,
       username: user.name,
       email: user.email,
       role: user.rol?.name || 'user',
+      avatar: user.avatar || '',
     };
 
     const token = this.generateToken({
@@ -104,9 +107,11 @@ export class AuthService {
 
     return {
       id: user.index,
+      uuid: user.uuid,
       username: user.name,
       email: user.email,
       role: user.rol?.name || 'user',
+      avatar: user.avatar || '',
     };
   }
 
@@ -206,6 +211,98 @@ export class AuthService {
     return {
       success: true,
       message: 'Contraseña actualizada correctamente.',
+    };
+  }
+
+  async getProfile(userId: number) {
+    const user = await this.userService.findOneBy.id(userId);
+    return {
+      id: user.index,
+      uuid: user.uuid,
+      username: user.name,
+      email: user.email,
+      role: user.rol?.name || 'user',
+      avatar: user.avatar || '',
+    };
+  }
+
+  async updateProfile(userId: number, dto: { name?: string; avatar?: string }) {
+    const user = await this.userService.findOneBy.id(userId);
+
+    if (dto.name && dto.name.trim() !== user.name) {
+      const existing = await this.userService.findOrNull.name(dto.name.trim());
+      if (existing && existing.index !== userId) {
+        throw new ConflictException('Ya existe un usuario con ese nombre.');
+      }
+      user.name = dto.name.trim();
+    }
+
+    if (dto.avatar !== undefined) {
+      user.avatar = dto.avatar ? dto.avatar.trim() : '';
+    }
+
+    const saved = await this.userService.save(user);
+
+    return {
+      success: true,
+      message: 'Perfil actualizado correctamente.',
+      data: {
+        id: saved.index,
+        uuid: saved.uuid,
+        username: saved.name,
+        email: saved.email,
+        role: saved.rol?.name || 'user',
+        avatar: saved.avatar || '',
+      },
+    };
+  }
+
+  async verifyPassword(userId: number, password: string) {
+    if (!password || !password.trim()) {
+      throw new BadRequestException('Debes ingresar tu contraseña actual.');
+    }
+    const user = await this.userService.findOneBy.id(userId);
+    const isMatch = await this.comparePassword(password, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('La contraseña actual es incorrecta.');
+    }
+    return {
+      success: true,
+      message: 'Contraseña actual verificada correctamente.',
+    };
+  }
+
+  async changePassword(userId: number, dto: { newPassword: string; currentPassword: string }) {
+    if (!dto.currentPassword || !dto.currentPassword.trim()) {
+      throw new BadRequestException('Debes ingresar tu contraseña actual.');
+    }
+
+    const user = await this.userService.findOneBy.id(userId);
+
+    const isMatch = await this.comparePassword(dto.currentPassword, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('La contraseña actual es incorrecta.');
+    }
+
+    if (!dto.newPassword || dto.newPassword.trim().length < 6) {
+      throw new BadRequestException('La nueva contraseña debe tener al menos 6 caracteres.');
+    }
+
+    user.password = await this.hashPassword(dto.newPassword.trim());
+    await this.userService.save(user);
+
+    return {
+      success: true,
+      message: 'Contraseña actualizada correctamente.',
+    };
+  }
+
+  async deleteAccount(userId: number) {
+    const user = await this.userService.findOneBy.id(userId);
+    await this.userService.delete(user.uuid);
+    return {
+      success: true,
+      message: 'Cuenta eliminada correctamente.',
     };
   }
 }

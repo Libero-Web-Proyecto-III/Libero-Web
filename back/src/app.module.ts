@@ -19,6 +19,7 @@ import { RolesGuard } from './common/guard/roles.guard';
 import { ReactionModule } from './modules/reaction/reaction.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { PqrModule } from './modules/pqr/pqr.module';
 
 
 @Module({
@@ -38,7 +39,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     DatabaseModule,
 
     TagModule, RolModule,
-    UserModule, PublicationModule, ReactionModule,
+    UserModule, PublicationModule, ReactionModule, PqrModule,
     CategoryModule, EventModule, AuthModule, CommentModule, FacebookModule
 ],
   controllers: [AppController],

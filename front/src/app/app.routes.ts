@@ -12,12 +12,16 @@ export const routes: Routes = [
     path: 'eventos',
     loadComponent: () => import('./events/events.component').then(m => m.EventsComponent)
   },
-    {
-      path: '',
-      loadComponent: () =>
-        import('./home/home.component').then(m => m.HomeComponent),
-    },
-    { path: 'about', component: About },
-    { path: 'noticias', component: NoticeComponent },
-    { path: '**', redirectTo: '' },
+  {
+    path: 'pqr',
+    loadComponent: () => import('./pqr/pqr.component').then(m => m.PqrComponent)
+  },
+  {
+    path: '',
+    loadComponent: () =>
+      import('./home/home.component').then(m => m.HomeComponent),
+  },
+  { path: 'about', component: About },
+  { path: 'noticias', component: NoticeComponent },
+  { path: '**', redirectTo: '' },
 ];

@@ -1,0 +1,159 @@
+<div class="pqr-page">
+  <app-navbar></app-navbar>
+
+  <main class="pqr-container">
+
+    <div class="page-header-row">
+      <div>
+        <h1 class="page-title">Peticiones, Quejas, Reclamos y Sugerencias</h1>
+        <p class="page-subtitle">Tu opinión nos ayuda a mejorar. Cuéntanos qué está pasando.</p>
+      </div>
+      @if (canManagePqrs()) {
+        <button class="panel-toggle-btn" (click)="togglePanel()">
+          {{ showPanel() ? 'Ver formulario' : 'Panel de gestión' }}
+        </button>
+      }
+    </div>
+
+    @if (!showPanel()) {
+      <!-- ===== Formulario público ===== -->
+      <div class="pqr-form-card">
+        @if (sendSuccess()) {
+          <div class="success-box">
+            <div class="success-icon">✓</div>
+            <h2>¡Gracias por tu mensaje!</h2>
+            <p>Hemos recibido tu solicitud y la revisaremos lo antes posible.</p>
+            <button class="new-pqr-btn" (click)="dismissSuccess()">Enviar otra PQR</button>
+          </div>
+        } @else {
+          @if (sendError()) {
+            <p class="pqr-error">{{ sendError() }}</p>
+          }
+
+          <div class="pqr-form">
+            <div class="form-row">
+              <div class="form-field">
+                <label>Nombre completo *</label>
+                <input type="text" [ngModel]="formFullName()" (ngModelChange)="formFullName.set($event)" />
+              </div>
+              <div class="form-field">
+                <label>Correo electrónico *</label>
+                <input type="email" [ngModel]="formEmail()" (ngModelChange)="formEmail.set($event)" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label>Teléfono (opcional)</label>
+                <input type="text" [ngModel]="formPhone()" (ngModelChange)="formPhone.set($event)" />
+              </div>
+              <div class="form-field">
+                <label>Tipo *</label>
+                <select [ngModel]="formType()" (ngModelChange)="formType.set($event)">
+                  @for (opt of typeOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Asunto *</label>
+              <input type="text" placeholder="Resume brevemente tu solicitud" [ngModel]="formSubject()" (ngModelChange)="formSubject.set($event)" />
+            </div>
+
+            <div class="form-field">
+              <label>Mensaje *</label>
+              <textarea placeholder="Describe con detalle tu petición, queja, reclamo o sugerencia" [ngModel]="formMessage()" (ngModelChange)="formMessage.set($event)"></textarea>
+            </div>
+
+            <button class="submit-pqr-btn" [disabled]="sending()" (click)="submitPqr()">
+              {{ sending() ? 'Enviando...' : 'Enviar solicitud' }}
+            </button>
+          </div>
+        }
+      </div>
+
+    } @else {
+      <!-- ===== Panel de gestión (mod/admin) ===== -->
+      <div class="panel-filters">
+        <select [ngModel]="filterType()" (ngModelChange)="filterType.set($event); applyFilters()">
+          <option value="">Todos los tipos</option>
+          @for (opt of typeOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+
+        <select [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event); applyFilters()">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="en_revision">En revisión</option>
+          <option value="resuelto">Resuelto</option>
+          <option value="rechazado">Rechazado</option>
+        </select>
+      </div>
+
+      @if (panelLoading()) {
+        <p class="panel-loading">Cargando PQRs...</p>
+      } @else if (pqrs().length === 0) {
+        <p class="panel-loading">No hay PQRs que coincidan con los filtros.</p>
+      } @else {
+        <div class="pqr-list">
+          @for (pqr of pqrs(); track pqr.uuid) {
+            <article class="pqr-item">
+              <div class="pqr-item-header" (click)="toggleExpand(pqr)">
+                <div>
+                  <span class="pqr-type-tag" [class]="'type-' + pqr.type">{{ typeOptions.find(t => t.value === pqr.type)?.label }}</span>
+                  <span class="pqr-status-tag" [class]="'status-' + pqr.status">{{ statusLabels[pqr.status] }}</span>
+                </div>
+                <h3>{{ pqr.subject }}</h3>
+                <span class="pqr-meta">{{ pqr.fullName }} · {{ pqr.email }} · {{ pqr.createdAt | date: 'd MMM. y' }}</span>
+              </div>
+
+              @if (expandedUuid() === pqr.uuid) {
+                <div class="pqr-item-body">
+                  <p class="pqr-message">{{ pqr.message }}</p>
+
+                  @if (pqr.phone) {
+                    <p class="pqr-phone">📞 {{ pqr.phone }}</p>
+                  }
+
+                  @if (updateError()) {
+                    <p class="pqr-error">{{ updateError() }}</p>
+                  }
+
+                  <div class="pqr-update-form">
+                    <label>Estado</label>
+                    <select [ngModel]="statusDraft()" (ngModelChange)="statusDraft.set($event)">
+                      <option value="pendiente">Pendiente</option>
+                      <option value="en_revision">En revisión</option>
+                      <option value="resuelto">Resuelto</option>
+                      <option value="rechazado">Rechazado</option>
+                    </select>
+
+                    <label>Respuesta (opcional)</label>
+                    <textarea placeholder="Escribe una respuesta para el solicitante" [ngModel]="responseDraft()" (ngModelChange)="responseDraft.set($event)"></textarea>
+
+                    <button class="submit-pqr-btn small" [disabled]="updating()" (click)="submitStatusUpdate(pqr)">
+                      {{ updating() ? 'Guardando...' : 'Guardar cambios' }}
+                    </button>
+                  </div>
+
+                  @if (pqr.response) {
+                    <div class="pqr-previous-response">
+                      <strong>Respuesta enviada:</strong>
+                      <p>{{ pqr.response }}</p>
+                    </div>
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    }
+
+  </main>
+
+  <app-footer></app-footer>
+</div>

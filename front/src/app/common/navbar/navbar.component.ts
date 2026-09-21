@@ -53,7 +53,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     { label: 'Inicio', path: '/', exact: true },
     { label: 'Eventos', path: '/eventos', exact: false },
     { label: 'Noticias', path: '/noticias', exact: false },
+    { label: 'PQRs', path: '/pqr', exact: false },
     { label: 'Quiénes Somos', path: '/about', exact: false },
+
   ];
 
   ngAfterViewInit(): void {

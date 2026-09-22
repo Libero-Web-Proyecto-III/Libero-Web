@@ -232,14 +232,14 @@ export class AuthService {
     const permissionMap: Record<string, Record<string, string[]>> = {
       mod: {
         admin: ['view'],
-        publication: ['view', 'create', 'edit', 'delete'],
-        event: ['view', 'create', 'edit'],
+        publication: ['view', 'edit', 'delete'],
+        event: ['view', 'edit'],
         comment: ['view', 'create', 'delete'],
         survey: ['view', 'participate'],
       },
       user: {
         admin: [],
-        publication: ['view', 'create'],
+        publication: ['view'],
         event: ['view'],
         comment: ['view', 'create'],
         survey: ['view', 'participate'],

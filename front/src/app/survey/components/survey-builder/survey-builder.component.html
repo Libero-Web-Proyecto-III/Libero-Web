@@ -1,0 +1,173 @@
+<!-- 
+  # OBJETIVO DEL PLANTILLA: Formulario Dinámico Interactivo (RF-17)
+  Encargado: Eduardo
+  Muestra el constructor dinámico con selección de tipos de preguntas y opciones anidadas.
+-->
+<div class="survey-builder-card">
+  <!-- # Este bloque tiene como objetivo presentar la cabecera principal del constructor de encuestas dinámicas sin etiquetas irrelevantes -->
+  <div class="card-header">
+    <h3>Constructor de Encuestas Dinámicas</h3>
+    <p>Diseña un nuevo formulario dinámico con preguntas adaptables y opciones personalizadas.</p>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()" class="builder-form">
+    <!-- Configuración Básica de la Encuesta -->
+    <div class="form-section">
+      <h4>1. Información General</h4>
+      <div class="form-group">
+        <label for="survey-title">Título de la Encuesta *</label>
+        <input
+          id="survey-title"
+          type="text"
+          formControlName="title"
+          placeholder="Ej. Encuesta de Evaluación Académica 2026"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="survey-desc">Descripción (Opcional)</label>
+        <textarea
+          id="survey-desc"
+          formControlName="description"
+          rows="2"
+          placeholder="Ingresa una breve explicación o propósito para los encuestados..."
+        ></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="survey-status">Estado de Publicación</label>
+          <select id="survey-status" formControlName="status">
+            <option *ngFor="let status of surveyStatuses" [value]="status.value">
+              {{ status.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="isPublic" />
+            <span>Permitir respuestas públicas (Sin requerir inicio de sesión)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista Dinámica de Preguntas (FormArray) -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4>2. Preguntas del Formulario</h4>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="addQuestion()">
+          + Agregar Pregunta
+        </button>
+      </div>
+
+      <div formArrayName="questions" class="questions-container">
+        <div
+          *ngFor="let questionGroup of questions.controls; let qIndex = index"
+          [formGroupName]="qIndex"
+          class="question-card"
+        >
+          <div class="question-card-header">
+            <span class="question-number">Pregunta #{{ qIndex + 1 }}</span>
+            <button
+              type="button"
+              class="btn-icon-delete"
+              (click)="removeQuestion(qIndex)"
+              title="Eliminar Pregunta"
+            >
+              🗑️ Eliminar
+            </button>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label [for]="'q-title-' + qIndex">Enunciado / Pregunta *</label>
+              <input
+                [id]="'q-title-' + qIndex"
+                type="text"
+                formControlName="title"
+                placeholder="Ej. ¿Qué tan satisfecho está con los servicios?"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label [for]="'q-type-' + qIndex">Tipo de Respuesta</label>
+              <select
+                [id]="'q-type-' + qIndex"
+                formControlName="type"
+                (change)="onTypeChange(qIndex)"
+              >
+                <option *ngFor="let t of questionTypes" [value]="t.value">
+                  {{ t.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isRequired" />
+              <span>Pregunta de respuesta obligatoria</span>
+            </label>
+          </div>
+
+          <!-- Opciones Anidadas (Sólo para Selección Única o Múltiple) -->
+          <div
+            *ngIf="
+              questionGroup.get('type')?.value === 'SINGLE_CHOICE' ||
+              questionGroup.get('type')?.value === 'MULTIPLE_CHOICE'
+            "
+            formArrayName="options"
+            class="options-container"
+          >
+            <h5>Opciones de Respuesta:</h5>
+
+            <div
+              *ngFor="let optionGroup of getOptions(qIndex).controls; let oIndex = index"
+              [formGroupName]="oIndex"
+              class="option-row"
+            >
+              <span class="option-bullet">•</span>
+              <input
+                type="text"
+                formControlName="optionText"
+                [placeholder]="'Opción ' + (oIndex + 1)"
+              />
+              <button
+                type="button"
+                class="btn-icon-sm"
+                (click)="removeOption(qIndex, oIndex)"
+                title="Quitar Opción"
+              >
+                ✕
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="btn-link-sm"
+              (click)="addOption(qIndex)"
+            >
+              + Agregar Opción de Respuesta
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón de Envío -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || surveyForm.invalid">
+        {{ isSubmitting ? 'Guardando Encuesta...' : '🚀 Guardar y Publicar Encuesta' }}
+      </button>
+    </div>
+  </form>
+</div>

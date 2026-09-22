@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { RolEntity } from './entities/rol.entity';
+import { UserEntity } from '../user/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RolSeederService } from '../../seeders/rol-seeder';
 import { RolService } from './rol.service';
 import { RolController } from './rol.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([RolEntity])],
+  imports: [TypeOrmModule.forFeature([RolEntity, UserEntity])],
   controllers: [RolController],
   providers: [RolService, RolSeederService],
   exports: [RolService],

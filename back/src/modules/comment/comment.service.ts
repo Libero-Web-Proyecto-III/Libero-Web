@@ -8,6 +8,7 @@ import { GetCommentQueryDto } from './dto/get-comment-query.dto';
 import { AllResponse } from 'src/common/interface/res-all.dto';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { PublicationEntity } from 'src/modules/publication/entities/publication.entity';
+import { enumRol } from 'src/common/enums/rol.enum';
 
 @Injectable()
 export class CommentService {
@@ -21,7 +22,7 @@ export class CommentService {
   // Un mismo usuario puede llamar esto varias veces sobre la misma
   // publicación: no hay ninguna restricción de unicidad, cada llamada
   // crea un comentario nuevo.
-  async create(dto: CreateCommentDto, author: UserEntity): Promise<CommentEntity> {
+  async create(dto: CreateCommentDto, author: UserEntity & { id?: number }): Promise<CommentEntity> {
     const publication = await this.publicationRepository.findOne({
       where: { uuid: dto.publicationUuid },
     });
@@ -29,12 +30,24 @@ export class CommentService {
       throw new NotFoundException('No se encontró la publicación a comentar');
     }
 
+    const authorIndex = author.index ?? author.id;
+    if (!authorIndex) {
+      throw new ForbiddenException('No se pudo identificar al autor del comentario');
+    }
+
     const comment = this.commentRepository.create({
       content: dto.content,
       publication,
-      author,
+      author: { index: authorIndex } as UserEntity,
     });
-    return this.commentRepository.save(comment);
+    const saved = await this.commentRepository.save(comment);
+
+    const reloaded = await this.commentRepository.findOne({
+      where: { index: saved.index },
+      relations: { author: true, publication: true },
+    });
+
+    return reloaded ?? saved;
   }
 
   async findAll(query: GetCommentQueryDto): Promise<AllResponse> {
@@ -72,17 +85,19 @@ export class CommentService {
     },
   };
 
-  async update(uuid: string, dto: UpdateCommentDto, requester: UserEntity): Promise<CommentEntity> {
+  async update(uuid: string, dto: UpdateCommentDto, requester: UserEntity & { id?: number; role?: string }): Promise<CommentEntity> {
     const comment = await this.findOneBy.uuid(uuid);
-    if (comment.author.uuid !== requester.uuid) {
-      throw new ForbiddenException('No puedes editar un comentario que no es tuyo');
+    const requesterId = requester.index ?? requester.id;
+    if (requester.role !== enumRol.ADMIN && comment.author?.index !== requesterId) {
+      throw new ForbiddenException('Solo un administrador o el autor puede editar comentarios');
     }
     return this.commentRepository.save({ index: comment.index, ...dto });
   }
 
-  async remove(uuid: string, requester: UserEntity) {
+  async remove(uuid: string, requester: UserEntity & { id?: number; role?: string }) {
     const comment = await this.findOneBy.uuid(uuid);
-    if (comment.author.uuid !== requester.uuid) {
+    const requesterId = requester.index ?? requester.id;
+    if (requester.role !== enumRol.ADMIN && requester.role !== enumRol.MOD && comment.author?.index !== requesterId) {
       throw new ForbiddenException('No puedes eliminar un comentario que no es tuyo');
     }
     return {

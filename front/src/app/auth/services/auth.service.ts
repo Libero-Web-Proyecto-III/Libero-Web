@@ -1,130 +1,238 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginRequest {
-  identifier: string;
-  password: string;
-}
-
-export interface AuthResponse<T = any> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
-
-export interface UserSession {
+export interface AuthUser {
   id: number;
-  uuid: string;
+  uuid?: string;
   username: string;
   email: string;
   role: string;
+  avatar?: string;
 }
 
-export interface LoginData {
-  accessToken: string;
-  user: UserSession;
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data: {
+    accessToken: string;
+    user: AuthUser;
+  };
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface UpdateProfileResponse {
+  success: boolean;
+  message: string;
+  data: AuthUser;
+}
+
+export interface ActionResponse {
+  success: boolean;
+  message: string;
+}
+
+export type UserSession = AuthUser;
+
+// # Este bloque tiene como objetivo gestionar el estado global de autenticación, almacenamiento de tokens JWT e información del usuario
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:3000/auth';
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
 
-  // Estado reactivo del usuario logueado en la sesión activa (null = Invitado)
-  public readonly currentUser = signal<UserSession | null>(this.getInitialUser());
-  public readonly isLoggedIn = computed(() => this.currentUser() !== null);
-  public readonly isAdmin = computed(() => this.currentUser()?.role?.toLowerCase() === 'admin');
+  readonly currentUser = signal<AuthUser | null>(this.readUser());
+  readonly isLoggedIn = computed(() => this.currentUser() !== null && this.getToken() !== null);
+  readonly isAdmin = computed(() => {
+    const role = this.currentUser()?.role?.toLowerCase()?.trim();
+    return role === 'admin' || role === 'administrador';
+  });
+  readonly isMod = computed(() => {
+    const role = this.currentUser()?.role?.toLowerCase()?.trim();
+    return role === 'mod' || role === 'moderador';
+  });
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    this.refreshProfile();
+  }
 
-  /**
-   * Obtiene el usuario guardado inicialmente en localStorage
-   */
-  private getInitialUser(): UserSession | null {
-    const userStr = localStorage.getItem('currentUser');
-    if (!userStr) return null;
-    try {
-      return JSON.parse(userStr);
-    } catch {
-      return null;
+  // # Este bloque tiene como objetivo sincronizar el perfil con el backend si ya existe una sesión activa
+  refreshProfile(): void {
+    if (this.isLoggedIn()) {
+      this.getProfile().subscribe({
+        next: (profile) => {
+          this.updateCurrentUser({
+            username: profile.username,
+            avatar: profile.avatar || '',
+            email: profile.email,
+            role: profile.role,
+            uuid: profile.uuid,
+          });
+        },
+        error: () => {},
+      });
     }
   }
 
-  /**
-   * Envía la solicitud de registro al backend NestJS
-   */
-  public register(data: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
-      catchError(this.handleError)
-    );
+  // # Este bloque tiene como objetivo actualizar propiedades del usuario autenticado en la sesión activa en tiempo real
+  updateCurrentUser(partial: Partial<AuthUser>): void {
+    const user = this.currentUser();
+    if (user) {
+      const updatedUser = { ...user, ...partial };
+      if (sessionStorage.getItem('authUser')) {
+        sessionStorage.setItem('authUser', JSON.stringify(updatedUser));
+      }
+      if (localStorage.getItem('authUser')) {
+        localStorage.setItem('authUser', JSON.stringify(updatedUser));
+      }
+      this.currentUser.set(updatedUser);
+    }
   }
 
-  /**
-   * Envía las credenciales de inicio de sesión al backend NestJS
-   */
-  public login(credentials: LoginRequest): Observable<AuthResponse<LoginData>> {
-    return this.http.post<AuthResponse<LoginData>>(`${this.apiUrl}/login`, credentials).pipe(
-      tap((response) => {
-        if (response.success && response.data?.accessToken) {
-          this.saveSession(response.data.accessToken, response.data.user);
+  // # Este bloque tiene como objetivo actualizar el rol del usuario autenticado en la sesión activa
+  updateCurrentUserRole(newRole: string): void {
+    this.updateCurrentUser({ role: newRole });
+  }
+
+  // # Este bloque tiene como objetivo obtener los datos más recientes del perfil desde el backend
+  getProfile(): Observable<AuthUser> {
+    return this.http.get<AuthUser>(`${this.apiUrl}/profile`);
+  }
+
+  // # Este bloque tiene como objetivo actualizar el nombre y la foto del usuario autenticado
+  updateProfile(payload: { name?: string; avatar?: string }): Observable<UpdateProfileResponse> {
+    return this.http.patch<UpdateProfileResponse>(`${this.apiUrl}/profile`, payload).pipe(
+      tap(response => {
+        if (response.data) {
+          this.updateCurrentUser({
+            username: response.data.username,
+            avatar: response.data.avatar || '',
+          });
         }
       }),
-      catchError(this.handleError)
     );
   }
 
-  /**
-   * Guarda el token de acceso y los datos de usuario en localStorage y actualiza la señal
-   */
-  private saveSession(accessToken: string, user: UserSession): void {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('currentUser', JSON.stringify(user));
+  // # Este bloque tiene como objetivo verificar si la contraseña actual introducida por el usuario es correcta
+  verifyPassword(password: string): Observable<ActionResponse> {
+    return this.http.post<ActionResponse>(`${this.apiUrl}/verify-password`, { password });
+  }
+
+  // # Este bloque tiene como objetivo cambiar la contraseña del usuario autenticado
+  changePassword(payload: { newPassword: string; currentPassword: string }): Observable<ActionResponse> {
+    return this.http.patch<ActionResponse>(`${this.apiUrl}/change-password`, payload);
+  }
+
+  // # Este bloque tiene como objetivo eliminar definitivamente la cuenta del usuario autenticado
+  deleteAccount(): Observable<ActionResponse> {
+    return this.http.delete<ActionResponse>(`${this.apiUrl}/account`).pipe(
+      tap(() => {
+        this.logout();
+      }),
+    );
+  }
+
+  // # Este bloque tiene como objetivo realizar la petición HTTP de inicio de sesión y almacenar las credenciales
+  login(payload: { identifier: string; password: string; rememberMe?: boolean }): Observable<AuthResponse> {
+    const { identifier, password, rememberMe = false } = payload;
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { identifier, password }).pipe(
+      tap(response => {
+        this.saveSession(response.data.accessToken, response.data.user, rememberMe);
+      }),
+    );
+  }
+
+  // # Este bloque tiene como objetivo registrar un nuevo usuario en la plataforma
+  register(payload: { username: string; email: string; password: string }): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, payload);
+  }
+
+  requestPasswordReset(email: string): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.apiUrl}/request-password-reset`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.apiUrl}/reset-password`, { token, password });
+  }
+
+  // # Este bloque tiene como objetivo destruir los tokens de sesión y limpiar el estado de autenticación (logout)
+  logout(): void {
+    this.clearStorage();
+    this.currentUser.set(null);
+    this.router.navigate(['/']);
+  }
+
+  // # Este bloque tiene como objetivo obtener el token JWT de acceso guardado
+  getToken(): string | null {
+    return sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');
+  }
+
+  // # Este bloque tiene como objetivo retornar de forma segura los datos del usuario logueado evitando valores undefined
+  getUser(): AuthUser | null {
+    const user = this.currentUser();
+    if (!user || !this.getToken()) return null;
+
+    return {
+      id: user.id,
+      uuid: user.uuid,
+      username: user.username || (user as any).name || 'Usuario',
+      email: user.email || '',
+      role: user.role || 'user',
+      avatar: user.avatar || '',
+    };
+  }
+
+  // # Este bloque tiene como objetivo determinar si el usuario posee rol administrativo (admin o mod)
+  hasManagementRole(): boolean {
+    return this.isAdmin() || this.isMod();
+  }
+
+  // # Este bloque tiene como objetivo guardar la sesión en localStorage o sessionStorage
+  private saveSession(token: string, user: AuthUser, rememberMe: boolean): void {
+    this.clearStorage();
+
+    if (rememberMe) {
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('authUser', JSON.stringify(user));
+    } else {
+      sessionStorage.setItem('accessToken', token);
+      sessionStorage.setItem('authUser', JSON.stringify(user));
+    }
+
     this.currentUser.set(user);
   }
 
-  /**
-   * Cierra la sesión activa borrando el almacenamiento local y volviendo a estado Invitado
-   */
-  public logout(): void {
+  // # Este bloque tiene como objetivo limpiar tokens y sesión de ambos almacenamientos
+  private clearStorage(): void {
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('authUser');
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('currentUser');
-    this.currentUser.set(null);
+    localStorage.removeItem('authUser');
+    try {
+      localStorage.removeItem('libero_events_subscribed_active_user');
+      localStorage.removeItem('libero_events_subscribed_backup');
+    } catch {}
   }
 
-  /**
-   * Retorna el token almacenado
-   */
-  public getToken(): string | null {
-    return localStorage.getItem('accessToken');
-  }
-
-  /**
-   * Manejo centralizado de errores HTTP retornados por NestJS
-   */
-  private handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'Ocurrió un error inesperado al conectar con el servidor.';
-
-    if (error.error) {
-      if (typeof error.error.message === 'string') {
-        errorMessage = error.error.message;
-      } else if (Array.isArray(error.error.message)) {
-        errorMessage = error.error.message.join('. ');
-      } else if (error.error.error) {
-        errorMessage = error.error.error;
-      }
-    } else if (error.status === 0) {
-      errorMessage = 'No se pudo conectar con el servidor backend (NestJS en http://localhost:3000). Asegúrate de que esté en ejecución.';
+  // # Este bloque tiene como objetivo leer y parsear la información guardada del usuario
+  private readUser(): AuthUser | null {
+    const value = sessionStorage.getItem('authUser') || localStorage.getItem('authUser');
+    if (!value) return null;
+    try {
+      return JSON.parse(value) as AuthUser;
+    } catch {
+      return null;
     }
-
-    return throwError(() => new Error(errorMessage));
   }
 }

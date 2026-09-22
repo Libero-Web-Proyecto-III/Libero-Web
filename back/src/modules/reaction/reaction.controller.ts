@@ -22,10 +22,11 @@ import { UserEntity } from '../user/entities/user.entity';
 @Controller('reactions')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ReactionController {
-  constructor(private readonly reactionService: ReactionService) {}
+  constructor(private readonly reactionService: ReactionService) { }
 
   @PRIVATE()
   @Post()
+  @PRIVATE()
   @ApiOperation({
     summary: 'Reaccionar (like/dislike) a un comentario o a una publicación. Es un toggle',
     description:

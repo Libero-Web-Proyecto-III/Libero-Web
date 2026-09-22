@@ -2,6 +2,9 @@
   "name": "front",
   "version": "0.0.0",
   "scripts": {
+    "sync-env": "node scripts/sync-env.js",
+    "prestart": "node scripts/sync-env.js",
+    "prebuild": "node scripts/sync-env.js",
     "ng": "ng",
     "start": "ng serve -o",
     "build": "ng build",

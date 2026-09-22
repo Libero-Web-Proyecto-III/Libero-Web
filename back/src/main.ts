@@ -14,26 +14,9 @@ async function bootstrap() {
 
   //////////// CORS /////////////
 
-  const CORS_config = {
-    origin: [
-      /\.liberocobre\.online$/,
-      'https://liberocobre.online',
-      'http://localhost:81',
-      'http://127.0.0.1:81',
-      'http://127.0.0.1:3000',
-      'http://localhost:4200',
-    ],
-    credentials: true,
-    allowedHeaders: [ 'Content-Type', 'Authorization', 'Accept' ],
-    maxAge: 3_600,
-    optionsSuccessStatus: 200,
-    methods: [ 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS' ],
-  }
-
-  app.enableCors(CORS_config);
 
   ///////// GLOBAL ///////////
-  app.useGlobalPipes( new ValidationPipe({
+  app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
     transform: true
@@ -41,12 +24,18 @@ async function bootstrap() {
 
 
 
-  ////////// USE ///////////////
+  ////////// CORS /////////////
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
 
-  app.use( json({ limit: '10mb' }) );
-  app.use( urlencoded({ extended: true, limit: '10mb' }) );
+  ////////// USE ///////////////
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
   app.set('trust proxy', 'loopback');
-  app.use( helmet() );
+  app.use(helmet());
 
 
   //// SWAGGER / SCALAR ////////
@@ -58,7 +47,7 @@ async function bootstrap() {
     .addCookieAuth()
     .build()
 
-  
+
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('docs', app, document);

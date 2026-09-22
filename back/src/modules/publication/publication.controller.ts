@@ -26,16 +26,16 @@ import { UserEntity } from 'src/modules/user/entities/user.entity';
 
 import { JwtAuthGuard } from '../../common/guard/jwt-auth.guard';
 import { RolesGuard } from '../../common/guard/roles.guard';
-import { PRIVATE } from '../../common/decorator/private.decorator';
-import { ROLES } from '../../common/decorator/roles.decorator';
-import { enumRol } from '../../common/enums/rol.enum';
+import { PRIVATE } from 'src/common/decorator/private.decorator';
+import { ROLES } from 'src/common/decorator/roles.decorator';
+import { enumRol } from 'src/common/enums/rol.enum';
 
 @ApiTags('Publications')
 @ApiBearerAuth()
 @Controller('publications')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PublicationController {
-  constructor(private readonly publicationService: PublicationService) {}
+  constructor(private readonly publicationService: PublicationService) { }
 
   @Get()
   @ApiOperation({
@@ -62,6 +62,8 @@ export class PublicationController {
   @PRIVATE()
   @ROLES([enumRol.MOD, enumRol.ADMIN])
   @Post()
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN, enumRol.MOD])
   @ApiOperation({
     summary: 'Crear una publicación',
     description: 'Crea una nueva publicación asociada al usuario autenticado. Solo moderadores o administradores.',
@@ -75,6 +77,8 @@ export class PublicationController {
   @PRIVATE()
   @ROLES([enumRol.MOD, enumRol.ADMIN])
   @Patch(':uuid')
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN, enumRol.MOD])
   @ApiOperation({
     summary: 'Actualizar una publicación',
     description: 'Modifica los datos de una publicación existente (solo moderador o admin).',
@@ -89,6 +93,8 @@ export class PublicationController {
   @PRIVATE()
   @ROLES([enumRol.MOD, enumRol.ADMIN])
   @Delete(':uuid')
+  @PRIVATE()
+  @ROLES([enumRol.MOD, enumRol.ADMIN])
   @ApiOperation({
     summary: 'Eliminar una publicación',
     description: 'Elimina lógicamente una publicación (soft delete). Solo moderador o admin.',
@@ -96,7 +102,7 @@ export class PublicationController {
   @ApiParam({ name: 'uuid', description: 'UUID de la publicación', example: 'f6e5d4c3-b2a1-4c3d-9e8f-7a6b5c4d3e2f' })
   @ApiResponse({ status: 200, description: 'Publicación eliminada' })
   @ApiResponse({ status: 404, description: 'Publicación no encontrada' })
-  remove(@Param('uuid') uuid: string) {
-    return this.publicationService.remove(uuid);
+  remove(@Param('uuid') uuid: string, @Req() req: any) {
+    return this.publicationService.remove(uuid, req.user);
   }
 }

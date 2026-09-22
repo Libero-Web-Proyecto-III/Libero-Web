@@ -37,15 +37,20 @@
     @if (filteredEvents().length === 0) {
       <div class="empty-state">
         <div class="empty-icon">⚪</div>
-        <h3>No se encontraron eventos</h3>
-        <p>No hay eventos que coincidan con tu búsqueda "{{ searchTerm() }}". Prueba con otros términos.</p>
-        <button class="reset-btn" (click)="searchTerm.set('')">Ver todos los eventos</button>
+        @if (searchTerm()) {
+          <h3>No se encontraron eventos</h3>
+          <p>No hay eventos que coincidan con tu búsqueda "{{ searchTerm() }}". Prueba con otros términos.</p>
+          <button class="reset-btn" (click)="searchTerm.set('')">Ver todos los eventos</button>
+        } @else {
+          <h3>No hay eventos disponibles</h3>
+          <p>Actualmente no hay eventos programados en la cartelera. Próximamente se publicarán nuevos eventos.</p>
+        }
       </div>
     }
 
     <!-- Vertical List of Full Horizontal Width Event Cards -->
     <div class="events-list">
-      @for (event of filteredEvents(); track event.id) {
+      @for (event of filteredEvents(); track event.uuid) {
         <article class="event-card" (click)="openModal(event)">
           
           <!-- Image Section -->
@@ -93,9 +98,14 @@
                   </svg>
                 </button>
               } @else {
-                <button class="cta-btn subscribed-btn" (click)="openModal(event); $event.stopPropagation()">
-                  ✓ NOTIFICACIÓN ACTIVADA
-                </button>
+                <div class="subscribed-actions">
+                  <span class="active-badge" (click)="openModal(event); $event.stopPropagation()">
+                    ✓ Recordatorio 24h activo
+                  </span>
+                  <button class="cta-btn unsubscribe-card-btn" (click)="removeSubscription(event); $event.stopPropagation()">
+                    ✕ Quitar recordatorio
+                  </button>
+                </div>
               }
             </div>
           </div>
@@ -122,6 +132,15 @@
           </div>
 
           <div class="modal-body">
+            @if (notificationError()) {
+              <div class="modal-error-alert">
+                <svg xmlns="http://www.w3.org/2000/svg" class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+                <span>{{ notificationError() }}</span>
+              </div>
+            }
+
             <div class="modal-image-box">
               <img [src]="item.imageUrl" [alt]="item.title" />
             </div>
@@ -145,18 +164,47 @@
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="modal-cancel-btn" (click)="closeModal()">Cerrar</button>
-            <button type="button" class="modal-confirm-btn" (click)="confirmSubscription()">
-              {{ item.isSubscribed ? 'Notificación Activada' : 'Notificarme Evento' }}
-            </button>
+            <button type="button" class="modal-cancel-btn" (click)="closeModal()" [disabled]="isNotifying()">Cerrar</button>
+            @if (!item.isSubscribed) {
+              <button type="button" class="modal-confirm-btn" [disabled]="isNotifying()" (click)="confirmSubscription()">
+                @if (isNotifying()) {
+                  <span class="btn-spinner"></span>
+                  Programando recordatorio...
+                } @else {
+                  🔔 Recordarme 24h antes
+                }
+              </button>
+            } @else {
+              <button type="button" class="modal-unsubscribe-btn" [disabled]="isNotifying()" (click)="removeSubscription()">
+                ✕ Quitar Recordatorio
+              </button>
+            }
           </div>
         } @else {
           <div class="booking-success-state">
             <div class="success-icon">✓</div>
-            <h3>¡Notificación Activada!</h3>
-            <p>Recibirás recordatorios y avisos para el evento:</p>
+            @if (notifiedImmediately()) {
+              <div style="display:inline-block; margin-bottom: 8px; padding: 4px 12px; border-radius: 20px; background: rgba(212,175,55,0.2); border: 1px solid #d4af37; color: #f5c842; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">
+                ⚡ INICIA EN MENOS DE 24H &mdash; NOTIFICADO DE GOLPE
+              </div>
+              <h3>¡Recordatorio Enviado de Golpe!</h3>
+              <p>El evento inicia en menos de 24 horas. Hemos enviado la información inmediatamente a:</p>
+            } @else {
+              <h3>¡Recordatorio Programado (24h Antes)!</h3>
+              <p>Te enviaremos un correo con todos los detalles del evento exactamente 24 horas antes de su inicio a:</p>
+            }
+            <p class="email-highlight">{{ notificationSuccessEmail() }}</p>
             <p class="event-name-highlight">"{{ item.title }}"</p>
-            <p class="subtext">Te avisaremos con suficiente antelación antes de que comience.</p>
+            <p class="subtext">
+              @if (notifiedImmediately()) {
+                Revisa tu bandeja de entrada para ver la información del evento.
+              } @else {
+                Te notificaremos con anticipación para que tengas todo listo para tu asistencia.
+              }
+            </p>
+            <button type="button" class="modal-confirm-btn" style="margin-top: 1.5rem;" (click)="closeModal()">
+              Entendido
+            </button>
           </div>
         }
 

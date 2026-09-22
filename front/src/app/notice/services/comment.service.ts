@@ -3,12 +3,13 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { AuthService } from '../../auth/services/auth.service';
 import { Comment } from '../publication.model';
+import { environment } from '../../../environments/environment';
 
 interface RawComment {
   index: number;
   uuid: string;
   content: string;
-  author: { index: number; uuid: string; name: string } | null;
+  author: { index: number; uuid: string; name: string; avatar?: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,7 +20,7 @@ interface PaginatedResponse<T> {
 
 @Injectable({ providedIn: 'root' })
 export class CommentService {
-  private readonly apiUrl = 'http://localhost:3000/comments';
+  private readonly apiUrl = `${environment.apiUrl}/comments`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -31,14 +32,13 @@ export class CommentService {
   }
 
   create(publicationUuid: string, content: string): Observable<Comment> {
-    // El backend no devuelve el autor completo al crear (ver nota en el service
-    // del backend), así que usamos el nombre del usuario de la sesión activa,
-    // ya que sabemos con certeza que el comentario recién creado es suyo.
-    const currentUsername = this.authService.currentUser()?.username;
+    const currentUser = this.authService.currentUser();
+    const currentUsername = currentUser?.username;
+    const currentAvatar = currentUser?.avatar;
 
     return this.http
       .post<RawComment>(this.apiUrl, { publicationUuid, content }, { headers: this.authHeaders() })
-      .pipe(map(item => this.mapComment(item, currentUsername)));
+      .pipe(map(item => this.mapComment(item, currentUsername, currentAvatar)));
   }
 
   private authHeaders(): HttpHeaders {
@@ -46,10 +46,11 @@ export class CommentService {
     return new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
   }
 
-  private mapComment(item: RawComment, fallbackAuthor?: string): Comment {
+  private mapComment(item: RawComment, fallbackAuthor?: string, fallbackAvatar?: string): Comment {
     return {
       uuid: item.uuid,
-      author: item.author?.name ?? fallbackAuthor ?? 'Usuario',
+      author: item.author?.name || fallbackAuthor || 'Usuario',
+      avatar: item.author?.avatar || fallbackAvatar || '',
       content: item.content,
       createdAt: new Date(item.createdAt),
       likes: 0,

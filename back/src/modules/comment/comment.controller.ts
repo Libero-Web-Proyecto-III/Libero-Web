@@ -17,14 +17,14 @@ import { CommentEntity } from './entities/comment.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { JwtAuthGuard } from '../../common/guard/jwt-auth.guard';
 import { RolesGuard } from '../../common/guard/roles.guard';
-import { PRIVATE } from '../../common/decorator/private.decorator';
+import { PRIVATE } from 'src/common/decorator/private.decorator';
 
 @ApiTags('comments')
 @ApiBearerAuth()
 @Controller('comments')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CommentController {
-  constructor(private readonly commentService: CommentService) {}
+  constructor(private readonly commentService: CommentService) { }
 
   @Get()
   @ApiOperation({
@@ -101,6 +101,7 @@ export class CommentController {
 
   @PRIVATE()
   @Post()
+  @PRIVATE()
   @ApiOperation({
     summary: 'Crear un comentario en una publicación',
     description:
@@ -134,11 +135,13 @@ export class CommentController {
     },
   })
   create(@Body() dto: CreateCommentDto, @Req() req: any) {
-    return this.commentService.create(dto, { index: req.user.id } as UserEntity);
+    const userIndex = req.user?.id ?? req.user?.index;
+    return this.commentService.create(dto, { index: userIndex, id: userIndex } as any);
   }
 
   @PRIVATE()
   @Patch(':uuid')
+  @PRIVATE()
   @ApiOperation({
     summary: 'Editar un comentario (solo el autor puede hacerlo)',
     description:
@@ -184,11 +187,13 @@ export class CommentController {
     },
   })
   update(@Param('uuid') uuid: string, @Body() dto: UpdateCommentDto, @Req() req: any) {
-    return this.commentService.update(uuid, dto, { index: req.user.id } as UserEntity);
+    const userIndex = req.user?.id ?? req.user?.index;
+    return this.commentService.update(uuid, dto, { index: userIndex, id: userIndex, role: req.user?.role } as any);
   }
 
   @PRIVATE()
   @Delete(':uuid')
+  @PRIVATE()
   @ApiOperation({
     summary: 'Eliminar (soft delete) un comentario (solo el autor)',
     description:
@@ -235,6 +240,7 @@ export class CommentController {
     },
   })
   remove(@Param('uuid') uuid: string, @Req() req: any) {
-    return this.commentService.remove(uuid, { index: req.user.id } as UserEntity);
+    const userIndex = req.user?.id ?? req.user?.index;
+    return this.commentService.remove(uuid, { index: userIndex, id: userIndex, role: req.user?.role } as any);
   }
 }

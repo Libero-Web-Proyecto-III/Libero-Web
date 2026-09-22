@@ -12,6 +12,7 @@ export type ReactionType = 'like' | 'dislike';
 export interface Comment {
   uuid: string;
   author: string;
+  avatar?: string;
   content: string;
   createdAt: Date;
   likes: number;

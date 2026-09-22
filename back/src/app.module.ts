@@ -18,7 +18,10 @@ import { JwtAuthGuard } from './common/guard/jwt-auth.guard';
 import { RolesGuard } from './common/guard/roles.guard';
 import { ReactionModule } from './modules/reaction/reaction.module';
 import { CommentModule } from './modules/comment/comment.module';
+import { SurveyModule } from './modules/survey/survey.module';
+import { VisitModule } from './modules/visit/visit.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PqrModule } from './modules/pqr/pqr.module';
 
 
@@ -30,6 +33,8 @@ import { PqrModule } from './modules/pqr/pqr.module';
       envFilePath: '.env'
     }),
 
+    ScheduleModule.forRoot(),
+
     ThrottlerModule.forRoot([{
       ttl: 60_000,
       limit: 45,
@@ -40,12 +45,13 @@ import { PqrModule } from './modules/pqr/pqr.module';
 
     TagModule, RolModule,
     UserModule, PublicationModule, ReactionModule, PqrModule,
-    CategoryModule, EventModule, AuthModule, CommentModule, FacebookModule
-],
+    EventModule, AuthModule, CommentModule, SurveyModule,
+    VisitModule, FacebookModule, CategoryModule
+  ],
   controllers: [AppController],
   providers: [
     AppService,
-    
+
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
@@ -60,4 +66,4 @@ import { PqrModule } from './modules/pqr/pqr.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

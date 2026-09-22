@@ -60,11 +60,29 @@ export class PublicationEntity {
   title: string;
 
   @ApiPropertyOptional({
-    description: 'Lista de URLs de media adjunta',
+    description: 'Lista de URLs o imágenes en Base64 de media adjunta',
     example: ['https://cdn.forgehub.com/img1.png'],
     type: [String],
   })
-  @Column('simple-array', { nullable: true })
+  @Column({
+    type: 'longtext',
+    nullable: true,
+    transformer: {
+      to: (value: string[] | undefined | null): string | null => {
+        if (!value) return null;
+        return JSON.stringify(value);
+      },
+      from: (value: string | undefined | null): string[] => {
+        if (!value) return [];
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          return typeof value === 'string' ? value.split(',') : [];
+        }
+      },
+    },
+  })
   media: string[];
 
   @ApiProperty({

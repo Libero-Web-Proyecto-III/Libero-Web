@@ -8,7 +8,11 @@
     (click)="toggleMenu()"
   >
     <span class="profile-menu__trigger-avatar" [class.profile-menu__trigger-avatar--guest]="!isLoggedIn()">
-      {{ initials() }}
+      @if (isLoggedIn() && currentUser()?.avatar) {
+        <img [src]="currentUser()?.avatar" alt="Avatar" class="profile-menu__avatar-img" />
+      } @else {
+        {{ initials() }}
+      }
     </span>
   </button>
 
@@ -18,7 +22,11 @@
       <!-- Datos del perfil actual y avatar correspondiente -->
       <div class="profile-menu__summary">
         <div class="profile-menu__avatar" [class.profile-menu__avatar--guest]="!isLoggedIn()">
-          {{ initials() }}
+          @if (isLoggedIn() && currentUser()?.avatar) {
+            <img [src]="currentUser()?.avatar" alt="Avatar" class="profile-menu__avatar-img" />
+          } @else {
+            {{ initials() }}
+          }
         </div>
         <div class="profile-menu__identity">
           <strong>{{ isLoggedIn() ? currentUser()?.username : 'Usuario invitado' }}</strong>
@@ -37,9 +45,9 @@
           <button type="button" (click)="goToRegister()">Registrarse</button>
         } @else {
           <!-- Acciones para usuario autenticado -->
-          <button type="button" (click)="requestProfile()">Ver perfil</button>
-          @if (isAdmin()) {
-            <!-- Panel habilitado únicamente para Administradores -->
+          <button type="button" (click)="goToConfig()">Configuración</button>
+          @if (authService.isAdmin()) {
+            <!-- Panel habilitado únicamente para administradores -->
             <button type="button" (click)="requestAdministration()">Panel de Administración</button>
           }
           <button type="button" (click)="signOut()">Cerrar sesión</button>

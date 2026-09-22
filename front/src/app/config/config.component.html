@@ -1,0 +1,609 @@
+<div class="config-page">
+  <app-navbar></app-navbar>
+
+  <main class="config-main">
+    <div class="config-container">
+
+      <!-- Breadcrumb / Volver -->
+      <div class="config-top-nav">
+        <a routerLink="/" class="back-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Volver al Inicio</span>
+        </a>
+      </div>
+
+      <!-- Cabecera principal -->
+      <header class="config-header">
+        <div class="config-badge">CUENTA Y SEGURIDAD</div>
+        <h1 class="config-title">Configuración</h1>
+        <p class="config-subtitle">
+          Administra la información de tu cuenta, personaliza tu foto de perfil, actualiza tus credenciales de acceso o gestiona la permanencia de tu cuenta.
+        </p>
+      </header>
+
+      <div class="config-grid">
+
+        <!-- =========================================================
+             TARJETA 1: INFORMACIÓN PERSONAL Y FOTO DE PERFIL
+             ========================================================= -->
+        <section class="config-card" aria-labelledby="personal-info-title">
+          <div class="config-card__header">
+            <div class="config-card__icon-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div>
+              <h2 id="personal-info-title" class="config-card__title">Información Personal y Foto</h2>
+              <p class="config-card__desc">Actualiza tu nombre visible y tu foto de perfil para todo el sistema.</p>
+            </div>
+          </div>
+
+          <div class="config-card__body">
+
+            <!-- SECCIÓN DEL AVATAR -->
+            <div class="avatar-manager">
+              <!-- Vista previa circular -->
+              <div class="avatar-preview-wrapper">
+                <div class="avatar-preview-circle">
+                  @if (avatar()) {
+                    <img [src]="avatar()" alt="Foto de perfil" class="avatar-preview-img" (error)="removeAvatar()" />
+                  } @else {
+                    <span class="avatar-preview-initial">{{ userInitial() }}</span>
+                  }
+                </div>
+                <div class="avatar-preview-tag">{{ roleDisplayName() }}</div>
+              </div>
+
+              <!-- Controles de la foto -->
+              <div class="avatar-controls">
+                <span class="avatar-controls__label">Foto de Perfil</span>
+                <p class="avatar-controls__hint">
+                  Puedes cargar una imagen directamente desde tu equipo o ingresar el enlace web (URL) de una imagen externa.
+                </p>
+
+                <div class="avatar-action-buttons">
+                  <!-- Botón estilo Líbero Cobre para subir imagen del sistema operativo -->
+                  <button type="button" class="btn-select-file" (click)="fileInput.click()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <span>Seleccionar imagen del equipo</span>
+                  </button>
+
+                  <input
+                    #fileInput
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp, image/gif"
+                    class="hidden-file-input"
+                    (change)="onFileSelected($event)"
+                  />
+
+                  @if (avatar()) {
+                    <button type="button" class="btn-remove-avatar" (click)="removeAvatar()" title="Quitar foto actual">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                      <span>Quitar foto</span>
+                    </button>
+                  }
+                </div>
+
+                <!-- Entrada opcional por URL -->
+                <div class="url-input-group">
+                  <label for="avatar-url-input" class="field-sublabel">O ingresa la URL de la imagen:</label>
+                  <div class="input-with-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    <input
+                      id="avatar-url-input"
+                      type="url"
+                      [ngModel]="avatar()"
+                      (ngModelChange)="avatar.set($event)"
+                      placeholder="https://ejemplo.com/mi-imagen.jpg"
+                      class="styled-text-input"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- CAMPOS DEL FORMULARIO -->
+            <div class="form-fields">
+              <!-- Nombre de usuario -->
+              <div class="form-group">
+                <label for="user-name-input" class="field-label">
+                  <span>Nombre visible</span>
+                  <span class="required-indicator">*</span>
+                </label>
+                <div class="input-with-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <input
+                    id="user-name-input"
+                    type="text"
+                    [ngModel]="name()"
+                    (ngModelChange)="name.set($event)"
+                    placeholder="Tu nombre completo o de usuario"
+                    maxlength="50"
+                    class="styled-text-input"
+                  />
+                </div>
+              </div>
+
+              <!-- Correo electrónico (identidad de la cuenta) -->
+              <div class="form-group">
+                <label class="field-label">
+                  <span>Correo electrónico</span>
+                  <span class="pill-readonly">Solo lectura</span>
+                </label>
+                <div class="input-with-icon input-disabled">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                  <input
+                    type="email"
+                    [value]="currentUser()?.email"
+                    readonly
+                    class="styled-text-input readonly-input"
+                  />
+                </div>
+                <span class="field-hint">El correo electrónico está vinculado a tu identidad de acceso.</span>
+              </div>
+            </div>
+
+            <!-- BANNERS DE FEEDBACK -->
+            @if (infoMessage()) {
+              <div
+                class="status-banner"
+                [class.status-banner--success]="infoMessageType() === 'success'"
+                [class.status-banner--warning]="infoMessageType() === 'warning'"
+                [class.status-banner--error]="infoMessageType() === 'error'"
+              >
+                @if (infoMessageType() === 'success') {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                } @else if (infoMessageType() === 'warning') {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                }
+                <span>{{ infoMessage() }}</span>
+              </div>
+            }
+
+            <!-- BOTÓN GUARDAR INFORMACIÓN -->
+            <div class="card-action-row">
+              <button
+                type="button"
+                class="btn-save-primary"
+                [disabled]="isSavingInfo()"
+                (click)="savePersonalInfo()"
+              >
+                @if (isSavingInfo()) {
+                  <span class="spinner"></span>
+                  <span>Guardando cambios...</span>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                  <span>Guardar cambios</span>
+                }
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- =========================================================
+             TARJETA 2: SEGURIDAD Y CAMBIO DE CONTRASEÑA
+             ========================================================= -->
+        <section class="config-card" aria-labelledby="security-title">
+          <div class="config-card__header">
+            <div class="config-card__icon-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 id="security-title" class="config-card__title">Seguridad y Contraseña</h2>
+              <p class="config-card__desc">Por seguridad, primero debes verificar tu contraseña actual antes de poder cambiarla por una nueva.</p>
+            </div>
+          </div>
+
+          <div class="config-card__body">
+
+            <!-- PASO 1: CONTRASEÑA ACTUAL -->
+            <div class="password-step-card" [class.password-step-card--verified]="isCurrentPasswordVerified()">
+              <div class="password-step-header">
+                <span class="step-badge" [class.step-badge--completed]="isCurrentPasswordVerified()">
+                  @if (isCurrentPasswordVerified()) {
+                    ✓ Paso 1 Completado
+                  } @else {
+                    Paso 1: Verificación de Identidad
+                  }
+                </span>
+                <span class="step-title">Ingresa tu contraseña actual</span>
+              </div>
+
+              <div class="current-password-row">
+                <div class="form-group flex-1">
+                  <div class="input-with-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <input
+                      id="current-password-input"
+                      [type]="showCurrentPassword() ? 'text' : 'password'"
+                      [ngModel]="currentPassword()"
+                      (ngModelChange)="onCurrentPasswordInput($event)"
+                      placeholder="Escribe tu contraseña actual"
+                      class="styled-text-input"
+                      [disabled]="isVerifyingPassword()"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-pass-btn"
+                      (click)="toggleShowCurrentPassword($event)"
+                      [title]="showCurrentPassword() ? 'Ocultar contraseña' : 'Ver contraseña'"
+                      aria-label="Ver u ocultar contraseña actual"
+                    >
+                      @if (showCurrentPassword()) {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                      } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      }
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn-verify-current"
+                  [disabled]="isVerifyingPassword() || !currentPassword().trim() || isCurrentPasswordVerified()"
+                  (click)="verifyCurrentPassword()"
+                >
+                  @if (isVerifyingPassword()) {
+                    <span class="spinner"></span>
+                    <span>Validando...</span>
+                  } @else if (isCurrentPasswordVerified()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Verificada</span>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Verificar contraseña actual</span>
+                  }
+                </button>
+              </div>
+
+              @if (isCurrentPasswordVerified()) {
+                <div class="verified-indicator">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <span>Contraseña actual verificada correctamente. Puedes ingresar tu nueva contraseña en el paso 2.</span>
+                </div>
+              }
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- PASO 2: NUEVA CONTRASEÑA -->
+            <div class="password-step-container" [class.is-locked]="!isCurrentPasswordVerified()">
+              <div class="password-step-header">
+                <span class="step-badge" [class.step-badge--active]="isCurrentPasswordVerified()">Paso 2: Nueva Contraseña</span>
+                <span class="step-title">Establece tu nueva contraseña</span>
+              </div>
+
+              @if (!isCurrentPasswordVerified()) {
+                <div class="locked-overlay-banner">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>Por seguridad, primero debes ingresar y verificar tu contraseña actual arriba en el Paso 1.</span>
+                </div>
+              }
+
+              <div class="password-fields-grid" [class.disabled-fields]="!isCurrentPasswordVerified()">
+                <!-- Nueva Contraseña -->
+                <div class="form-group">
+                  <label for="new-password-input" class="field-label">
+                    <span>Nueva contraseña</span>
+                    <span class="required-indicator">*</span>
+                  </label>
+                  <div class="input-with-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <input
+                      id="new-password-input"
+                      [type]="showNewPassword() ? 'text' : 'password'"
+                      [ngModel]="newPassword()"
+                      (ngModelChange)="newPassword.set($event)"
+                      placeholder="Mínimo 6 caracteres"
+                      class="styled-text-input"
+                      [disabled]="!isCurrentPasswordVerified()"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-pass-btn"
+                      [disabled]="!isCurrentPasswordVerified()"
+                      (click)="toggleShowNewPassword($event)"
+                      [title]="showNewPassword() ? 'Ocultar contraseña' : 'Ver contraseña'"
+                      aria-label="Ver u ocultar nueva contraseña"
+                    >
+                      @if (showNewPassword()) {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                      } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      }
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Confirmar Contraseña -->
+                <div class="form-group">
+                  <label for="confirm-password-input" class="field-label">
+                    <span>Confirmar nueva contraseña</span>
+                    <span class="required-indicator">*</span>
+                  </label>
+                  <div class="input-with-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <input
+                      id="confirm-password-input"
+                      [type]="showConfirmPassword() ? 'text' : 'password'"
+                      [ngModel]="confirmPassword()"
+                      (ngModelChange)="confirmPassword.set($event)"
+                      placeholder="Repite la nueva contraseña"
+                      class="styled-text-input"
+                      [disabled]="!isCurrentPasswordVerified()"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-pass-btn"
+                      [disabled]="!isCurrentPasswordVerified()"
+                      (click)="toggleShowConfirmPassword($event)"
+                      [title]="showConfirmPassword() ? 'Ocultar contraseña' : 'Ver contraseña'"
+                      aria-label="Ver u ocultar confirmación de nueva contraseña"
+                    >
+                      @if (showConfirmPassword()) {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                      } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      }
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BANNERS DE FEEDBACK DE CONTRASEÑA -->
+            @if (passwordMessage()) {
+              <div
+                class="status-banner"
+                [class.status-banner--success]="passwordMessageType() === 'success'"
+                [class.status-banner--error]="passwordMessageType() === 'error'"
+              >
+                @if (passwordMessageType() === 'success') {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                }
+                <span>{{ passwordMessage() }}</span>
+              </div>
+            }
+
+            <div class="card-action-row">
+              <button
+                type="button"
+                class="btn-secondary-action"
+                [disabled]="!isCurrentPasswordVerified()"
+                (click)="openPasswordModal()"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span>Cambiar contraseña</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================
+             TARJETA: PRUEBAS Y AUDITORÍA DE NOTIFICACIONES
+             ========================================================= -->
+        @if (roleDisplayName() === 'ADMINISTRADOR' || roleDisplayName() === 'MODERADOR') {
+          <section class="config-card" aria-labelledby="notifications-test-title">
+            <div class="config-card__header">
+              <div class="config-card__icon-wrap" style="color: #d4af37; background: rgba(212, 175, 55, 0.12); border-color: rgba(212, 175, 55, 0.3);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 id="notifications-test-title" class="config-card__title">Centro de Pruebas de Notificaciones</h2>
+                <p class="config-card__desc">Auditoría en tiempo real de correos electrónicos, plantillas oficiales e historial de envíos.</p>
+              </div>
+            </div>
+
+            <div class="config-card__body">
+              <p style="font-size: 14px; color: #a1a1aa; line-height: 1.6; margin-bottom: 20px;">
+                Accede al panel del servidor para visualizar los correos generados (Recordatorio 24h, Evento Cancelado y Evento Finalizado) y comprobar el ciclo de vida sin restricciones de red o router local.
+              </p>
+
+              <div class="card-action-row">
+                <a
+                  href="http://localhost:3000/events/preview/dashboard"
+                  target="_blank"
+                  class="btn-secondary-action"
+                  style="border-color: #d4af37; color: #d4af37; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                  <span>Abrir Panel de Pruebas de Notificaciones ↗</span>
+                </a>
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- =========================================================
+             TARJETA 3: ZONA DE PELIGRO - ELIMINAR CUENTA
+             ========================================================= -->
+        <section class="config-card config-card--danger" aria-labelledby="danger-zone-title">
+          <div class="config-card__header">
+            <div class="config-card__icon-wrap danger-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div>
+              <h2 id="danger-zone-title" class="config-card__title text-danger">Eliminar Cuenta</h2>
+              <p class="config-card__desc">Acciones destructivas e irreversibles sobre tu cuenta.</p>
+            </div>
+          </div>
+
+          <div class="config-card__body">
+            <!-- Aviso explícito de no recuperación -->
+            <div class="danger-explicit-warning">
+              <div class="warning-badge">ACCION IRREVERSIBLE</div>
+              <p>
+                <strong>Atención:</strong> Si decides eliminar tu cuenta, se cerrará tu sesión inmediatamente y
+                <strong>NO podrás recuperarla</strong> bajo ninguna circunstancia. Perderás de manera definitiva el acceso a todas tus interacciones y configuraciones en la plataforma.
+              </p>
+            </div>
+
+            <div class="card-action-row">
+              <button
+                type="button"
+                class="btn-danger-delete"
+                (click)="openDeleteModal()"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+                <span>Eliminar mi cuenta definitivamente</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+
+
+  <!-- =========================================================
+       MODAL: CONFIRMAR CAMBIO DE CONTRASEÑA
+       ========================================================= -->
+  @if (showPasswordModal()) {
+    <div class="modal-backdrop" (click)="closePasswordModal()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <div class="modal-icon-header">
+          <div class="modal-icon-bubble">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+        </div>
+
+        <h3 class="modal-title">Confirmar cambio de contraseña</h3>
+        <p class="modal-message">
+          ¿Estás seguro de que deseas cambiar tu contraseña? Una vez confirmada, deberás utilizar esta nueva clave en tus próximos inicios de sesión en la plataforma.
+        </p>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-cancel" (click)="closePasswordModal()" [disabled]="isSavingPassword()">
+            Cancelar
+          </button>
+          <button type="button" class="btn-modal-confirm" (click)="confirmPasswordChange()" [disabled]="isSavingPassword()">
+            @if (isSavingPassword()) {
+              <span class="spinner"></span>
+              <span>Guardando...</span>
+            } @else {
+              <span>Sí, cambiar contraseña</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- =========================================================
+       MODAL: CONFIRMAR ELIMINACIÓN DE CUENTA (IRREVERSIBLE)
+       ========================================================= -->
+  @if (showDeleteModal()) {
+    <div class="modal-backdrop" (click)="closeDeleteModal()">
+      <div class="modal-dialog modal-dialog--danger" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <div class="modal-icon-header">
+          <div class="modal-icon-bubble danger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+        </div>
+
+        <h3 class="modal-title text-danger">¿Eliminar cuenta definitivamente?</h3>
+        <p class="modal-message">
+          Esta acción es <strong>definitiva e irreversible</strong>. Tu cuenta será borrada del sistema y <strong>no la podrás recuperar</strong> en ningún momento posterior.
+        </p>
+
+        @if (deleteError()) {
+          <div class="status-banner status-banner--error">
+            <span>{{ deleteError() }}</span>
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-cancel" (click)="closeDeleteModal()" [disabled]="isDeletingAccount()">
+            Cancelar y conservar cuenta
+          </button>
+          <button type="button" class="btn-modal-danger-confirm" (click)="confirmDeleteAccount()" [disabled]="isDeletingAccount()">
+            @if (isDeletingAccount()) {
+              <span class="spinner"></span>
+              <span>Eliminando...</span>
+            } @else {
+              <span>Confirmar eliminación definitiva</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

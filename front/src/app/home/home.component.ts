@@ -1,15 +1,31 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
+import { SurveyViewerComponent } from '../survey/components/survey-viewer/survey-viewer.component';
+import { SurveyService } from '../survey/services/survey.service';
+import { Survey, SurveyStatusEnum } from '../survey/models/survey.model';
+import { environment } from '../../environments/environment';
 
 interface CarouselSlide {
   title: string;
   subtitle: string;
-  gradient: string;
+  imageUrl: string;
   bgClass: string;
+}
+
+interface HuellitasVideo {
+  url: SafeResourceUrl;
+  orientation: 'horizontal' | 'vertical';
+}
+
+interface HuellitasCard {
+  title: string;
+  subtitle: string;
+  videoUrl: SafeResourceUrl;
+  link: string;
 }
 
 export interface FacebookPost {
@@ -20,10 +36,58 @@ export interface FacebookPost {
   permalink_url: string;
 }
 
+const huellitasVideoSources = [
+  { url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1426778744966032%2F&show_text=false&width=560&t=0', orientation: 'horizontal' },
+  { url: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F2032017184202759%2F&show_text=false&width=267&t=0', orientation: 'vertical' },
+  { url: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1360422689005939%2F&show_text=false&width=267&t=0', orientation: 'vertical' },
+  { url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1342744714175371%2F&show_text=false&width=560&t=0', orientation: 'horizontal' },
+  { url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1559321785827982%2F&show_text=false&width=560&t=0', orientation: 'horizontal' },
+  { url: 'https://www.facebook.com/plugins/video.php?height=312&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1058978710430502%2F&show_text=false&width=560&t=0', orientation: 'horizontal' },
+] as const;
+
+const huellitasCardSources = [
+  {
+    title: 'Reforestación Activa',
+    subtitle: 'Recuperamos bosques nativos de la Amazonia colombiana sembrando especies propias del piedemonte putumayense.',
+    url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1426778744966032%2F&show_text=false&width=560&t=0',
+    link: 'https://www.facebook.com/reel/1426778744966032/',
+  },
+  {
+    title: 'Biodiversidad',
+    subtitle: 'Protegemos la riqueza biológica del Putumayo mediante monitoreo continuo de flora y fauna amenazada.',
+    url: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F2032017184202759%2F&show_text=false&width=267&t=0',
+    link: 'https://www.facebook.com/reel/2032017184202759/',
+  },
+  {
+    title: 'Educación Ambiental',
+    subtitle: 'Talleres y programas educativos que fortalecen la conciencia ecológica en las comunidades de Mocoa.',
+    url: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1360422689005939%2F&show_text=false&width=267&t=0',
+    link: 'https://www.facebook.com/reel/1360422689005939/',
+  },
+  {
+    title: 'Monitoreo Hídrico',
+    subtitle: 'Vigilamos la calidad y el caudal de las fuentes hídricas del municipio para garantizar su preservación.',
+    url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1342744714175371%2F&show_text=false&width=560&t=0',
+    link: 'https://www.facebook.com/reel/1342744714175371/',
+  },
+  {
+    title: 'Fauna Nativa',
+    subtitle: 'Programas de rescate, rehabilitación y liberación de fauna silvestre del piedemonte amazónico.',
+    url: 'https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1559321785827982%2F&show_text=false&width=560&t=0',
+    link: 'https://www.facebook.com/reel/1559321785827982/',
+  },
+  {
+    title: 'Comunidad Sostenible',
+    subtitle: 'Trabajamos junto a las comunidades locales para construir un desarrollo que beneficie a Mocoa y Putumayo.',
+    url: 'https://www.facebook.com/plugins/video.php?height=312&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1058978710430502%2F&show_text=false&width=560&t=0',
+    link: 'https://www.facebook.com/reel/1058978710430502/',
+  },
+] as const;
+
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, FooterComponent],
+  imports: [CommonModule, NavbarComponent, FooterComponent, SurveyViewerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -36,31 +100,33 @@ export class HomeComponent implements OnInit, OnDestroy {
     {
       title: 'Proyecto Mocoa',
       subtitle: 'Descubriendo el potencial del cobre y molibdeno en el corazón de la Amazonia colombiana',
-      gradient: 'linear-gradient(135deg, rgba(27,67,50,0.82) 0%, rgba(200,121,65,0.6) 100%)',
+      imageUrl: '/sliders/Conferencia.jpg',
       bgClass: 'slide-1',
     },
     {
       title: 'Huellitas Verdes',
       subtitle: 'Nuestra iniciativa de responsabilidad ambiental que protege la biodiversidad única de Putumayo',
-      gradient: 'linear-gradient(135deg, rgba(27,67,50,0.85) 0%, rgba(64,145,108,0.7) 100%)',
+      imageUrl: '/sliders/Equipo.jpg',
       bgClass: 'slide-2',
     },
     {
       title: 'Mocoa, Putumayo',
       subtitle: 'Comprometidos con el desarrollo sostenible y el bienestar de las comunidades amazónicas',
-      gradient: 'linear-gradient(135deg, rgba(27,67,50,0.88) 0%, rgba(45,106,79,0.75) 100%)',
+      imageUrl: '/sliders/Screenshot 2026-09-17 at 10-57-16 (3) Facebook.png',
       bgClass: 'slide-3',
     },
     {
       title: 'Transición Energética',
       subtitle: 'El cobre de Mocoa contribuye a construir un futuro más limpio y renovable para Colombia',
-      gradient: 'linear-gradient(135deg, rgba(200,121,65,0.75) 0%, rgba(27,67,50,0.9) 100%)',
+      imageUrl: '/sliders/Screenshot 2026-09-17 at 10-59-38 (3) Facebook.png',
       bgClass: 'slide-4',
-    },
+    }
   ];
 
   // ─── Google Maps ──────────────────────────────────────────────────────────
   mapUrl: SafeResourceUrl;
+  galleryVideoUrl: SafeResourceUrl;
+  selectedGalleryImage = signal<string | null>(null);
 
   // ─── Facebook Posts ───────────────────────────────────────────────────────
   facebookPosts = signal<FacebookPost[]>([]);
@@ -75,32 +141,15 @@ export class HomeComponent implements OnInit, OnDestroy {
   ];
 
   // ─── Huellitas Verdes ──────────────────────────────────────────────────────
-  huellitasItems = [
-    {
-      title: 'Reforestación Activa',
-      desc: 'Programas de siembra de especies nativas en zonas de influencia del proyecto, restaurando el ecosistema amazónico.',
-    },
-    {
-      title: 'Protección de Fauna',
-      desc: 'Monitoreo continuo de especies de flora y fauna en el área de concesión, garantizando su conservación.',
-    },
-    {
-      title: 'Cuencas Hídricas',
-      desc: 'Gestión responsable del agua en cuencas del río Mocoa, asegurando la calidad del recurso para comunidades locales.',
-    },
-    {
-      title: 'Comunidades Locales',
-      desc: 'Trabajo conjunto con comunidades indígenas y campesinas de Putumayo para un desarrollo con identidad cultural.',
-    },
-    {
-      title: 'Monitoreo Ambiental',
-      desc: 'Seguimiento permanente de indicadores ambientales con informes transparentes y accesibles para la ciudadanía.',
-    },
-    {
-      title: 'Economía Circular',
-      desc: 'Prácticas mineras que minimizan residuos y maximizan la eficiencia en el uso de recursos naturales.',
-    },
-  ];
+  huellitasVideos: HuellitasVideo[] = [];
+  huellitasCards: HuellitasCard[] = [];
+
+  // ─── Encuestas Dinámicas (RF-17 / RF-18) ──────────────────────────────────
+  private readonly surveyService = inject(SurveyService);
+  // # Este bloque tiene como objetivo almacenar el estado de encuestas activas y el índice del carrusel en Home
+  activeSurveys: Survey[] = [];
+  selectedSurveyIdToAnswer: number | null = null;
+  currentSurveyIndex: number = 0;
 
   constructor(
     private sanitizer: DomSanitizer,
@@ -110,11 +159,72 @@ export class HomeComponent implements OnInit, OnDestroy {
     const mapSrc =
       'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63872.13867!2d-76.6436!3d1.1490!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e2ef4b2e2d5c5d5%3A0x5ce5c5c5c5c5c5c5!2sMocoa%2C%20Putumayo!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco';
     this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(mapSrc);
+
+    const galleryVideoSrc =
+      'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1156853673247801%2F&show_text=false&width=560&height=314';
+    this.galleryVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(galleryVideoSrc);
+
+    this.huellitasVideos = huellitasVideoSources.map((video) => ({
+      url: this.sanitizer.bypassSecurityTrustResourceUrl(video.url),
+      orientation: video.orientation,
+    }));
+
+    this.huellitasCards = huellitasCardSources.map((card) => ({
+      title: card.title,
+      subtitle: card.subtitle,
+      videoUrl: this.sanitizer.bypassSecurityTrustResourceUrl(card.url),
+      link: card.link,
+    }));
   }
 
   ngOnInit(): void {
     this.startCarousel();
     this.loadFacebookPosts();
+    this.loadActiveSurveys();
+  }
+
+  // # Este bloque tiene como objetivo cargar las encuestas públicas disponibles para la comunidad en la página de inicio
+  loadActiveSurveys(): void {
+    this.surveyService.getSurveys(SurveyStatusEnum.PUBLISHED, true).subscribe({
+      next: (surveys) => {
+        this.activeSurveys = surveys || [];
+        if (this.currentSurveyIndex >= this.activeSurveys.length) {
+          this.currentSurveyIndex = 0;
+        }
+      },
+      error: () => {
+        this.activeSurveys = [];
+      },
+    });
+  }
+
+  // # Este bloque tiene como objetivo gestionar la navegación del carrusel de encuestas en la página principal
+  nextSurvey(): void {
+    if (this.activeSurveys.length > 0) {
+      this.currentSurveyIndex = (this.currentSurveyIndex + 1) % this.activeSurveys.length;
+    }
+  }
+
+  prevSurvey(): void {
+    if (this.activeSurveys.length > 0) {
+      this.currentSurveyIndex =
+        (this.currentSurveyIndex - 1 + this.activeSurveys.length) % this.activeSurveys.length;
+    }
+  }
+
+  goToSurvey(index: number): void {
+    if (index >= 0 && index < this.activeSurveys.length) {
+      this.currentSurveyIndex = index;
+    }
+  }
+
+  // # Este bloque tiene como objetivo alternar la visualización del formulario interactivo para responder una encuesta activa
+  toggleAnswerSurvey(id: number): void {
+    if (this.selectedSurveyIdToAnswer === id) {
+      this.selectedSurveyIdToAnswer = null;
+    } else {
+      this.selectedSurveyIdToAnswer = id;
+    }
   }
 
   ngOnDestroy(): void {
@@ -129,6 +239,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     track.scrollBy({ left: 420, behavior: 'smooth' });
   }
 
+  openGalleryImage(imageUrl: string): void {
+    this.selectedGalleryImage.set(imageUrl);
+  }
+
+  closeGalleryImage(): void {
+    this.selectedGalleryImage.set(null);
+  }
+
   onImageError(post: FacebookPost): void {
     post.full_picture = undefined;
   }
@@ -136,16 +254,29 @@ export class HomeComponent implements OnInit, OnDestroy {
   loadFacebookPosts(): void {
     this.isLoadingFb.set(true);
     // Intentar obtener los posts del backend NestJS
-    this.http.get<FacebookPost[]>('http://localhost:3000/facebook/posts?limit=6').subscribe({
+    this.http.get<FacebookPost[]>(`${environment.apiUrl}/facebook/posts?limit=6`).subscribe({
       next: (posts) => {
         if (posts && posts.length > 0) {
           // Decodificar &amp; en las URLs de imágenes (RSS las devuelve con entidades HTML)
-          const cleaned = posts.map(p => ({
+          const cleaned: FacebookPost[] = posts.map(p => ({
             ...p,
             full_picture: p.full_picture
               ? p.full_picture.replace(/&amp;/g, '&').replace(/&amp;amp;/g, '&')
               : undefined,
           }));
+
+          // Si por alguna razón llegaron menos de 3 publicaciones, complementar para mantener el carrusel completo
+          if (cleaned.length < 3) {
+            const fallbacks = this.getFallbackFacebookPosts();
+            for (const fb of fallbacks) {
+              const exists = cleaned.some(c => c.id === fb.id || (c.message && fb.message && c.message.slice(0, 30) === fb.message.slice(0, 30)));
+              if (!exists) {
+                cleaned.push(fb);
+              }
+              if (cleaned.length >= 6) break;
+            }
+          }
+
           this.facebookPosts.set(cleaned);
         } else {
           this.facebookPosts.set(this.getFallbackFacebookPosts());

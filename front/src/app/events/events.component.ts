@@ -1,11 +1,15 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
+import { AuthService, UserSession } from '../auth/services/auth.service';
+import { environment } from '../../environments/environment';
 
 export interface EventItem {
-  id: number;
+  uuid: string;
   title: string;
   subtitle: string;
   dateDay: string;
@@ -15,6 +19,7 @@ export interface EventItem {
   city: string;
   description: string;
   imageUrl: string;
+  status?: string;
   isSubscribed?: boolean;
 }
 
@@ -25,78 +30,98 @@ export interface EventItem {
   templateUrl: './events.component.html',
   styleUrl: './events.component.scss'
 })
-export class EventsComponent {
+export class EventsComponent implements OnInit {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private http = inject(HttpClient);
+
+  private readonly apiUrl = `${environment.apiUrl}/events`;
+
   searchTerm = signal<string>('');
   selectedEventForModal = signal<EventItem | null>(null);
   subscriptionSuccess = signal<boolean>(false);
+  isNotifying = signal<boolean>(false);
+  notificationError = signal<string | null>(null);
+  notificationSuccessEmail = signal<string>('');
+  notificationMessage = signal<string>('');
+  notifiedImmediately = signal<boolean>(false);
 
-  events = signal<EventItem[]>([
-    {
-      id: 1,
-      title: 'SINFONÍA NOCTURNA: GALA Y MÚSICA EN VIVO',
-      subtitle: 'Una velada inmersiva con la Orquesta Filarmónica Contemporánea',
-      dateDay: '28',
-      dateMonth: 'AGO',
-      time: '20:30 - 23:30 HRS',
-      location: 'Gran Teatro Metropolitano',
-      city: 'Sala Principal',
-      description: 'Disfruta de una experiencia acústica y visual sin precedentes. Un concierto exclusivo donde la luz, el sonido y el diseño minimalista se fusionan en una atmósfera totalmente inmersiva.',
-      imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
-      isSubscribed: false
-    },
-    {
-      id: 2,
-      title: 'SUMMIT INTERNACIONAL DE ARQUITECTURA & DISEÑO',
-      subtitle: 'Conferencias magistrales sobre brutalismo, vanguardia y espacio urbano',
-      dateDay: '05',
-      dateMonth: 'SEP',
-      time: '09:00 - 18:00 HRS',
-      location: 'Centro de Convenciones Vanguard',
-      city: 'Auditorio Alfa',
-      description: 'Líderes mundiales del diseño se reúnen para debatir la evolución del espacio urbano, estructuras sostenibles y la estética del contraste en la era moderna.',
-      imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=80',
-      isSubscribed: false
-    },
-    {
-      id: 3,
-      title: 'RETROSPECTIVA DE FOTOGRAFÍA EN BLANCO Y NEGRO',
-      subtitle: 'Exposición de sombras, contrastes y la belleza del claroscuro',
-      dateDay: '12',
-      dateMonth: 'SEP',
-      time: '11:00 - 20:00 HRS',
-      location: 'Galería de Arte Monocromo',
-      city: 'Salón Blanco',
-      description: 'Más de 150 piezas icónicas capturadas por fotógrafos de renombre mundial. Una exploración profunda de la textura, el ángulo y el dramatismo de la luz sin distracción de color.',
-      imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1400&q=80',
-      isSubscribed: false
-    },
-    {
-      id: 4,
-      title: 'NOCHE DE JAZZ & BLUES EN LA PENUMBRA',
-      subtitle: 'Sesión íntima en vivo con cuarteto internacional de saxo y piano',
-      dateDay: '19',
-      dateMonth: 'SEP',
-      time: '21:00 - 02:00 HRS',
-      location: 'Club Nocturno Lúmen',
-      city: 'Zona Principal',
-      description: 'Siente el ritmo envolvente del jazz clásico en un ambiente tenue e íntimo. Iluminación suave y sonido puro para los amantes de la buena música.',
-      imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1400&q=80',
-      isSubscribed: false
-    },
-    {
-      id: 5,
-      title: 'MUESTRA DE CINE INDEPENDIENTE EN 35MM',
-      subtitle: 'Ciclo de largometrajes clásicos y obras maestras del cine de autor',
-      dateDay: '25',
-      dateMonth: 'SEP',
-      time: '18:30 - 22:00 HRS',
-      location: 'Cineforo Noir',
-      city: 'Proyección 1',
-      description: 'Una selección curada de filmes en celuloide original de 35mm. Incluye debate posterior con directores y críticos invitados sobre el arte cinematográfico.',
-      imageUrl: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1400&q=80',
-      isSubscribed: false
-    }
-  ]);
+  events = signal<EventItem[]>([]);
+  isLoading = signal<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      const user = this.authService.currentUser();
+      this.syncSubscriptionsFromStorage(user);
+      if (user) {
+        this.loadUserSubscriptions();
+      }
+    }, { allowSignalWrites: true });
+  }
+
+  ngOnInit(): void {
+    try {
+      localStorage.removeItem('libero_events_subscribed_active_user');
+      localStorage.removeItem('libero_events_subscribed_backup');
+    } catch {}
+    this.loadEvents();
+  }
+
+  loadEvents(): void {
+    this.isLoading.set(true);
+    this.http.get<EventItem[]>(this.apiUrl).subscribe({
+      next: (data) => {
+        this.isLoading.set(false);
+        if (data && Array.isArray(data)) {
+          // Filtrar los que están activos en la cartelera
+          const activeList = data.filter(e => e.status !== 'past');
+          this.events.set(activeList);
+          this.syncSubscriptionsFromStorage(this.authService.currentUser());
+          this.loadUserSubscriptions();
+        }
+      },
+      error: () => {
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  loadUserSubscriptions(): void {
+    if (!this.authService.isLoggedIn()) return;
+    const token = this.authService.getToken();
+    const user = this.authService.currentUser();
+    if (!token || !user) return;
+
+    const userKey = this.getStorageKey(user);
+    if (!userKey) return;
+
+    this.http.get<string[]>(`${this.apiUrl}/user/subscriptions`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (uuids) => {
+        if (Array.isArray(uuids)) {
+          try {
+            localStorage.setItem(userKey, JSON.stringify(uuids));
+          } catch {}
+
+          this.events.update(list =>
+            list.map(item => ({
+              ...item,
+              isSubscribed: uuids.includes(String(item.uuid)),
+            }))
+          );
+
+          const curModal = this.selectedEventForModal();
+          if (curModal) {
+            this.selectedEventForModal.update(ev =>
+              ev ? { ...ev, isSubscribed: uuids.includes(String(ev.uuid)) } : null
+            );
+          }
+        }
+      },
+      error: () => {}
+    });
+  }
 
   filteredEvents = computed(() => {
     const term = this.searchTerm().toLowerCase().trim();
@@ -104,32 +129,208 @@ export class EventsComponent {
     return this.events().filter(event => {
       return term === '' ||
         event.title.toLowerCase().includes(term) ||
-        event.subtitle.toLowerCase().includes(term) ||
-        event.location.toLowerCase().includes(term) ||
-        event.description.toLowerCase().includes(term);
+        (event.subtitle && event.subtitle.toLowerCase().includes(term)) ||
+        (event.location && event.location.toLowerCase().includes(term)) ||
+        (event.description && event.description.toLowerCase().includes(term));
     });
   });
+
+  private getStorageKey(user: UserSession | null): string | null {
+    if (!user || !user.email) return null;
+    return `libero_events_subscribed_${user.email.toLowerCase().trim()}`;
+  }
+
+  private syncSubscriptionsFromStorage(user: UserSession | null): void {
+    const userKey = this.getStorageKey(user);
+    if (!userKey) {
+      // Si el usuario no ha iniciado sesión o no tiene email, ningún evento debe figurar suscrito
+      this.events.update(list =>
+        list.map(item => ({ ...item, isSubscribed: false }))
+      );
+      const currentModal = this.selectedEventForModal();
+      if (currentModal && currentModal.isSubscribed) {
+        this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: false } : null);
+      }
+      return;
+    }
+
+    const idSet = new Set<string>();
+    try {
+      const raw = localStorage.getItem(userKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((id: any) => {
+            if (id !== undefined && id !== null) idSet.add(String(id));
+          });
+        }
+      }
+    } catch {}
+
+    const subscribedIds = Array.from(idSet);
+
+    this.events.update(list =>
+      list.map(item => {
+        const identifier = String(item.uuid);
+        return {
+          ...item,
+          isSubscribed: subscribedIds.includes(identifier),
+        };
+      })
+    );
+
+    const currentModal = this.selectedEventForModal();
+    if (currentModal) {
+      const modalId = String(currentModal.uuid);
+      const isSub = subscribedIds.includes(modalId);
+      if (currentModal.isSubscribed !== isSub) {
+        this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: isSub } : null);
+      }
+    }
+  }
 
   openModal(event: EventItem) {
     this.selectedEventForModal.set(event);
     this.subscriptionSuccess.set(false);
+    this.notificationError.set(null);
   }
 
   closeModal() {
     this.selectedEventForModal.set(null);
+    this.isNotifying.set(false);
+    this.notificationError.set(null);
   }
 
   confirmSubscription() {
     const current = this.selectedEventForModal();
     if (!current) return;
 
+    if (!this.authService.isLoggedIn()) {
+      this.selectedEventForModal.set(null);
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: '/eventos' },
+      });
+      return;
+    }
+
+    const currentUser = this.authService.currentUser();
+    const token = this.authService.getToken();
+
+    if (!token) {
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: '/eventos' },
+      });
+      return;
+    }
+
+    const userKey = this.getStorageKey(currentUser);
+    const currentIdentifier = String(current.uuid);
+
+    if (userKey) {
+      try {
+        const raw = localStorage.getItem(userKey);
+        const ids: string[] = raw ? JSON.parse(raw).map((i: any) => String(i)) : [];
+        if (!ids.includes(currentIdentifier)) {
+          ids.push(currentIdentifier);
+          localStorage.setItem(userKey, JSON.stringify(ids));
+        }
+      } catch {}
+    }
+
     this.events.update(list =>
-      list.map(item =>
-        item.id === current.id ? { ...item, isSubscribed: true } : item
-      )
+      list.map(item => {
+        const itemId = String(item.uuid);
+        return itemId === currentIdentifier ? { ...item, isSubscribed: true } : item;
+      })
+    );
+    this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: true } : null);
+
+    this.isNotifying.set(true);
+    this.notificationError.set(null);
+
+    this.http.post<any>(`${this.apiUrl}/${current.uuid}/subscribe`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).subscribe({
+      next: (res) => {
+        this.isNotifying.set(false);
+        this.notificationSuccessEmail.set(currentUser?.email || 'tu correo registrado');
+        this.notifiedImmediately.set(!!res?.notifiedImmediately);
+        this.notificationMessage.set(res?.message || '');
+        this.subscriptionSuccess.set(true);
+      },
+      error: (err) => {
+        this.isNotifying.set(false);
+        const msg = err?.error?.message;
+        const errorText = Array.isArray(msg) ? msg.join(', ') : (msg || 'Error al registrar el recordatorio.');
+        this.notificationError.set(errorText);
+
+        // Revertir en caso de fallo
+        if (userKey) {
+          try {
+            const raw = localStorage.getItem(userKey);
+            let ids: string[] = raw ? JSON.parse(raw).map((i: any) => String(i)) : [];
+            ids = ids.filter(id => id !== currentIdentifier);
+            localStorage.setItem(userKey, JSON.stringify(ids));
+          } catch {}
+        }
+        this.events.update(list =>
+          list.map(item => String(item.uuid) === currentIdentifier ? { ...item, isSubscribed: false } : item)
+        );
+        this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: false } : null);
+      },
+    });
+  }
+
+  removeSubscription(eventParam?: EventItem): void {
+    const current = eventParam || this.selectedEventForModal();
+    if (!current) return;
+
+    if (!this.authService.isLoggedIn()) {
+      this.selectedEventForModal.set(null);
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: '/eventos' },
+      });
+      return;
+    }
+
+    const currentUser = this.authService.currentUser();
+    const token = this.authService.getToken();
+    const userKey = this.getStorageKey(currentUser);
+    const currentIdentifier = String(current.uuid);
+
+    if (userKey) {
+      try {
+        const stored = localStorage.getItem(userKey);
+        if (stored) {
+          let ids: string[] = JSON.parse(stored).map((i: any) => String(i));
+          ids = ids.filter(id => id !== currentIdentifier);
+          localStorage.setItem(userKey, JSON.stringify(ids));
+        }
+      } catch {}
+    }
+
+    this.events.update(list =>
+      list.map(item => {
+        const itemId = String(item.uuid);
+        return itemId === currentIdentifier ? { ...item, isSubscribed: false } : item;
+      })
     );
 
-    // Keep the success state open until the user manually closes it
-    this.subscriptionSuccess.set(true);
+    const curModal = this.selectedEventForModal();
+    if (curModal && String(curModal.uuid) === currentIdentifier) {
+      this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: false } : null);
+      this.subscriptionSuccess.set(false);
+    }
+
+    if (token) {
+      this.http.delete<any>(`${this.apiUrl}/${current.uuid}/subscribe`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).subscribe({
+        next: () => {},
+        error: () => {},
+      });
+    }
   }
 }

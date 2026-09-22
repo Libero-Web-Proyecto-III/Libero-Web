@@ -1,6 +1,16 @@
 /* ── Footer ──────────────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap');
 
+/* ── Paleta de Colores Oficial (front/STYLE.md) ─────────────────────────── */
+$color-principal: #D84E18;      /* Primario: Principal (Cobre rojizo) */
+$color-complementario: #D86E00; /* Secundario: Complementario (Naranja ámbar) */
+$color-naranja-oscuro: #8C2D08; /* Naranja cobre oscuro profundo */
+$color-naranja-medio: #A8380A;  /* Naranja cobre intermedio */
+$color-resalte: #006581;        /* Ternario: Resalte (Azul petróleo / Teal oscuro) */
+$color-delineados: #0080A3;     /* Ternario: Delineados (Teal medio / Cyan) */
+$color-base: #E4EBED;           /* Ternario: Base (Gris hielo suave) */
+$color-profundidad: #F5FDFF;    /* Ternario: Profundidad (Blanco puro / Superficie) */
+
 .footer {
   position: relative;
   width: 100%;
@@ -20,17 +30,22 @@
     }
   }
 
+  &__wave-path {
+    fill: $color-principal;
+  }
+
   &__body {
-    background: black;
-    padding: 3.5rem 0 2rem;
+    background: $color-principal;
+    padding: 3.5rem 0 2.5rem;
     width: 100%;
     box-sizing: border-box;
   }
 
   &__container {
-    max-width: 1200px;
+    width: 90%;
+    max-width: 1320px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0;
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
     gap: 3rem;
@@ -38,6 +53,7 @@
 
     @media (max-width: 900px) { grid-template-columns: 1fr 1fr; }
     @media (max-width: 580px) { grid-template-columns: 1fr; gap: 2rem; }
+    @media (max-width: 768px) { width: 92%; }
   }
 
   &__col {
@@ -65,31 +81,35 @@
     width: auto;
     object-fit: contain;
     flex-shrink: 0;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
   }
 
   &__logo-main {
     font-family: 'Outfit', sans-serif;
     font-size: 1.3rem;
-    font-weight: 700;
-    color: white;
+    font-weight: 800;
+    color: #FFFFFF;
     letter-spacing: 0.03em;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   }
 
   &__logo-sub {
     font-family: 'Inter', sans-serif;
     font-size: 0.65rem;
-    font-weight: 400;
-    color: gray;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
     letter-spacing: 0.15em;
     text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   }
 
   &__description {
     font-family: 'Inter', sans-serif;
     font-size: 0.875rem;
     line-height: 1.7;
-    color: gray;
+    color: rgba(255, 255, 255, 0.9);
     margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
   &__socials {
@@ -109,15 +129,17 @@
     font-size: 0.875rem;
     font-weight: 600;
     transition: all 0.25s ease;
-    border: 1px solid gray;
-    background: black;
-    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+    color: #FFFFFF;
 
     &:hover {
-      background: white;
-      color: black;
-      border-color: white;
+      background: #FFFFFF;
+      color: $color-principal;
+      border-color: #FFFFFF;
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
   }
 
@@ -130,13 +152,14 @@
   &__heading {
     font-family: 'Outfit', sans-serif;
     font-size: 0.95rem;
-    font-weight: 600;
-    color: white;
+    font-weight: 700;
+    color: #FFFFFF;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     margin: 0 0 0.5rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid gray;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
   &__links {
@@ -154,7 +177,7 @@
     cursor: pointer;
     font-family: 'Inter', sans-serif;
     font-size: 0.875rem;
-    color: gray;
+    color: rgba(255, 255, 255, 0.88);
     padding: 0.4rem 0;
     display: flex;
     align-items: center;
@@ -164,12 +187,16 @@
     text-decoration: none;
     transition: color 0.2s ease, gap 0.2s ease;
 
-    &:hover { color: white; gap: 0.7rem; }
+    &:hover {
+      color: #FFFFFF;
+      gap: 0.7rem;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
   }
 
   &__link-arrow {
     font-size: 1rem;
-    color: gray;
+    color: rgba(255, 255, 255, 0.75);
     line-height: 1;
   }
 
@@ -187,8 +214,9 @@
       gap: 0.6rem;
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: gray;
+      color: rgba(255, 255, 255, 0.9);
       line-height: 1.5;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
   }
 
@@ -199,34 +227,42 @@
   }
 
   &__bottom {
-    background: black;
-    border-top: 1px solid gray;
-    padding: 1.25rem 0;
+    background: $color-principal;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0.75rem 0;
 
     .footer__container {
       grid-template-columns: 1fr;
-      gap: 0.25rem;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      justify-content: space-between;
       align-items: center;
-      text-align: center;
+      gap: 0.5rem;
+
+      @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 0.2rem;
+        text-align: center;
+      }
     }
   }
 
   &__copyright {
     font-family: 'Inter', sans-serif;
-    font-size: 0.8rem;
-    color: gray;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
     margin: 0;
+    line-height: 1.2;
 
-    strong { color: white; }
+    strong { color: #FFFFFF; }
   }
 
   &__tagline {
     font-family: 'Inter', sans-serif;
-    font-size: 0.8rem;
-    color: gray;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.65);
     margin: 0;
-    letter-spacing: 0.05em;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
   }
 }

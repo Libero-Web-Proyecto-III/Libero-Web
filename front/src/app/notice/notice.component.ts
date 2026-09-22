@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -40,39 +40,15 @@ export class NoticeComponent implements OnInit {
   recentThree = computed(() => (this.selectedCategoryUuid() ? [] : this.news().slice(1, 4)));
   sidebarLatest = computed(() => (this.selectedCategoryUuid() ? [] : this.news().slice(0, 5)));
 
-
-  // Crear / editar publicación (RF-09)
-  isFormModalOpen = signal(false);
-  isEditing = signal(false);
-  editingUuid = signal<string | null>(null);
-  formTitle = signal('');
-  formContent = signal('');
-  formMediaUrls = signal<string[]>(['']);
-  formCategoryUuid = signal<string>('');
-  saving = signal(false);
-  formError = signal<string | null>(null);
-
-  // Eliminar publicación (RF-09)
-  confirmDeleteUuid = signal<string | null>(null);
-  deleting = signal(false);
-  deleteError = signal<string | null>(null);
-
-  // Gestión de categorías (CRUD visual)
-  isCategoryModalOpen = signal(false);
-  editingCategoryUuid = signal<string | null>(null);
-  categoryFormName = signal('');
-  categoryFormColor = signal('#71717a');
-  categorySaving = signal(false);
-  categoryError = signal<string | null>(null);
-  categoryDeleteUuid = signal<string | null>(null);
-  categoryDeleting = signal(false);
+  public readonly authService = inject(AuthService);
+  readonly currentUser = this.authService.currentUser;
+  readonly isLoggedIn = this.authService.isLoggedIn;
 
   constructor(
     private noticeService: NoticeService,
     private commentService: CommentService,
     private reactionService: ReactionService,
     private categoryService: CategoryService,
-    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router
   ) { }
@@ -114,16 +90,9 @@ export class NoticeComponent implements OnInit {
     this.news().find(n => n.uuid === this.selectedUuid()) ?? null
   );
 
-  canManagePublications = computed(() => {
-    const role = this.authService.currentUser()?.role?.toLowerCase();
-    return role === 'mod' || role === 'admin';
-  });
-
   openModal(uuid: string) {
     this.selectedUuid.set(uuid);
     this.newCommentDraft.set('');
-    this.confirmDeleteUuid.set(null);
-    this.deleteError.set(null);
     this.reactionError.set(null);
     this.loadReactionSummary(uuid);
     this.loadComments(uuid);
@@ -131,7 +100,6 @@ export class NoticeComponent implements OnInit {
 
   closeModal() {
     this.selectedUuid.set(null);
-    this.confirmDeleteUuid.set(null);
   }
 
   private loadReactionSummary(publicationUuid: string) {
@@ -278,6 +246,11 @@ export class NoticeComponent implements OnInit {
   }
 
   addComment(publicationUuid: string) {
+    if (!this.isLoggedIn()) {
+      this.reactionError.set('Debes iniciar sesión para comentar.');
+      return;
+    }
+
     const text = this.newCommentDraft().trim();
     if (!text) return;
 
@@ -289,6 +262,7 @@ export class NoticeComponent implements OnInit {
           )
         );
         this.newCommentDraft.set('');
+        this.reactionError.set(null);
       },
       error: (err: HttpErrorResponse) => {
         this.reactionError.set(
@@ -300,205 +274,7 @@ export class NoticeComponent implements OnInit {
     });
   }
 
-  // ===== Crear / editar publicación =====
 
-  openCreateModal() {
-    this.isEditing.set(false);
-    this.editingUuid.set(null);
-    this.formTitle.set('');
-    this.formContent.set('');
-    this.formMediaUrls.set(['']);
-    this.formCategoryUuid.set('');
-    this.formError.set(null);
-    this.isFormModalOpen.set(true);
-  }
-
-  openEditModal(pub: Publication) {
-    this.selectedUuid.set(null);
-    this.isEditing.set(true);
-    this.editingUuid.set(pub.uuid);
-    this.formTitle.set(pub.title);
-    this.formContent.set(pub.content);
-    this.formMediaUrls.set(pub.media.length > 0 ? pub.media.map(m => m.url) : ['']);
-    this.formCategoryUuid.set(pub.category?.uuid ?? '');
-    this.formError.set(null);
-    this.isFormModalOpen.set(true);
-  }
-
-  closeFormModal() {
-    this.isFormModalOpen.set(false);
-  }
-
-  addMediaField() {
-    this.formMediaUrls.update(list => [...list, '']);
-  }
-
-  removeMediaField(index: number) {
-    this.formMediaUrls.update(list => list.filter((_, i) => i !== index));
-  }
-
-  updateMediaField(index: number, value: string) {
-    this.formMediaUrls.update(list => list.map((url, i) => (i === index ? value : url)));
-  }
-
-  submitForm() {
-    const title = this.formTitle().trim();
-    const content = this.formContent().trim();
-
-    if (!title || !content) {
-      this.formError.set('El título y el contenido son obligatorios.');
-      return;
-    }
-
-    const mediaUrls = this.formMediaUrls().map(url => url.trim()).filter(url => url.length > 0);
-    const categoryUuid = this.formCategoryUuid() || undefined;
-
-    this.saving.set(true);
-    this.formError.set(null);
-
-    if (this.isEditing() && this.editingUuid()) {
-      const uuid = this.editingUuid()!;
-      this.noticeService.update(uuid, { title, content, media: mediaUrls, categoryUuid }).subscribe({
-        next: () => {
-          const media = this.noticeService.buildMediaList(mediaUrls);
-          const category = this.categories().find(c => c.uuid === categoryUuid) ?? null;
-          this.news.update(list =>
-            list.map(pub => (pub.uuid === uuid ? { ...pub, title, content, media, category } : pub))
-          );
-          this.saving.set(false);
-          this.closeFormModal();
-        },
-        error: (err: HttpErrorResponse) => {
-          this.saving.set(false);
-          this.formError.set(err?.error?.message ?? 'No se pudo actualizar la publicación.');
-        }
-      });
-      return;
-    }
-
-    this.noticeService.create({ title, content, media: mediaUrls, categoryUuid }).subscribe({
-      next: (newPublication) => {
-        this.news.update(list => [newPublication, ...list]);
-        this.saving.set(false);
-        this.closeFormModal();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.saving.set(false);
-        this.formError.set(err?.error?.message ?? 'No se pudo crear la publicación.');
-      }
-    });
-  }
-
-  // ===== Eliminar publicación =====
-
-  requestDelete(uuid: string) {
-    this.confirmDeleteUuid.set(uuid);
-    this.deleteError.set(null);
-  }
-
-  cancelDelete() {
-    this.confirmDeleteUuid.set(null);
-  }
-
-  confirmDelete() {
-    const uuid = this.confirmDeleteUuid();
-    if (!uuid) return;
-
-    this.deleting.set(true);
-    this.deleteError.set(null);
-
-    this.noticeService.remove(uuid).subscribe({
-      next: () => {
-        this.news.update(list => list.filter(pub => pub.uuid !== uuid));
-        this.deleting.set(false);
-        this.confirmDeleteUuid.set(null);
-        this.closeModal();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.deleting.set(false);
-        this.deleteError.set(err?.error?.message ?? 'No se pudo eliminar la publicación.');
-      }
-    });
-  }
-
-  // ===== Gestión de categorías (CRUD visual) =====
-
-  readonly emojiOptions: string[] = ['📢', '🌱', '⚙️', '📅', '👥', '💼', '🔬', '🏗️', '💧', '⚡'];
-  categoryFormIcon = signal('📁');
-
-  openCategoryModal() {
-    this.editingCategoryUuid.set(null);
-    this.categoryFormName.set('');
-    this.categoryFormColor.set('#71717a');
-    this.categoryFormIcon.set('📁');
-    this.categoryError.set(null);
-    this.categoryDeleteUuid.set(null);
-    this.isCategoryModalOpen.set(true);
-  }
-
-  closeCategoryModal() {
-    this.isCategoryModalOpen.set(false);
-  }
-
-  startEditCategory(cat: Category) {
-    this.editingCategoryUuid.set(cat.uuid);
-    this.categoryFormName.set(cat.name);
-    this.categoryFormColor.set(cat.color);
-    this.categoryFormIcon.set(cat.icon || '📁');
-    this.categoryError.set(null);
-  }
-
-  cancelEditCategory() {
-    this.editingCategoryUuid.set(null);
-    this.categoryFormName.set('');
-    this.categoryFormColor.set('#71717a');
-    this.categoryFormIcon.set('📁');
-    this.categoryError.set(null);
-  }
-
-  submitCategoryForm() {
-    const name = this.categoryFormName().trim();
-    if (!name) {
-      this.categoryError.set('El nombre de la categoría es obligatorio.');
-      return;
-    }
-
-    const color = this.categoryFormColor();
-    const icon = this.categoryFormIcon();
-    this.categorySaving.set(true);
-    this.categoryError.set(null);
-
-    const editingUuid = this.editingCategoryUuid();
-
-    if (editingUuid) {
-      this.categoryService.update(editingUuid, { name, color, icon }).subscribe({
-        next: () => {
-          this.categorySaving.set(false);
-          this.cancelEditCategory();
-          this.loadCategories();
-        },
-        error: (err: HttpErrorResponse) => {
-          this.categorySaving.set(false);
-          this.categoryError.set(err?.error?.message ?? 'No se pudo actualizar la categoría.');
-        }
-      });
-      return;
-    }
-
-    this.categoryService.create({ name, color, icon }).subscribe({
-      next: () => {
-        this.categorySaving.set(false);
-        this.categoryFormName.set('');
-        this.categoryFormColor.set('#71717a');
-        this.categoryFormIcon.set('📁');
-        this.loadCategories();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.categorySaving.set(false);
-        this.categoryError.set(err?.error?.message ?? 'No se pudo crear la categoría.');
-      }
-    });
-  }
 
   onImageError(event: Event) {
     const img = event.target as HTMLImageElement;
@@ -507,32 +283,7 @@ export class NoticeComponent implements OnInit {
     img.parentElement?.classList.add('no-media');
   }
 
-  requestDeleteCategory(uuid: string) {
-    this.categoryDeleteUuid.set(uuid);
-    this.categoryError.set(null);
-  }
 
-  cancelDeleteCategory() {
-    this.categoryDeleteUuid.set(null);
-  }
-
-  confirmDeleteCategory() {
-    const uuid = this.categoryDeleteUuid();
-    if (!uuid) return;
-
-    this.categoryDeleting.set(true);
-    this.categoryService.remove(uuid).subscribe({
-      next: () => {
-        this.categoryDeleting.set(false);
-        this.categoryDeleteUuid.set(null);
-        this.loadCategories();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.categoryDeleting.set(false);
-        this.categoryError.set(err?.error?.message ?? 'No se pudo eliminar la categoría.');
-      }
-    });
-  }
 
   private applyReactionResult<T extends { likes: number; dislikes: number; userReaction: ReactionType | null }>(
     entity: T,

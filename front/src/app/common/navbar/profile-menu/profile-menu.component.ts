@@ -32,7 +32,10 @@ export class ProfileMenuComponent {
   readonly roleDisplayName = computed(() => {
     const user = this.currentUser();
     if (!user) return 'Invitado';
-    return user.role?.toLowerCase() === 'admin' ? 'Administrador' : 'Usuario';
+    const role = user.role?.toLowerCase()?.trim();
+    if (role === 'admin' || role === 'administrador') return 'Administrador';
+    if (role === 'mod' || role === 'moderador') return 'Moderador';
+    return 'Usuario';
   });
 
   toggleMenu(): void {
@@ -48,9 +51,13 @@ export class ProfileMenuComponent {
     this.closeMenu();
   }
 
-  requestProfile(): void {
-    this.profileRequested.emit();
+  goToConfig(): void {
     this.closeMenu();
+    void this.router.navigate(['/config']);
+  }
+
+  requestProfile(): void {
+    this.goToConfig();
   }
 
   requestAdministration(): void {

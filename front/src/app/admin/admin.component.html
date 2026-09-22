@@ -9,24 +9,42 @@
       </div>
       <div class="user-chip">
         <div class="user-avatar">
-          <img *ngIf="authService.currentUser()?.avatar" [src]="authService.currentUser()?.avatar" alt="Avatar" class="user-avatar-img" />
+          <img
+            *ngIf="authService.currentUser()?.avatar"
+            [src]="authService.currentUser()?.avatar"
+            alt="Avatar"
+            class="user-avatar-img"
+          />
           <span *ngIf="!authService.currentUser()?.avatar">{{ userInitials() }}</span>
         </div>
         <div class="user-details">
           <span class="user-name">{{ authService.getUser()?.username || 'Administrador' }}</span>
-          <span class="user-role-badge admin">
-            ADMINISTRADOR
-          </span>
+          <span class="user-role-badge admin"> ADMINISTRADOR </span>
         </div>
       </div>
     </div>
 
     <!-- BOTÓN VOLVER A HOME (Icono de casita grande) -->
     <div class="topbar-actions">
-      <a routerLink="/" class="return-home-btn" title="Volver al portal principal (Inicio)" aria-label="Volver al Inicio">
-        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
+      <a
+        routerLink="/"
+        class="return-home-btn"
+        title="Volver al portal principal (Inicio)"
+        aria-label="Volver al Inicio"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
       </a>
     </div>
@@ -35,87 +53,145 @@
   <!-- BARRA DE PESTAÑAS (TABS) -->
   <nav class="admin-nav-tabs" aria-label="Navegación del Administrador">
     <div class="tabs-container">
-      <a 
-        routerLink="/admin/metricas" 
-        class="tab-btn" 
+      <a
+        routerLink="/admin/metricas"
+        class="tab-btn"
         [class.active]="activeTab() === 'metrics'"
-        (click)="setTab('metrics')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="20" x2="18" y2="10"/>
-          <line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
+        (click)="setTab('metrics')"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
         </svg>
         <span>Métricas</span>
       </a>
 
-      <a 
-        routerLink="/admin/eventos" 
-        class="tab-btn" 
+      <a
+        routerLink="/admin/eventos"
+        class="tab-btn"
         [class.active]="activeTab() === 'events'"
-        (click)="setTab('events')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-          <line x1="16" x2="16" y1="2" y2="6"/>
-          <line x1="8" x2="8" y1="2" y2="6"/>
-          <line x1="3" x2="21" y1="10" y2="10"/>
+        (click)="setTab('events')"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+          <line x1="16" x2="16" y1="2" y2="6" />
+          <line x1="8" x2="8" y1="2" y2="6" />
+          <line x1="3" x2="21" y1="10" y2="10" />
         </svg>
         <span>Eventos</span>
         <span class="tab-badge">{{ activeEvents().length }}</span>
       </a>
 
-      <a 
-        routerLink="/admin/noticias" 
-        class="tab-btn" 
+      <a
+        routerLink="/admin/noticias"
+        class="tab-btn"
         [class.active]="activeTab() === 'news'"
-        (click)="setTab('news')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
-          <path d="M18 14h-8"/>
-          <path d="M15 18h-5"/>
-          <path d="M10 6h8v4h-8V6Z"/>
+        (click)="setTab('news')"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"
+          />
+          <path d="M18 14h-8" />
+          <path d="M15 18h-5" />
+          <path d="M10 6h8v4h-8V6Z" />
         </svg>
         <span>Noticias</span>
         <span class="tab-badge" *ngIf="publications().length">{{ publications().length }}</span>
       </a>
 
-      <a 
-        routerLink="/admin/encuestas" 
-        class="tab-btn" 
+      <a
+        routerLink="/admin/encuestas"
+        class="tab-btn"
         [class.active]="activeTab() === 'polls'"
-        (click)="setTab('polls')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 3v18h18"/>
-          <rect x="7" y="10" width="3" height="8" rx="1"/>
-          <rect x="13" y="5" width="3" height="13" rx="1"/>
-          <rect x="19" y="13" width="2" height="5" rx="1"/>
+        (click)="setTab('polls')"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M3 3v18h18" />
+          <rect x="7" y="10" width="3" height="8" rx="1" />
+          <rect x="13" y="5" width="3" height="13" rx="1" />
+          <rect x="19" y="13" width="2" height="5" rx="1" />
         </svg>
         <span>Encuestas</span>
         <span class="tab-badge" *ngIf="surveys().length">{{ surveys().length }}</span>
       </a>
 
-      <a 
-        routerLink="/admin/usuarios" 
-        class="tab-btn" 
+      <a
+        routerLink="/admin/usuarios"
+        class="tab-btn"
         [class.active]="activeTab() === 'users'"
-        (click)="setTab('users')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        (click)="setTab('users')"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
         <span>Usuarios</span>
         <span class="tab-badge" *ngIf="users().length">{{ users().length }}</span>
       </a>
 
-      <a 
-        routerLink="/admin/configuracion" 
-        class="tab-btn" 
+      <a
+        routerLink="/admin/configuracion"
+        class="tab-btn"
         [class.active]="activeTab() === 'settings'"
-        (click)="setTab('settings')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-          <circle cx="12" cy="12" r="3"/>
+        (click)="setTab('settings')"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+          />
+          <circle cx="12" cy="12" r="3" />
         </svg>
         <span>Configuración</span>
       </a>
@@ -138,7 +214,6 @@
 
   <!-- CONTENIDO DINÁMICO POR PESTAÑA -->
   <main class="admin-content-area">
-
     <!-- ====================================================================
          0. PESTAÑA MÉTRICAS Y ANALÍTICAS
          ==================================================================== -->
@@ -146,7 +221,10 @@
       <div class="section-intro metrics-intro-header">
         <div>
           <h2>Panel de Métricas y Analíticas</h2>
-          <p>Supervisión en tiempo real del alcance comunitario, contenido publicado, encuestas y crecimiento de usuarios.</p>
+          <p>
+            Supervisión en tiempo real del alcance comunitario, contenido publicado, encuestas y
+            crecimiento de usuarios.
+          </p>
         </div>
         <div class="metrics-header-badge">
           <span class="pulse-dot"></span>
@@ -159,12 +237,27 @@
         <!-- 1. Eventos -->
         <div class="kpi-card" (click)="setTab('events')">
           <div class="kpi-icon-wrap events-accent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+              <line x1="16" x2="16" y1="2" y2="6" />
+              <line x1="8" x2="8" y1="2" y2="6" />
+              <line x1="3" x2="21" y1="10" y2="10" />
+            </svg>
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Eventos Activos</span>
             <span class="kpi-value">{{ activeEvents().length }}</span>
-            <span class="kpi-meta">{{ totalEventsCount() }} totales · {{ pastEvents().length }} concluidos</span>
+            <span class="kpi-meta"
+              >{{ totalEventsCount() }} totales · {{ pastEvents().length }} concluidos</span
+            >
           </div>
           <span class="kpi-action">Gestionar →</span>
         </div>
@@ -172,7 +265,22 @@
         <!-- 2. Noticias -->
         <div class="kpi-card" (click)="setTab('news')">
           <div class="kpi-icon-wrap news-accent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"
+              />
+              <path d="M18 14h-8" />
+              <path d="M15 18h-5" />
+              <path d="M10 6h8v4h-8V6Z" />
+            </svg>
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Noticias & Artículos</span>
@@ -185,12 +293,27 @@
         <!-- 3. Encuestas -->
         <div class="kpi-card" (click)="setTab('polls')">
           <div class="kpi-icon-wrap polls-accent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8" rx="1"/><rect x="13" y="5" width="3" height="13" rx="1"/><rect x="19" y="13" width="2" height="5" rx="1"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 3v18h18" />
+              <rect x="7" y="10" width="3" height="8" rx="1" />
+              <rect x="13" y="5" width="3" height="13" rx="1" />
+              <rect x="19" y="13" width="2" height="5" rx="1" />
+            </svg>
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Encuestas Creadas</span>
             <span class="kpi-value">{{ surveys().length }}</span>
-            <span class="kpi-meta">{{ publishedSurveysCount() }} publicadas · {{ draftSurveysCount() }} borradores</span>
+            <span class="kpi-meta"
+              >{{ publishedSurveysCount() }} publicadas · {{ draftSurveysCount() }} borradores</span
+            >
           </div>
           <span class="kpi-action">Gestionar →</span>
         </div>
@@ -198,12 +321,28 @@
         <!-- 4. Usuarios -->
         <div class="kpi-card" (click)="setTab('users')">
           <div class="kpi-icon-wrap users-accent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Control de Usuarios</span>
             <span class="kpi-value">{{ users().length }}</span>
-            <span class="kpi-meta">{{ adminUsersCount() }} admin · {{ moderatorUsersCount() }} mod · {{ standardUsersCount() }} miembros</span>
+            <span class="kpi-meta"
+              >{{ adminUsersCount() }} admin · {{ moderatorUsersCount() }} mod ·
+              {{ standardUsersCount() }} miembros</span
+            >
           </div>
           <span class="kpi-action">Ver roles →</span>
         </div>
@@ -211,12 +350,27 @@
         <!-- 5. Etiquetas & Segmentación -->
         <div class="kpi-card" (click)="setTab('users')">
           <div class="kpi-icon-wrap tags-accent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+              />
+              <line x1="7" y1="7" x2="7.01" y2="7" />
+            </svg>
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Etiquetas y Segmentos</span>
             <span class="kpi-value">{{ tags().length }}</span>
-            <span class="kpi-meta">{{ usersWithTagsCount() }} categorizados ({{ tagCoveragePercentage() }}% base)</span>
+            <span class="kpi-meta"
+              >{{ usersWithTagsCount() }} categorizados ({{ tagCoveragePercentage() }}% base)</span
+            >
           </div>
           <span class="kpi-action">Ver tags →</span>
         </div>
@@ -224,7 +378,19 @@
         <!-- 6. Total Registros Globales -->
         <div class="kpi-card static-card">
           <div class="kpi-icon-wrap database-accent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <ellipse cx="12" cy="5" rx="9" ry="3" />
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+            </svg>
           </div>
           <div class="kpi-info">
             <span class="kpi-label">Volumen de Contenido</span>
@@ -236,7 +402,6 @@
 
       <!-- Paneles Analíticos Detallados (Grid 2 columnas) -->
       <div class="analytics-panels-grid">
-        
         <!-- Tarjeta 1: Distribución del Contenido (Gráfico Circular) -->
         <div class="card analytics-card content-dist-card">
           <div class="card-header">
@@ -352,7 +517,12 @@
                   <strong>{{ adminUsersCount() }}</strong>
                 </div>
                 <div class="role-bar-track">
-                  <div class="role-bar-fill fill-admin" [style.width.%]="users().length ? (adminUsersCount() / users().length) * 100 : 0"></div>
+                  <div
+                    class="role-bar-fill fill-admin"
+                    [style.width.%]="
+                      users().length ? (adminUsersCount() / users().length) * 100 : 0
+                    "
+                  ></div>
                 </div>
               </div>
 
@@ -362,7 +532,12 @@
                   <strong>{{ moderatorUsersCount() }}</strong>
                 </div>
                 <div class="role-bar-track">
-                  <div class="role-bar-fill fill-moderator" [style.width.%]="users().length ? (moderatorUsersCount() / users().length) * 100 : 0"></div>
+                  <div
+                    class="role-bar-fill fill-moderator"
+                    [style.width.%]="
+                      users().length ? (moderatorUsersCount() / users().length) * 100 : 0
+                    "
+                  ></div>
                 </div>
               </div>
 
@@ -372,20 +547,23 @@
                   <strong>{{ standardUsersCount() }}</strong>
                 </div>
                 <div class="role-bar-track">
-                  <div class="role-bar-fill fill-user" [style.width.%]="users().length ? (standardUsersCount() / users().length) * 100 : 0"></div>
+                  <div
+                    class="role-bar-fill fill-user"
+                    [style.width.%]="
+                      users().length ? (standardUsersCount() / users().length) * 100 : 0
+                    "
+                  ></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- ==================================================================
            SECCIÓN DE TRÁFICO WEB Y AUDIENCIA (OPCIÓN 1: RASTREO PROPIO)
            ================================================================== -->
       <div class="traffic-section-container">
-        
         <!-- Encabezado de Sección de Tráfico -->
         <div class="traffic-section-header">
           <div class="traffic-header-info">
@@ -397,10 +575,31 @@
               </span>
             </div>
             <h3>Tráfico Web y Visitantes del Portal</h3>
-            <p>Monitoreo anónimo del flujo de lectores, páginas con mayor interés y visitas diarias registradas en tiempo real.</p>
+            <p>
+              Monitoreo anónimo del flujo de lectores, páginas con mayor interés y visitas diarias
+              registradas en tiempo real.
+            </p>
           </div>
-          <button type="button" class="btn-refresh-traffic" (click)="loadVisitStats()" title="Actualizar datos de tráfico">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          <button
+            type="button"
+            class="btn-refresh-traffic"
+            (click)="loadVisitStats()"
+            title="Actualizar datos de tráfico"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+            >
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+              <path d="M16 16h5v5" />
+            </svg>
             <span>Actualizar</span>
           </button>
         </div>
@@ -410,7 +609,18 @@
           <!-- 1. Total de Visitas -->
           <div class="traffic-kpi-card">
             <div class="traffic-kpi-icon icon-visits">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
             </div>
             <div class="traffic-kpi-data">
               <span class="kpi-micro-title">Páginas Vistas Totales</span>
@@ -422,7 +632,20 @@
           <!-- 2. Visitantes Únicos -->
           <div class="traffic-kpi-card">
             <div class="traffic-kpi-icon icon-unique">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
             </div>
             <div class="traffic-kpi-data">
               <span class="kpi-micro-title">Visitantes Únicos Totales</span>
@@ -434,11 +657,24 @@
           <!-- 3. Visitas Hoy -->
           <div class="traffic-kpi-card highlight-card">
             <div class="traffic-kpi-icon icon-today">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
             </div>
             <div class="traffic-kpi-data">
               <span class="kpi-micro-title">Visitas Hoy</span>
-              <strong class="traffic-kpi-number text-highlight">{{ visitStats()?.visitsToday ?? 0 }}</strong>
+              <strong class="traffic-kpi-number text-highlight">{{
+                visitStats()?.visitsToday ?? 0
+              }}</strong>
               <span class="traffic-kpi-sub">Páginas leídas en la jornada</span>
             </div>
           </div>
@@ -446,11 +682,24 @@
           <!-- 4. Visitantes Únicos Hoy -->
           <div class="traffic-kpi-card">
             <div class="traffic-kpi-icon icon-user-today">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
             </div>
             <div class="traffic-kpi-data">
               <span class="kpi-micro-title">Visitantes Únicos Hoy</span>
-              <strong class="traffic-kpi-number">{{ visitStats()?.uniqueVisitorsToday ?? 0 }}</strong>
+              <strong class="traffic-kpi-number">{{
+                visitStats()?.uniqueVisitorsToday ?? 0
+              }}</strong>
               <span class="traffic-kpi-sub">Personas que accedieron hoy</span>
             </div>
           </div>
@@ -458,25 +707,42 @@
 
         <!-- Paneles de Análisis Detallado de Tráfico (Páginas top + Tendencia 7 días) -->
         <div class="traffic-details-grid">
-          
           <!-- Tarjeta: Páginas más Visitadas -->
           <div class="card traffic-detail-card">
             <div class="card-header">
               <div>
                 <h3>Páginas Más Visitadas (Top Rutas)</h3>
-                <p class="card-header-desc">Secciones con mayor concurrencia y tráfico del portal</p>
+                <p class="card-header-desc">
+                  Secciones con mayor concurrencia y tráfico del portal
+                </p>
               </div>
-              <span class="card-badge">{{ (visitStats()?.topPages || []).length }} rutas activas</span>
+              <span class="card-badge"
+                >{{ (visitStats()?.topPages || []).length }} rutas activas</span
+              >
             </div>
             <div class="card-body">
               <div *ngIf="!visitStats()?.topPages?.length" class="empty-traffic-state">
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="36"
+                  height="36"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
                 <p>Aún no hay visitas registradas en la base de datos.</p>
                 <small>Las visitas en las rutas públicas se contabilizarán automáticamente.</small>
               </div>
 
               <div *ngIf="visitStats()?.topPages?.length" class="top-pages-list">
-                <div *ngFor="let page of visitStats()?.topPages; let idx = index" class="top-page-row">
+                <div
+                  *ngFor="let page of visitStats()?.topPages; let idx = index"
+                  class="top-page-row"
+                >
                   <div class="top-page-rank">#{{ idx + 1 }}</div>
                   <div class="top-page-info">
                     <div class="top-page-header">
@@ -519,10 +785,11 @@
                         <small>{{ day.uniqueVisitors }} únicos</small>
                       </div>
                       <!-- Barra de volumen -->
-                      <div 
-                        class="trend-bar" 
+                      <div
+                        class="trend-bar"
                         [style.height.%]="getDayBarHeight(day.visits)"
-                        [class.has-visits]="day.visits > 0">
+                        [class.has-visits]="day.visits > 0"
+                      >
                         <span class="trend-bar-val" *ngIf="day.visits > 0">{{ day.visits }}</span>
                       </div>
                     </div>
@@ -544,13 +811,9 @@
               </div>
             </div>
           </div>
-
         </div>
-
       </div>
     </section>
-
-
 
     <!-- ====================================================================
          2. PESTAÑA EVENTOS (FORMULARIO + VISTAS PREVIAS + ACTIVOS + PASADOS)
@@ -558,12 +821,14 @@
     <section *ngIf="activeTab() === 'events'" class="tab-panel animate-fade-in">
       <div class="section-intro">
         <h2>Gestión Integral de Eventos</h2>
-        <p>Crea nuevos eventos para el portal con previsualización en vivo de la tarjeta y su vista detallada.</p>
+        <p>
+          Crea nuevos eventos para el portal con previsualización en vivo de la tarjeta y su vista
+          detallada.
+        </p>
       </div>
 
       <!-- SECCIÓN SUPERIOR: FORMULARIO + VISTAS PREVIAS DUALES -->
       <div class="events-editor-layout">
-        
         <!-- COLUMNA IZQUIERDA: FORMULARIO -->
         <div class="card form-card-box">
           <div class="card-header form-card-header">
@@ -575,52 +840,64 @@
 
           <div class="card-body">
             <form [formGroup]="eventForm" (ngSubmit)="createEvent()">
-              
               <!-- Título -->
               <div class="form-group">
                 <label for="evt-title">Título del Evento *</label>
-                <input 
-                  id="evt-title" 
-                  type="text" 
-                  formControlName="title" 
+                <input
+                  id="evt-title"
+                  type="text"
+                  formControlName="title"
                   [class.input-invalid]="isFieldInvalid('title')"
-                  placeholder="Ej. SINFONÍA NOCTURNA: GALA Y MÚSICA EN VIVO" 
+                  placeholder="Ej. SINFONÍA NOCTURNA: GALA Y MÚSICA EN VIVO"
                 />
-                <span class="field-error-msg" *ngIf="isFieldInvalid('title')">* El título es obligatorio (mínimo 3 caracteres)</span>
+                <span class="field-error-msg" *ngIf="isFieldInvalid('title')"
+                  >* El título es obligatorio (mínimo 3 caracteres)</span
+                >
               </div>
 
               <!-- Subtítulo -->
               <div class="form-group">
                 <label for="evt-subtitle">Subtítulo / Temática *</label>
-                <input 
-                  id="evt-subtitle" 
-                  type="text" 
-                  formControlName="subtitle" 
+                <input
+                  id="evt-subtitle"
+                  type="text"
+                  formControlName="subtitle"
                   [class.input-invalid]="isFieldInvalid('subtitle')"
-                  placeholder="Ej. Una velada inmersiva con la Orquesta Filarmónica Contemporánea" 
+                  placeholder="Ej. Una velada inmersiva con la Orquesta Filarmónica Contemporánea"
                 />
-                <span class="field-error-msg" *ngIf="isFieldInvalid('subtitle')">* El subtítulo es obligatorio</span>
+                <span class="field-error-msg" *ngIf="isFieldInvalid('subtitle')"
+                  >* El subtítulo es obligatorio</span
+                >
               </div>
 
               <!-- Fila: Día, Mes y Selector de Calendario -->
               <div class="form-row form-row-3">
                 <div class="form-group">
                   <label for="evt-day">Día *</label>
-                  <input 
-                    id="evt-day" 
-                    type="text" 
-                    maxlength="2" 
-                    formControlName="dateDay" 
-                    [class.input-invalid]="isFieldInvalid('dateDay') || dateValidationState().isPastDate"
-                    placeholder="Ej. 28" 
+                  <input
+                    id="evt-day"
+                    type="text"
+                    maxlength="2"
+                    formControlName="dateDay"
+                    [class.input-invalid]="
+                      isFieldInvalid('dateDay') || dateValidationState().isPastDate
+                    "
+                    placeholder="Ej. 28"
                     (input)="onDateFieldsChange()"
                   />
-                  <span class="field-error-msg" *ngIf="isFieldInvalid('dateDay')">* Día requerido (1 al 31)</span>
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('dateDay')"
+                    >* Día requerido (1 al 31)</span
+                  >
                 </div>
 
                 <div class="form-group">
                   <label for="evt-month">Mes *</label>
-                  <select id="evt-month" formControlName="dateMonth" (change)="onDateFieldsChange()" [class.input-invalid]="dateValidationState().isPastDate">
+                  <select
+                    id="evt-month"
+                    formControlName="dateMonth"
+                    (change)="onDateFieldsChange()"
+                    [class.input-invalid]="dateValidationState().isPastDate"
+                  >
                     <option value="ENE">ENE (Enero)</option>
                     <option value="FEB">FEB (Febrero)</option>
                     <option value="MAR">MAR (Marzo)</option>
@@ -638,9 +915,9 @@
 
                 <div class="form-group">
                   <label for="evt-calendar-date">Fecha (Calendario)</label>
-                  <input 
-                    id="evt-calendar-date" 
-                    type="date" 
+                  <input
+                    id="evt-calendar-date"
+                    type="date"
                     [min]="minDateString()"
                     [value]="calendarDateValue()"
                     (change)="onCalendarDateChange($event)"
@@ -651,10 +928,20 @@
 
               <!-- Alerta de validación en tiempo real para fechas u horas pasadas -->
               <div class="date-validation-alert" *ngIf="!dateValidationState().isValid">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/>
-                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                  />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
                 <span>{{ dateValidationState().errorMessage }}</span>
               </div>
@@ -663,49 +950,69 @@
               <div class="time-picker-card">
                 <div class="time-picker-header">
                   <span class="time-picker-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
                       <circle cx="12" cy="12" r="10"></circle>
                       <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
                     Horario del Evento (Selector de Hora)
                   </span>
-                  <span class="time-preview-badge">
-                    ⏰ {{ computedTimeSummary() }}
-                  </span>
+                  <span class="time-preview-badge"> ⏰ {{ computedTimeSummary() }} </span>
                 </div>
 
                 <div class="form-row form-row-2">
                   <div class="form-group">
                     <label for="evt-start-time">Hora de Inicio *</label>
                     <div class="time-input-wrapper">
-                      <input 
-                        id="evt-start-time" 
-                        type="time" 
-                        formControlName="startTime" 
+                      <input
+                        id="evt-start-time"
+                        type="time"
+                        formControlName="startTime"
                         (change)="onTimeChange()"
                         (input)="onTimeChange()"
                         [min]="minStartTimeString()"
-                        [class.input-invalid]="isFieldInvalid('startTime') || dateValidationState().isPastTimeToday"
+                        [class.input-invalid]="
+                          isFieldInvalid('startTime') || dateValidationState().isPastTimeToday
+                        "
                       />
                     </div>
-                    <span class="field-error-msg" *ngIf="isFieldInvalid('startTime')">* Hora de inicio requerida</span>
-                    <span class="field-error-msg" *ngIf="dateValidationState().isPastTimeToday">* No puede ser una hora pasada</span>
+                    <span class="field-error-msg" *ngIf="isFieldInvalid('startTime')"
+                      >* Hora de inicio requerida</span
+                    >
+                    <span class="field-error-msg" *ngIf="dateValidationState().isPastTimeToday"
+                      >* No puede ser una hora pasada</span
+                    >
                   </div>
 
                   <div class="form-group">
                     <label for="evt-end-time">Hora de Finalización *</label>
                     <div class="time-input-wrapper">
-                      <input 
-                        id="evt-end-time" 
-                        type="time" 
-                        formControlName="endTime" 
+                      <input
+                        id="evt-end-time"
+                        type="time"
+                        formControlName="endTime"
                         (change)="onTimeChange()"
                         (input)="onTimeChange()"
-                        [class.input-invalid]="isFieldInvalid('endTime') || dateValidationState().isEndBeforeStart"
+                        [class.input-invalid]="
+                          isFieldInvalid('endTime') || dateValidationState().isEndBeforeStart
+                        "
                       />
                     </div>
-                    <span class="field-error-msg" *ngIf="isFieldInvalid('endTime')">* Hora de fin requerida</span>
-                    <span class="field-error-msg" *ngIf="dateValidationState().isEndBeforeStart">* Debe ser posterior al inicio</span>
+                    <span class="field-error-msg" *ngIf="isFieldInvalid('endTime')"
+                      >* Hora de fin requerida</span
+                    >
+                    <span class="field-error-msg" *ngIf="dateValidationState().isEndBeforeStart"
+                      >* Debe ser posterior al inicio</span
+                    >
                   </div>
                 </div>
 
@@ -713,28 +1020,69 @@
                 <div class="time-presets-container">
                   <span class="presets-label">Acceso rápido:</span>
                   <div class="preset-pills">
-                    <button type="button" class="preset-pill" (click)="setTimePreset('09:00', '12:00')">☀️ 09:00 - 12:00</button>
-                    <button type="button" class="preset-pill" (click)="setTimePreset('14:00', '17:00')">🌤️ 14:00 - 17:00</button>
-                    <button type="button" class="preset-pill" (click)="setTimePreset('18:00', '21:00')">🌅 18:00 - 21:00</button>
-                    <button type="button" class="preset-pill" (click)="setTimePreset('20:00', '23:00')">🌙 20:00 - 23:00</button>
-                    <button type="button" class="preset-pill" (click)="setTimePreset('20:30', '23:30')">✨ 20:30 - 23:30</button>
+                    <button
+                      type="button"
+                      class="preset-pill"
+                      (click)="setTimePreset('09:00', '12:00')"
+                    >
+                      ☀️ 09:00 - 12:00
+                    </button>
+                    <button
+                      type="button"
+                      class="preset-pill"
+                      (click)="setTimePreset('14:00', '17:00')"
+                    >
+                      🌤️ 14:00 - 17:00
+                    </button>
+                    <button
+                      type="button"
+                      class="preset-pill"
+                      (click)="setTimePreset('18:00', '21:00')"
+                    >
+                      🌅 18:00 - 21:00
+                    </button>
+                    <button
+                      type="button"
+                      class="preset-pill"
+                      (click)="setTimePreset('20:00', '23:00')"
+                    >
+                      🌙 20:00 - 23:00
+                    </button>
+                    <button
+                      type="button"
+                      class="preset-pill"
+                      (click)="setTimePreset('20:30', '23:30')"
+                    >
+                      ✨ 20:30 - 23:30
+                    </button>
                   </div>
                 </div>
 
                 <!-- Campo para ajustar texto personalizado si se desea -->
                 <div class="form-group custom-time-group" *ngIf="showCustomTimeInput()">
                   <label for="evt-custom-time">Texto descriptivo final del horario</label>
-                  <input 
-                    id="evt-custom-time" 
-                    type="text" 
-                    formControlName="time" 
+                  <input
+                    id="evt-custom-time"
+                    type="text"
+                    formControlName="time"
                     (input)="onTimeChange()"
-                    placeholder="Ej. 20:30 - 23:30 HRS" 
+                    placeholder="Ej. 20:30 - 23:30 HRS"
                   />
-                  <span class="field-hint">Texto que verán los usuarios en la cartelera y en los correos de recordatorio de 24 horas.</span>
+                  <span class="field-hint"
+                    >Texto que verán los usuarios en la cartelera y en los correos de recordatorio
+                    de 24 horas.</span
+                  >
                 </div>
-                <button type="button" class="toggle-custom-time-btn" (click)="toggleCustomTimeInput()">
-                  {{ showCustomTimeInput() ? '▲ Ocultar edición manual de texto' : '✎ Editar texto del horario manualmente' }}
+                <button
+                  type="button"
+                  class="toggle-custom-time-btn"
+                  (click)="toggleCustomTimeInput()"
+                >
+                  {{
+                    showCustomTimeInput()
+                      ? '▲ Ocultar edición manual de texto'
+                      : '✎ Editar texto del horario manualmente'
+                  }}
                 </button>
               </div>
 
@@ -742,25 +1090,29 @@
               <div class="form-row form-row-2">
                 <div class="form-group">
                   <label for="evt-loc">Lugar / Recinto *</label>
-                  <input 
-                    id="evt-loc" 
-                    type="text" 
-                    formControlName="location" 
+                  <input
+                    id="evt-loc"
+                    type="text"
+                    formControlName="location"
                     [class.input-invalid]="isFieldInvalid('location')"
-                    placeholder="Ej. Gran Teatro Metropolitano" 
+                    placeholder="Ej. Gran Teatro Metropolitano"
                   />
-                  <span class="field-error-msg" *ngIf="isFieldInvalid('location')">* Lugar obligatorio</span>
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('location')"
+                    >* Lugar obligatorio</span
+                  >
                 </div>
                 <div class="form-group">
                   <label for="evt-city">Sala / Ciudad *</label>
-                  <input 
-                    id="evt-city" 
-                    type="text" 
-                    formControlName="city" 
+                  <input
+                    id="evt-city"
+                    type="text"
+                    formControlName="city"
                     [class.input-invalid]="isFieldInvalid('city')"
-                    placeholder="Ej. Sala Principal" 
+                    placeholder="Ej. Sala Principal"
                   />
-                  <span class="field-error-msg" *ngIf="isFieldInvalid('city')">* Sala requerida</span>
+                  <span class="field-error-msg" *ngIf="isFieldInvalid('city')"
+                    >* Sala requerida</span
+                  >
                 </div>
               </div>
 
@@ -771,39 +1123,69 @@
                   <div class="upload-badge-wrapper">
                     <span class="upload-badge-text">o subir una foto</span>
                     <button type="button" class="btn-subir-foto" (click)="openFilePicker('event')">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                      >
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
                       <span>Subir foto</span>
                     </button>
                   </div>
                 </div>
-                <input 
-                  id="evt-img" 
-                  type="text" 
-                  formControlName="imageUrl" 
+                <input
+                  id="evt-img"
+                  type="text"
+                  formControlName="imageUrl"
                   [class.input-invalid]="isFieldInvalid('imageUrl')"
-                  placeholder="https://images.unsplash.com/... o sube tu foto" 
+                  placeholder="https://images.unsplash.com/... o sube tu foto"
                 />
-                <span class="field-error-msg" *ngIf="isFieldInvalid('imageUrl')">* URL o foto obligatoria</span>
+                <span class="field-error-msg" *ngIf="isFieldInvalid('imageUrl')"
+                  >* URL o foto obligatoria</span
+                >
               </div>
 
               <!-- Descripción -->
               <div class="form-group">
                 <label for="evt-desc">Descripción Completa *</label>
-                <textarea 
-                  id="evt-desc" 
-                  formControlName="description" 
-                  rows="4" 
+                <textarea
+                  id="evt-desc"
+                  formControlName="description"
+                  rows="4"
                   [class.input-invalid]="isFieldInvalid('description')"
                   placeholder="Describe la experiencia, programa, invitados especiales y dinámicas del evento..."
                 ></textarea>
-                <span class="field-error-msg" *ngIf="isFieldInvalid('description')">* Descripción obligatoria (mínimo 10 caracteres)</span>
+                <span class="field-error-msg" *ngIf="isFieldInvalid('description')"
+                  >* Descripción obligatoria (mínimo 10 caracteres)</span
+                >
               </div>
 
               <!-- Botón Crear -->
               <div class="form-actions">
                 <button type="submit" class="btn-primary-publish" [disabled]="isLoading">
-                  <svg *ngIf="!isLoading" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  <span>{{ isLoading ? 'Guardando en Base de Datos...' : 'Publicar Evento en Catálogo' }}</span>
+                  <svg
+                    *ngIf="!isLoading"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span>{{
+                    isLoading ? 'Guardando en Base de Datos...' : 'Publicar Evento en Catálogo'
+                  }}</span>
                 </button>
               </div>
             </form>
@@ -812,7 +1194,6 @@
 
         <!-- COLUMNA DERECHA: VISTAS PREVIAS EN VIVO (TARJETA + TARJETA ABIERTA) -->
         <div class="previews-column">
-
           <!-- VISTA PREVIA 1: TARJETA DEL CATÁLOGO -->
           <div class="preview-block">
             <div class="preview-label">
@@ -824,7 +1205,11 @@
               <article class="mock-event-card">
                 <!-- Imagen con overlay y fecha flotante -->
                 <div class="mock-image-wrapper">
-                  <img [src]="livePreview().imageUrl" [alt]="livePreview().title" class="mock-img" />
+                  <img
+                    [src]="livePreview().imageUrl"
+                    [alt]="livePreview().title"
+                    class="mock-img"
+                  />
                   <div class="mock-img-overlay"></div>
                   <div class="mock-date-badge">
                     <span class="mock-date-day">{{ livePreview().dateDay }}</span>
@@ -836,11 +1221,33 @@
                 <div class="mock-card-content">
                   <div class="mock-card-meta">
                     <div class="meta-item">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
                       <span>{{ livePreview().time }}</span>
                     </div>
                     <div class="meta-item">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
                       <span>{{ livePreview().location }} · {{ livePreview().city }}</span>
                     </div>
                   </div>
@@ -852,7 +1259,18 @@
                   <div class="mock-card-footer">
                     <div class="mock-cta-btn">
                       <span>VER EVENTO</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
                     </div>
                   </div>
                 </div>
@@ -885,7 +1303,9 @@
                   <div class="mock-modal-details-table">
                     <div class="detail-row">
                       <span class="lbl">Fecha:</span>
-                      <span class="val">{{ livePreview().dateDay }} de {{ livePreview().dateMonth }} 2026</span>
+                      <span class="val"
+                        >{{ livePreview().dateDay }} de {{ livePreview().dateMonth }} 2026</span
+                      >
                     </div>
                     <div class="detail-row">
                       <span class="lbl">Horario:</span>
@@ -893,7 +1313,9 @@
                     </div>
                     <div class="detail-row">
                       <span class="lbl">Ubicación:</span>
-                      <span class="val">{{ livePreview().location }} ({{ livePreview().city }})</span>
+                      <span class="val"
+                        >{{ livePreview().location }} ({{ livePreview().city }})</span
+                      >
                     </div>
                   </div>
 
@@ -907,7 +1329,6 @@
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -918,19 +1339,21 @@
         <div class="management-header-row">
           <!-- Filtro por Estado: Activos / Vencidos -->
           <div class="filter-toggle-group">
-            <button 
-              type="button" 
-              class="filter-toggle-btn" 
+            <button
+              type="button"
+              class="filter-toggle-btn"
               [class.active]="eventFilter() === 'active'"
-              (click)="eventFilter.set('active')">
+              (click)="eventFilter.set('active')"
+            >
               <span>Activos</span>
               <span class="filter-badge">{{ filteredActiveEvents().length }}</span>
             </button>
-            <button 
-              type="button" 
-              class="filter-toggle-btn" 
+            <button
+              type="button"
+              class="filter-toggle-btn"
               [class.active]="eventFilter() === 'past'"
-              (click)="eventFilter.set('past')">
+              (click)="eventFilter.set('past')"
+            >
               <span>Vencidos</span>
               <span class="filter-badge">{{ filteredPastEvents().length }}</span>
             </button>
@@ -938,32 +1361,59 @@
 
           <!-- Buscador y Filtro por Fecha al lado -->
           <div class="events-search-filter-bar">
-            
             <!-- Buscador por texto -->
             <div class="search-input-wrapper">
-              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input 
-                type="text" 
-                [value]="eventSearchQuery()" 
-                (input)="eventSearchQuery.set($any($event.target).value)" 
-                placeholder="Buscar por título, lugar, ciudad..." 
+              <svg
+                class="search-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                [value]="eventSearchQuery()"
+                (input)="eventSearchQuery.set($any($event.target).value)"
+                placeholder="Buscar por título, lugar, ciudad..."
                 class="search-text-input"
               />
-              <button 
-                *ngIf="eventSearchQuery()" 
-                type="button" 
-                class="clear-search-btn" 
+              <button
+                *ngIf="eventSearchQuery()"
+                type="button"
+                class="clear-search-btn"
                 (click)="eventSearchQuery.set('')"
                 title="Limpiar búsqueda"
-              >✕</button>
+              >
+                ✕
+              </button>
             </div>
 
             <!-- Filtro por Fecha / Mes -->
             <div class="filter-date-wrapper">
-              <svg class="date-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-              <select 
-                [value]="eventDateMonthFilter()" 
-                (change)="eventDateMonthFilter.set($any($event.target).value)" 
+              <svg
+                class="date-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                <line x1="16" x2="16" y1="2" y2="6" />
+                <line x1="8" x2="8" y1="2" y2="6" />
+                <line x1="3" x2="21" y1="10" y2="10" />
+              </svg>
+              <select
+                [value]="eventDateMonthFilter()"
+                (change)="eventDateMonthFilter.set($any($event.target).value)"
                 class="filter-date-select"
               >
                 <option value="all">Filtrar por fecha (Todos los meses)</option>
@@ -983,26 +1433,53 @@
             </div>
 
             <!-- Botón de reset de filtros -->
-            <button 
-              *ngIf="eventSearchQuery() || eventDateMonthFilter() !== 'all'" 
-              type="button" 
-              class="btn-reset-filters" 
+            <button
+              *ngIf="eventSearchQuery() || eventDateMonthFilter() !== 'all'"
+              type="button"
+              class="btn-reset-filters"
               (click)="resetEventFilters()"
               title="Restablecer filtros"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+              >
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                <path d="M8 16H3v5" />
+              </svg>
               <span>Limpiar</span>
             </button>
-
           </div>
         </div>
 
         <!-- LISTA DE EVENTOS ACTIVOS -->
         <div *ngIf="eventFilter() === 'active'">
           <div *ngIf="!filteredActiveEvents().length" class="empty-events-state">
-            <p *ngIf="!activeEvents().length">No hay eventos activos publicados actualmente. ¡Usa el formulario superior para crear uno!</p>
-            <p *ngIf="activeEvents().length">No se encontraron eventos activos que coincidan con "{{ eventSearchQuery() || eventDateMonthFilter() }}".</p>
-            <button *ngIf="activeEvents().length && (eventSearchQuery() || eventDateMonthFilter() !== 'all')" class="btn-clean-state" (click)="resetEventFilters()">Ver todos los eventos activos</button>
+            <p *ngIf="!activeEvents().length">
+              No hay eventos activos publicados actualmente. ¡Usa el formulario superior para crear
+              uno!
+            </p>
+            <p *ngIf="activeEvents().length">
+              No se encontraron eventos activos que coincidan con "{{
+                eventSearchQuery() || eventDateMonthFilter()
+              }}".
+            </p>
+            <button
+              *ngIf="
+                activeEvents().length && (eventSearchQuery() || eventDateMonthFilter() !== 'all')
+              "
+              class="btn-clean-state"
+              (click)="resetEventFilters()"
+            >
+              Ver todos los eventos activos
+            </button>
           </div>
 
           <div *ngIf="filteredActiveEvents().length" class="large-events-grid">
@@ -1020,11 +1497,33 @@
               <div class="event-info-main">
                 <div class="meta-row">
                   <span class="meta-info-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
                     {{ item.time }}
                   </span>
                   <span class="meta-info-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
                     {{ item.location }} ({{ item.city }})
                   </span>
                 </div>
@@ -1036,12 +1535,40 @@
                 <!-- Barra de herramientas de administración -->
                 <div class="admin-action-bar">
                   <button type="button" class="btn-action-view" (click)="openEventModal(item)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
                     <span>Ver Tarjeta Abierta</span>
                   </button>
 
-                  <button type="button" class="btn-action-delete" (click)="deleteEvent(item)" title="Eliminar evento definitivamente">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  <button
+                    type="button"
+                    class="btn-action-delete"
+                    (click)="deleteEvent(item)"
+                    title="Eliminar evento definitivamente"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M3 6h18" />
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    </svg>
                     <span>Eliminar</span>
                   </button>
                 </div>
@@ -1054,12 +1581,27 @@
         <div *ngIf="eventFilter() === 'past'">
           <div *ngIf="!filteredPastEvents().length" class="empty-events-state">
             <p *ngIf="!pastEvents().length">No hay eventos vencidos o desactivados actualmente.</p>
-            <p *ngIf="pastEvents().length">No se encontraron eventos vencidos que coincidan con "{{ eventSearchQuery() || eventDateMonthFilter() }}".</p>
-            <button *ngIf="pastEvents().length && (eventSearchQuery() || eventDateMonthFilter() !== 'all')" class="btn-clean-state" (click)="resetEventFilters()">Ver todos los eventos vencidos</button>
+            <p *ngIf="pastEvents().length">
+              No se encontraron eventos vencidos que coincidan con "{{
+                eventSearchQuery() || eventDateMonthFilter()
+              }}".
+            </p>
+            <button
+              *ngIf="
+                pastEvents().length && (eventSearchQuery() || eventDateMonthFilter() !== 'all')
+              "
+              class="btn-clean-state"
+              (click)="resetEventFilters()"
+            >
+              Ver todos los eventos vencidos
+            </button>
           </div>
 
           <div *ngIf="filteredPastEvents().length" class="large-events-grid">
-            <article *ngFor="let item of filteredPastEvents()" class="admin-event-card-large past-card">
+            <article
+              *ngFor="let item of filteredPastEvents()"
+              class="admin-event-card-large past-card"
+            >
               <!-- Imagen lateral -->
               <div class="event-image-side past-img-side">
                 <img [src]="item.imageUrl" [alt]="item.title" />
@@ -1073,12 +1615,21 @@
               <div class="event-info-main">
                 <div class="meta-row">
                   <span class="meta-info-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
                     {{ item.time }}
                   </span>
-                  <span class="meta-info-item">
-                    {{ item.location }} · {{ item.city }}
-                  </span>
+                  <span class="meta-info-item"> {{ item.location }} · {{ item.city }} </span>
                 </div>
 
                 <h4 class="event-title-text past-title">{{ item.title }}</h4>
@@ -1088,12 +1639,40 @@
                 <!-- Barra de herramientas de administración -->
                 <div class="admin-action-bar">
                   <button type="button" class="btn-action-view" (click)="openEventModal(item)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
                     <span>Ver Detalle</span>
                   </button>
 
-                  <button type="button" class="btn-action-delete" (click)="deleteEvent(item)" title="Eliminar evento definitivamente">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  <button
+                    type="button"
+                    class="btn-action-delete"
+                    (click)="deleteEvent(item)"
+                    title="Eliminar evento definitivamente"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M3 6h18" />
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    </svg>
                     <span>Eliminar</span>
                   </button>
                 </div>
@@ -1102,7 +1681,6 @@
           </div>
         </div>
       </div>
-
     </section>
 
     <!-- ====================================================================
@@ -1113,10 +1691,25 @@
         <div class="news-intro-flex">
           <div>
             <h2>Gestión de Noticias y Publicaciones</h2>
-            <p>Crea, edita y administra comunicados, editoriales y artículos para la portada y sección de noticias de Líbero.</p>
+            <p>
+              Crea, edita y administra comunicados, editoriales y artículos para la portada y
+              sección de noticias de Líbero.
+            </p>
           </div>
           <button type="button" class="btn-manage-categories-admin" (click)="openCategoryModal()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"
+              />
+            </svg>
             <span>Gestionar Categorías ({{ categories().length }})</span>
           </button>
         </div>
@@ -1130,19 +1723,31 @@
               <h3>{{ isEditingPublication() ? 'Editar Noticia' : 'Nueva Noticia' }}</h3>
               <span *ngIf="isEditingPublication()" class="badge-edit-mode">Modo edición</span>
             </div>
-            <button *ngIf="isEditingPublication()" type="button" class="btn-cancel-edit-head" (click)="cancelEditPublication()">
+            <button
+              *ngIf="isEditingPublication()"
+              type="button"
+              class="btn-cancel-edit-head"
+              (click)="cancelEditPublication()"
+            >
               ✕ Cancelar edición
             </button>
           </div>
           <div class="card-body">
-            <!-- Alerta local dentro del formulario de noticias -->
-            <div *ngIf="error && activeTab() === 'news'" class="alert-box error" style="margin-bottom: 1.25rem;">
+            <div
+              *ngIf="error && activeTab() === 'news'"
+              class="alert-box error"
+              style="margin-bottom: 1.25rem"
+            >
               <span class="alert-icon">⚠️</span>
               <div class="alert-text">{{ error }}</div>
               <button type="button" class="alert-close" (click)="error = ''">✕</button>
             </div>
 
-            <div *ngIf="message && activeTab() === 'news'" class="alert-box success" style="margin-bottom: 1.25rem;">
+            <div
+              *ngIf="message && activeTab() === 'news'"
+              class="alert-box success"
+              style="margin-bottom: 1.25rem"
+            >
               <span class="alert-icon">✓</span>
               <div class="alert-text">{{ message }}</div>
               <button type="button" class="alert-close" (click)="message = ''">✕</button>
@@ -1151,19 +1756,25 @@
             <form [formGroup]="publicationForm" (ngSubmit)="savePublication()">
               <div class="form-group">
                 <label for="publication-title">Título de la Noticia *</label>
-                <input 
-                  id="publication-title" 
-                  type="text" 
-                  formControlName="title" 
+                <input
+                  id="publication-title"
+                  type="text"
+                  formControlName="title"
                   [class.input-invalid]="isPublicationFieldInvalid('title')"
-                  placeholder="Ej. Avance en el proyecto de sostenibilidad ambiental" 
+                  placeholder="Ej. Avance en el proyecto de sostenibilidad ambiental"
                 />
-                <span class="field-error-msg" *ngIf="isPublicationFieldInvalid('title')">* Título obligatorio (mínimo 3 caracteres)</span>
+                <span class="field-error-msg" *ngIf="isPublicationFieldInvalid('title')"
+                  >* Título obligatorio (mínimo 3 caracteres)</span
+                >
               </div>
 
               <div class="form-group">
                 <label for="publication-category">Categoría</label>
-                <select id="publication-category" formControlName="categoryUuid" class="form-select">
+                <select
+                  id="publication-category"
+                  formControlName="categoryUuid"
+                  class="form-select"
+                >
                   <option value="">Sin categoría asignada</option>
                   <option *ngFor="let cat of categories()" [value]="cat.uuid">
                     {{ cat.icon || '📁' }} {{ cat.name }}
@@ -1174,18 +1785,54 @@
               <div class="form-group">
                 <div class="form-label-row">
                   <label>Multimedia (URLs o Subir Foto)</label>
-                  <button type="button" class="btn-subir-foto" (click)="openFilePicker('publication')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <button
+                    type="button"
+                    class="btn-subir-foto"
+                    (click)="openFilePicker('publication')"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.2"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
                     <span>Subir y recortar foto</span>
                   </button>
                 </div>
 
                 <div class="media-inputs-container">
-                  <div *ngFor="let url of publicationMediaUrls(); let i = index" class="media-input-row">
-                    <input type="text" [value]="url" (input)="updatePublicationMediaField(i, $any($event.target).value)" placeholder="https://... URL de imagen o video" />
-                    <button *ngIf="publicationMediaUrls().length > 1" type="button" class="btn-remove-media" (click)="removePublicationMediaField(i)" title="Eliminar URL">✕</button>
+                  <div
+                    *ngFor="let url of publicationMediaUrls(); let i = index"
+                    class="media-input-row"
+                  >
+                    <input
+                      type="text"
+                      [value]="url"
+                      (input)="updatePublicationMediaField(i, $any($event.target).value)"
+                      placeholder="https://... URL de imagen o video"
+                    />
+                    <button
+                      *ngIf="publicationMediaUrls().length > 1"
+                      type="button"
+                      class="btn-remove-media"
+                      (click)="removePublicationMediaField(i)"
+                      title="Eliminar URL"
+                    >
+                      ✕
+                    </button>
                   </div>
-                  <button type="button" class="btn-add-media-row" (click)="addPublicationMediaField()">
+                  <button
+                    type="button"
+                    class="btn-add-media-row"
+                    (click)="addPublicationMediaField()"
+                  >
                     + Agregar otra URL multimedia
                   </button>
                 </div>
@@ -1193,21 +1840,34 @@
 
               <div class="form-group">
                 <label for="publication-content">Cuerpo / Contenido de la Noticia *</label>
-                <textarea 
-                  id="publication-content" 
-                  formControlName="content" 
-                  rows="6" 
+                <textarea
+                  id="publication-content"
+                  formControlName="content"
+                  rows="6"
                   [class.input-invalid]="isPublicationFieldInvalid('content')"
                   placeholder="Escribe el texto completo de la noticia o comunicado..."
                 ></textarea>
-                <span class="field-error-msg" *ngIf="isPublicationFieldInvalid('content')">* Contenido obligatorio</span>
+                <span class="field-error-msg" *ngIf="isPublicationFieldInvalid('content')"
+                  >* Contenido obligatorio</span
+                >
               </div>
 
               <div class="form-actions-row">
                 <button type="submit" class="btn-primary" [disabled]="publicationSaving()">
-                  <span>{{ publicationSaving() ? 'Guardando...' : (isEditingPublication() ? 'Guardar Cambios' : 'Publicar Noticia') }}</span>
+                  <span>{{
+                    publicationSaving()
+                      ? 'Guardando...'
+                      : isEditingPublication()
+                        ? 'Guardar Cambios'
+                        : 'Publicar Noticia'
+                  }}</span>
                 </button>
-                <button *ngIf="isEditingPublication()" type="button" class="btn-secondary-cancel" (click)="cancelEditPublication()">
+                <button
+                  *ngIf="isEditingPublication()"
+                  type="button"
+                  class="btn-secondary-cancel"
+                  (click)="cancelEditPublication()"
+                >
                   Cancelar
                 </button>
               </div>
@@ -1215,66 +1875,272 @@
           </div>
         </div>
 
-        <!-- Listado de Noticias y Artículos -->
-        <div class="card list-card">
-          <div class="card-header list-header">
-            <div class="list-title-row">
-              <h3>Artículos Publicados</h3>
-              <span class="counter-badge">{{ filteredPublications().length }}</span>
+        <!-- COLUMNA DERECHA: VISTAS PREVIAS EN VIVO -->
+        <div class="previews-column" *ngIf="authService.isAdmin()">
+          <!-- VISTA PREVIA 1: TARJETA EN CATÁLOGO -->
+          <div class="preview-block">
+            <div class="preview-label">
+              <span class="badge-number">1</span>
+              <span>Vista Previa: Tarjeta en Catálogo (Lista)</span>
+            </div>
+
+            <div class="preview-card-wrapper">
+              <article class="np-notice-card">
+                <div class="np-image-wrapper">
+                  <ng-container *ngIf="livePublicationPreview().mediaUrl; else npFallback">
+                    <img
+                      *ngIf="!livePublicationPreview().isVideo"
+                      [src]="livePublicationPreview().mediaUrl"
+                      [alt]="livePublicationPreview().title"
+                      class="np-img"
+                    />
+                    <ng-container *ngIf="livePublicationPreview().isVideo">
+                      <img
+                        [src]="livePublicationPreview().mediaPoster"
+                        [alt]="livePublicationPreview().title"
+                        class="np-img"
+                      />
+                      <span class="np-play-badge">▶</span>
+                    </ng-container>
+                  </ng-container>
+                  <ng-template #npFallback>
+                    <img
+                      src="/logo.png"
+                      [alt]="livePublicationPreview().title"
+                      class="np-img np-fallback"
+                    />
+                  </ng-template>
+                  <div class="np-img-overlay"></div>
+                </div>
+
+                <div class="np-content">
+                  <span
+                    *ngIf="livePublicationPreview().category as cat"
+                    class="np-category-pill"
+                    [style.background]="cat.color"
+                  >
+                    {{ cat.icon }} {{ cat.name }}
+                  </span>
+                  <div class="np-meta">
+                    <span>{{ livePublicationPreview().author }}</span>
+                    <span>·</span>
+                    <span>{{ livePublicationPreview().createdAt | date: 'longDate' }}</span>
+                  </div>
+
+                  <h4 class="np-title">{{ livePublicationPreview().title }}</h4>
+                  <p class="np-desc">{{ livePublicationPreview().content }}</p>
+
+                  <div class="np-footer">
+                    <div class="np-reaction-preview">
+                      <span>👍 0</span>
+                      <span>👎 0</span>
+                      <span>💬 0</span>
+                    </div>
+                    <div class="np-cta-btn">
+                      <span>LEER MÁS</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
 
-          <!-- Barra de Búsqueda y Filtro de Categoría -->
-          <div class="news-filter-toolbar">
-            <div class="search-input-wrap">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              <input type="text" [ngModel]="publicationSearchQuery()" (ngModelChange)="publicationSearchQuery.set($event)" placeholder="Buscar noticias..." />
-              <button *ngIf="publicationSearchQuery()" class="clear-search-btn" (click)="publicationSearchQuery.set('')">✕</button>
+          <!-- VISTA PREVIA 2: MODAL DE DETALLE -->
+          <div class="preview-block">
+            <div class="preview-label">
+              <span class="badge-number">2</span>
+              <span>Vista Previa: Publicación Abierta (Modal de Detalle)</span>
             </div>
 
-            <select [ngModel]="publicationCategoryFilter()" (ngModelChange)="publicationCategoryFilter.set($event)" class="category-filter-select">
-              <option value="all">Todas las categorías</option>
-              <option value="none">Sin categoría</option>
-              <option *ngFor="let cat of categories()" [value]="cat.uuid">
-                {{ cat.icon }} {{ cat.name }}
-              </option>
-            </select>
+            <div class="preview-modal-wrapper">
+              <div class="np-modal-card">
+                <button type="button" class="np-modal-close" disabled>✕</button>
+
+                <div class="np-modal-media" *ngIf="livePublicationPreview().mediaUrl">
+                  <img
+                    [src]="
+                      livePublicationPreview().isVideo
+                        ? livePublicationPreview().mediaPoster
+                        : livePublicationPreview().mediaUrl
+                    "
+                    [alt]="livePublicationPreview().title"
+                  />
+                </div>
+
+                <div class="np-modal-header">
+                  <span class="np-modal-meta"
+                    >{{ livePublicationPreview().author }} ·
+                    {{ livePublicationPreview().createdAt | date: 'longDate' }}</span
+                  >
+                  <h4 class="np-modal-title">{{ livePublicationPreview().title }}</h4>
+                </div>
+
+                <p class="np-modal-text">{{ livePublicationPreview().content }}</p>
+
+                <div class="np-modal-reaction-bar">
+                  <button type="button" class="np-reaction-btn" disabled>👍 <span>0</span></button>
+                  <button type="button" class="np-reaction-btn" disabled>👎 <span>0</span></button>
+                </div>
+
+                <div class="np-modal-comments">
+                  <h5>Comentarios (0)</h5>
+                  <p class="np-no-comments">Sé el primero en comentar esta noticia.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Listado de Noticias y Artículos (SIN CAMBIOS, se queda exactamente como estaba) -->
+      <div class="card list-card">
+        <div class="card-header list-header">
+          <div class="list-title-row">
+            <h3>Artículos Publicados</h3>
+            <span class="counter-badge">{{ filteredPublications().length }}</span>
+          </div>
+        </div>
+
+        <div class="news-filter-toolbar">
+          <div class="search-input-wrap">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              type="text"
+              [ngModel]="publicationSearchQuery()"
+              (ngModelChange)="publicationSearchQuery.set($event)"
+              placeholder="Buscar noticias..."
+            />
+            <button
+              *ngIf="publicationSearchQuery()"
+              class="clear-search-btn"
+              (click)="publicationSearchQuery.set('')"
+            >
+              ✕
+            </button>
           </div>
 
-          <div class="card-body">
-            <div *ngIf="!filteredPublications().length" class="empty-state">
-              <p *ngIf="!publications().length">No hay noticias publicadas aún. ¡Usa el formulario para crear una!</p>
-              <p *ngIf="publications().length">No se encontraron noticias con los filtros aplicados.</p>
-            </div>
-            <div *ngIf="filteredPublications().length" class="items-list news-items-list">
-              <div *ngFor="let pub of filteredPublications()" class="pub-card-row">
-                <div class="pub-thumb-wrap">
-                  <img *ngIf="pub.media && pub.media.length > 0" [src]="pub.media[0]" [alt]="pub.title" onerror="this.src='/logo.png'" />
-                  <img *ngIf="!pub.media || pub.media.length === 0" src="/logo.png" [alt]="pub.title" class="fallback-img" />
+          <select
+            [ngModel]="publicationCategoryFilter()"
+            (ngModelChange)="publicationCategoryFilter.set($event)"
+            class="category-filter-select"
+          >
+            <option value="all">Todas las categorías</option>
+            <option value="none">Sin categoría</option>
+            <option *ngFor="let cat of categories()" [value]="cat.uuid">
+              {{ cat.icon }} {{ cat.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="card-body">
+          <div *ngIf="!filteredPublications().length" class="empty-state">
+            <p *ngIf="!publications().length">
+              No hay noticias publicadas aún. ¡Usa el formulario para crear una!
+            </p>
+            <p *ngIf="publications().length">
+              No se encontraron noticias con los filtros aplicados.
+            </p>
+          </div>
+          <div *ngIf="filteredPublications().length" class="items-list news-items-list">
+            <div *ngFor="let pub of filteredPublications()" class="pub-card-row">
+              <div class="pub-thumb-wrap">
+                <img
+                  *ngIf="pub.media && pub.media.length > 0"
+                  [src]="pub.media[0]"
+                  [alt]="pub.title"
+                  onerror="this.src = '/logo.png'"
+                />
+                <img
+                  *ngIf="!pub.media || pub.media.length === 0"
+                  src="/logo.png"
+                  [alt]="pub.title"
+                  class="fallback-img"
+                />
+              </div>
+              <div class="pub-info-col">
+                <div class="pub-top-meta">
+                  <span
+                    *ngIf="pub.category"
+                    class="pub-category-pill"
+                    [style.background]="pub.category.color"
+                  >
+                    {{ pub.category.icon }} {{ pub.category.name }}
+                  </span>
+                  <span class="pub-date">{{ pub.createdAt | date: 'd MMM y' }}</span>
                 </div>
-                <div class="pub-info-col">
-                  <div class="pub-top-meta">
-                    <span *ngIf="pub.category" class="pub-category-pill" [style.background]="pub.category.color">
-                      {{ pub.category.icon }} {{ pub.category.name }}
-                    </span>
-                    <span class="pub-date">{{ pub.createdAt | date: 'd MMM y' }}</span>
-                  </div>
-                  <h4 class="pub-title">{{ pub.title }}</h4>
-                  <div class="pub-author-meta">
-                    <span>Por <strong>{{ pub.author?.name || 'Autor' }}</strong></span>
-                    <small *ngIf="pub.author?.rol?.name">({{ pub.author?.rol?.name }})</small>
-                  </div>
+                <h4 class="pub-title">{{ pub.title }}</h4>
+                <div class="pub-author-meta">
+                  <span
+                    >Por <strong>{{ pub.author?.name || 'Autor' }}</strong></span
+                  >
+                  <small *ngIf="pub.author?.rol?.name">({{ pub.author?.rol?.name }})</small>
                 </div>
-                <div class="pub-actions-col">
-                  <button type="button" class="btn-action-edit" (click)="editPublication(pub)" title="Editar noticia">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    <span>Editar</span>
-                  </button>
-                  <button type="button" class="btn-action-delete-news" (click)="deletePublication(pub.uuid)" title="Eliminar noticia">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                    <span>Eliminar</span>
-                  </button>
-                </div>
+              </div>
+              <div class="pub-actions-col">
+                <button
+                  type="button"
+                  class="btn-action-edit"
+                  (click)="editPublication(pub)"
+                  title="Editar noticia"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  <span>Editar</span>
+                </button>
+                <button
+                  type="button"
+                  class="btn-action-delete-news"
+                  (click)="deletePublication(pub.uuid)"
+                  title="Eliminar noticia"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  </svg>
+                  <span>Eliminar</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1288,7 +2154,10 @@
     <section *ngIf="activeTab() === 'polls'" class="tab-panel animate-fade-in">
       <div class="section-intro">
         <h2>Gestión de Encuestas y Votaciones</h2>
-        <p>Crea sondeos dinámicos de opinión, habilita o deshabilita encuestas y visualiza estadísticas en tiempo real con gráficos y desglose de participantes.</p>
+        <p>
+          Crea sondeos dinámicos de opinión, habilita o deshabilita encuestas y visualiza
+          estadísticas en tiempo real con gráficos y desglose de participantes.
+        </p>
       </div>
 
       <!-- SECCIÓN 1: CONSTRUCTOR DE ENCUESTAS (RF-17) -->
@@ -1303,7 +2172,9 @@
             <h3>🗳️ Encuestas Creadas en el Portal</h3>
             <div class="badge-group">
               <span class="counter-badge">{{ surveys().length }} encuestas totales</span>
-              <span *ngIf="surveys().length > 5" class="counter-badge page-badge">Página {{ currentSurveyPage() }} de {{ totalSurveyPages() }}</span>
+              <span *ngIf="surveys().length > 5" class="counter-badge page-badge"
+                >Página {{ currentSurveyPage() }} de {{ totalSurveyPages() }}</span
+              >
             </div>
           </div>
         </div>
@@ -1334,7 +2205,13 @@
               </div>
 
               <span class="pagination-info-text">
-                Encuestas {{ (currentSurveyPage() - 1) * surveysPerPage + 1 }} a {{ currentSurveyPage() * surveysPerPage > surveys().length ? surveys().length : currentSurveyPage() * surveysPerPage }} de {{ surveys().length }}
+                Encuestas {{ (currentSurveyPage() - 1) * surveysPerPage + 1 }} a
+                {{
+                  currentSurveyPage() * surveysPerPage > surveys().length
+                    ? surveys().length
+                    : currentSurveyPage() * surveysPerPage
+                }}
+                de {{ surveys().length }}
               </span>
             </div>
 
@@ -1350,7 +2227,9 @@
 
           <!-- Estado Vacío -->
           <div *ngIf="!surveys().length" class="empty-state">
-            <p>No hay encuestas creadas aún. Utiliza el constructor superior para agregar la primera.</p>
+            <p>
+              No hay encuestas creadas aún. Utiliza el constructor superior para agregar la primera.
+            </p>
           </div>
 
           <!-- Grid de Encuestas -->
@@ -1360,13 +2239,20 @@
                 <div class="survey-info">
                   <h4>{{ survey.title }}</h4>
                   <p class="survey-meta">
-                    <span>📋 {{ survey.questions.length || 0 }} preguntas</span> · 
-                    <span class="status-pill" [ngClass]="'status-' + (survey.status || 'DRAFT').toLowerCase()">
+                    <span>📋 {{ survey.questions.length || 0 }} preguntas</span> ·
+                    <span
+                      class="status-pill"
+                      [ngClass]="'status-' + (survey.status || 'DRAFT').toLowerCase()"
+                    >
                       {{ survey.status }}
-                    </span> · 
+                    </span>
+                    ·
                     <span>{{ survey.isPublic ? '🌐 Pública' : '🔒 Privada' }}</span>
-                    <span *ngIf="survey.status === 'CLOSED' && survey.endDate" class="closed-date-tag">
-                      · 🔒 Cerrada el: {{ survey.endDate | date:'dd/MM/yyyy HH:mm' }}
+                    <span
+                      *ngIf="survey.status === 'CLOSED' && survey.endDate"
+                      class="closed-date-tag"
+                    >
+                      · 🔒 Cerrada el: {{ survey.endDate | date: 'dd/MM/yyyy HH:mm' }}
                     </span>
                   </p>
                 </div>
@@ -1376,8 +2262,25 @@
                     class="btn-action btn-view-results"
                     (click)="toggleSurveyResults(survey.index)"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8" rx="1"/><rect x="13" y="5" width="3" height="13" rx="1"/><rect x="19" y="13" width="2" height="5" rx="1"/></svg>
-                    <span>{{ selectedSurveyResultsId() === survey.index ? 'Ocultar Resultados' : 'Ver Resultados' }}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M3 3v18h18" />
+                      <rect x="7" y="10" width="3" height="8" rx="1" />
+                      <rect x="13" y="5" width="3" height="13" rx="1" />
+                      <rect x="19" y="13" width="2" height="5" rx="1" />
+                    </svg>
+                    <span>{{
+                      selectedSurveyResultsId() === survey.index
+                        ? 'Ocultar Resultados'
+                        : 'Ver Resultados'
+                    }}</span>
                   </button>
                   <button
                     type="button"
@@ -1385,7 +2288,9 @@
                     [ngClass]="survey.status === 'PUBLISHED' ? 'btn-disable' : 'btn-enable'"
                     (click)="toggleSurveyStatus(survey)"
                   >
-                    <span>{{ survey.status === 'PUBLISHED' ? '🚫 Deshabilitar' : '▶️ Habilitar' }}</span>
+                    <span>{{
+                      survey.status === 'PUBLISHED' ? '🚫 Deshabilitar' : '▶️ Habilitar'
+                    }}</span>
                   </button>
                   <button
                     type="button"
@@ -1393,7 +2298,19 @@
                     (click)="deleteSurvey(survey.index)"
                     title="Eliminar encuesta definitivamente"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M3 6h18" />
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    </svg>
                     <span>Eliminar</span>
                   </button>
                 </div>
@@ -1454,7 +2371,10 @@
     <section *ngIf="activeTab() === 'users'" class="tab-panel animate-fade-in">
       <div class="section-intro">
         <h2>Gestión de Usuarios y Accesos</h2>
-        <p>Supervisa a los miembros registrados, clasifícalos con etiquetas personalizadas y administra sus privilegios.</p>
+        <p>
+          Supervisa a los miembros registrados, clasifícalos con etiquetas personalizadas y
+          administra sus privilegios.
+        </p>
       </div>
 
       <!-- ====================================================================
@@ -1464,23 +2384,50 @@
         <div class="card-header tags-header-row">
           <div class="tags-header-info">
             <div class="tags-icon-badge">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                />
+                <line x1="7" y1="7" x2="7.01" y2="7" />
+              </svg>
             </div>
             <div>
               <h3>Etiquetas de Usuarios (Tags)</h3>
-              <p class="tags-sub-desc">Crea y administra etiquetas para clasificar miembros (ej. VIP, Staff, Estudiante, etc.).</p>
+              <p class="tags-sub-desc">
+                Crea y administra etiquetas para clasificar miembros (ej. VIP, Staff, Estudiante,
+                etc.).
+              </p>
             </div>
           </div>
 
           <div class="tags-header-actions">
             <span class="counter-badge">{{ tags().length }} etiquetas</span>
-            <button 
-              type="button" 
-              class="btn-create-tag-trigger" 
+            <button
+              type="button"
+              class="btn-create-tag-trigger"
               (click)="openCreateTagModal()"
               [disabled]="!authService.isAdmin()"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
               <span>Nueva Etiqueta</span>
             </button>
           </div>
@@ -1489,25 +2436,31 @@
         <div class="card-body tags-card-body">
           <!-- Lista de tags disponibles -->
           <div *ngIf="!tags().length" class="empty-tags-state">
-            <p>Aún no hay etiquetas creadas. Haz clic en <strong>"Nueva Etiqueta"</strong> para crear la primera.</p>
+            <p>
+              Aún no hay etiquetas creadas. Haz clic en <strong>"Nueva Etiqueta"</strong> para crear
+              la primera.
+            </p>
           </div>
 
           <div *ngIf="tags().length" class="tags-pill-cloud">
-            <div 
-              *ngFor="let t of tags()" 
+            <div
+              *ngFor="let t of tags()"
               class="tag-item-chip"
               [style.background-color]="t.color + '15'"
               [style.border-color]="t.color + '55'"
             >
               <span class="tag-color-bullet" [style.background-color]="t.color"></span>
               <span class="tag-name-text" [style.color]="t.color">{{ t.name }}</span>
-              <span class="tag-users-count" [title]="getUserCountForTag(t.id) + ' usuarios con esta etiqueta'">
+              <span
+                class="tag-users-count"
+                [title]="getUserCountForTag(t.id) + ' usuarios con esta etiqueta'"
+              >
                 {{ getUserCountForTag(t.id) }}
               </span>
-              <button 
+              <button
                 *ngIf="authService.isAdmin()"
-                type="button" 
-                class="tag-delete-btn" 
+                type="button"
+                class="tag-delete-btn"
                 (click)="deleteTag(t.id, t.name)"
                 [title]="'Eliminar etiqueta ' + t.name"
               >
@@ -1533,29 +2486,54 @@
           <div class="users-search-filter-bar">
             <!-- Buscador por nombre o email -->
             <div class="search-input-wrapper">
-              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input 
-                type="text" 
-                [value]="userSearchTerm()" 
-                (input)="userSearchTerm.set($any($event.target).value)" 
-                placeholder="Buscar por nombre, correo o tag..." 
+              <svg
+                class="search-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                [value]="userSearchTerm()"
+                (input)="userSearchTerm.set($any($event.target).value)"
+                placeholder="Buscar por nombre, correo o tag..."
                 class="search-text-input"
               />
-              <button 
-                *ngIf="userSearchTerm()" 
-                type="button" 
-                class="clear-search-btn" 
+              <button
+                *ngIf="userSearchTerm()"
+                type="button"
+                class="clear-search-btn"
                 (click)="userSearchTerm.set('')"
                 title="Limpiar búsqueda"
-              >✕</button>
+              >
+                ✕
+              </button>
             </div>
 
             <!-- Filtro de Rol -->
             <div class="filter-role-wrapper">
-              <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              <select 
-                [value]="userRoleFilter()" 
-                (change)="userRoleFilter.set($any($event.target).value)" 
+              <svg
+                class="role-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              <select
+                [value]="userRoleFilter()"
+                (change)="userRoleFilter.set($any($event.target).value)"
                 class="filter-role-select"
               >
                 <option value="all">Todos los roles</option>
@@ -1567,10 +2545,24 @@
 
             <!-- Filtro de Tag -->
             <div class="filter-tag-wrapper">
-              <svg class="tag-filter-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-              <select 
-                [value]="userTagFilter()" 
-                (change)="userTagFilter.set($any($event.target).value)" 
+              <svg
+                class="tag-filter-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                />
+                <line x1="7" y1="7" x2="7.01" y2="7" />
+              </svg>
+              <select
+                [value]="userTagFilter()"
+                (change)="userTagFilter.set($any($event.target).value)"
                 class="filter-tag-select"
               >
                 <option value="all">Todas las etiquetas</option>
@@ -1582,14 +2574,27 @@
             </div>
 
             <!-- Botón limpiar filtros -->
-            <button 
-              *ngIf="userSearchTerm() || userRoleFilter() !== 'all' || userTagFilter() !== 'all'" 
-              type="button" 
-              class="btn-reset-filters" 
+            <button
+              *ngIf="userSearchTerm() || userRoleFilter() !== 'all' || userTagFilter() !== 'all'"
+              type="button"
+              class="btn-reset-filters"
               (click)="resetUserFilters()"
               title="Restablecer filtros"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+              >
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                <path d="M8 16H3v5" />
+              </svg>
               <span>Limpiar</span>
             </button>
           </div>
@@ -1602,8 +2607,14 @@
           </div>
 
           <div *ngIf="users().length && !filteredUsers().length" class="empty-state">
-            <p>No se encontraron usuarios que coincidan con "{{ userSearchTerm() || userRoleFilter() }}".</p>
-            <button class="btn-clean-state" (click)="resetUserFilters()">Ver todos los usuarios</button>
+            <p>
+              No se encontraron usuarios que coincidan con "{{
+                userSearchTerm() || userRoleFilter()
+              }}".
+            </p>
+            <button class="btn-clean-state" (click)="resetUserFilters()">
+              Ver todos los usuarios
+            </button>
           </div>
 
           <!-- Tabla de usuarios -->
@@ -1624,13 +2635,24 @@
                   <!-- Usuario -->
                   <td>
                     <div class="user-identity-cell">
-                      <div class="user-avatar-bubble" [class.admin]="(userItem.rol?.name || userItem.role) === 'admin'" [class.mod]="(userItem.rol?.name || userItem.role) === 'mod'">
-                        <img *ngIf="userItem.avatar" [src]="userItem.avatar" [alt]="userItem.name" class="user-avatar-img" />
-                        <span *ngIf="!userItem.avatar">{{ userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U' }}</span>
+                      <div
+                        class="user-avatar-bubble"
+                        [class.admin]="(userItem.rol?.name || userItem.role) === 'admin'"
+                        [class.mod]="(userItem.rol?.name || userItem.role) === 'mod'"
+                      >
+                        <img
+                          *ngIf="userItem.avatar"
+                          [src]="userItem.avatar"
+                          [alt]="userItem.name"
+                          class="user-avatar-img"
+                        />
+                        <span *ngIf="!userItem.avatar">{{
+                          userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U'
+                        }}</span>
                       </div>
                       <div class="user-identity-info">
                         <strong class="user-name-text">{{ userItem.name }}</strong>
-                        <small class="user-uuid-sub">{{ userItem.uuid | slice:0:8 }}...</small>
+                        <small class="user-uuid-sub">{{ userItem.uuid | slice: 0 : 8 }}...</small>
                       </div>
                     </div>
                   </td>
@@ -1642,7 +2664,10 @@
 
                   <!-- Rol -->
                   <td>
-                    <span class="role-badge-pill" [ngClass]="'role-' + (userItem.rol?.name || userItem.role || 'user')">
+                    <span
+                      class="role-badge-pill"
+                      [ngClass]="'role-' + (userItem.rol?.name || userItem.role || 'user')"
+                    >
                       <span class="role-dot"></span>
                       {{ userItem.rol?.name || userItem.role || 'user' | uppercase }}
                     </span>
@@ -1653,14 +2678,17 @@
                     <div class="user-tags-cell-container">
                       <div class="user-tags-list-wrapper">
                         <ng-container *ngIf="getUserTags(userItem).length; else noTagsTpl">
-                          <span 
-                            *ngFor="let t of getUserTags(userItem)" 
+                          <span
+                            *ngFor="let t of getUserTags(userItem)"
                             class="user-tag-pill"
                             [style.background-color]="t.color"
                             [style.color]="getContrastColor(t.color)"
                             [title]="t.name"
                           >
-                            <span class="tag-dot" [style.background-color]="getContrastColor(t.color)"></span>
+                            <span
+                              class="tag-dot"
+                              [style.background-color]="getContrastColor(t.color)"
+                            ></span>
                             {{ t.name }}
                           </span>
                         </ng-container>
@@ -1670,14 +2698,29 @@
                       </div>
 
                       <!-- Botón + para agregar/editar etiquetas del usuario -->
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         class="btn-manage-user-tags"
                         (click)="openUserTagsModal(userItem)"
                         [disabled]="!authService.isAdmin()"
-                        [title]="getUserTags(userItem).length ? 'Modificar etiquetas de ' + userItem.name : 'Asignar etiquetas a ' + userItem.name"
+                        [title]="
+                          getUserTags(userItem).length
+                            ? 'Modificar etiquetas de ' + userItem.name
+                            : 'Asignar etiquetas a ' + userItem.name
+                        "
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.6"
+                        >
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
                         <span>{{ getUserTags(userItem).length ? 'Editar' : 'Agregar' }}</span>
                       </button>
                     </div>
@@ -1708,7 +2751,19 @@
                       [disabled]="!authService.isAdmin()"
                       title="Eliminar cuenta de usuario"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                      </svg>
                       <span>Eliminar</span>
                     </button>
                   </td>
@@ -1716,19 +2771,38 @@
               </tbody>
             </table>
           </div>
-
         </div>
       </div>
 
       <!-- ====================================================================
            MODAL 1: ASIGNACIÓN MÚLTIPLE DE TAGS A UN USUARIO
            ==================================================================== -->
-      <div *ngIf="selectedUserForTags()" class="modal-overlay animate-fade-in" (click)="closeUserTagsModal()">
-        <div class="modal-card user-tags-modal-box animate-scale-up" (click)="$event.stopPropagation()">
+      <div
+        *ngIf="selectedUserForTags()"
+        class="modal-overlay animate-fade-in"
+        (click)="closeUserTagsModal()"
+      >
+        <div
+          class="modal-card user-tags-modal-box animate-scale-up"
+          (click)="$event.stopPropagation()"
+        >
           <div class="modal-header">
             <div class="modal-title-wrap">
               <div class="modal-icon-circle user-tags-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                  />
+                  <line x1="7" y1="7" x2="7.01" y2="7" />
+                </svg>
               </div>
               <div>
                 <h3>Etiquetas de {{ selectedUserForTags()?.name }}</h3>
@@ -1741,33 +2815,58 @@
           <div class="modal-body user-tags-modal-content">
             <!-- Buscador pequeño dentro del modal -->
             <div class="tags-modal-search-wrapper">
-              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input 
-                type="text" 
-                class="form-control tags-modal-search-input" 
-                placeholder="Buscar etiqueta por nombre..." 
+              <svg
+                class="search-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                class="form-control tags-modal-search-input"
+                placeholder="Buscar etiqueta por nombre..."
                 [value]="userTagsSearchTerm()"
                 (input)="userTagsSearchTerm.set($any($event.target).value)"
               />
-              <button 
-                *ngIf="userTagsSearchTerm()" 
-                type="button" 
-                class="clear-search-btn" 
+              <button
+                *ngIf="userTagsSearchTerm()"
+                type="button"
+                class="clear-search-btn"
                 (click)="userTagsSearchTerm.set('')"
                 title="Limpiar búsqueda"
-              >✕</button>
+              >
+                ✕
+              </button>
             </div>
 
             <!-- Toolbar con conteo y acciones rápidas -->
             <div class="modal-tags-toolbar">
               <span class="selected-count-badge">
-                <strong>{{ selectedUserTagIds().length }}</strong> de {{ tags().length }} seleccionada{{ selectedUserTagIds().length === 1 ? '' : 's' }}
+                <strong>{{ selectedUserTagIds().length }}</strong> de
+                {{ tags().length }} seleccionada{{ selectedUserTagIds().length === 1 ? '' : 's' }}
               </span>
               <div class="quick-actions">
-                <button type="button" class="btn-text-action" (click)="selectAllTagsInModal()" *ngIf="filteredModalTags().length">
+                <button
+                  type="button"
+                  class="btn-text-action"
+                  (click)="selectAllTagsInModal()"
+                  *ngIf="filteredModalTags().length"
+                >
                   Seleccionar todas
                 </button>
-                <button type="button" class="btn-text-action" (click)="clearAllTagsInModal()" *ngIf="selectedUserTagIds().length">
+                <button
+                  type="button"
+                  class="btn-text-action"
+                  (click)="clearAllTagsInModal()"
+                  *ngIf="selectedUserTagIds().length"
+                >
                   Desmarcar todas
                 </button>
               </div>
@@ -1776,7 +2875,10 @@
             <!-- Lista interactiva de etiquetas -->
             <div class="modal-tags-list-container">
               <div *ngIf="!tags().length" class="empty-modal-tags">
-                <p>No existen etiquetas creadas en el sistema todavía. Crea una en la sección superior.</p>
+                <p>
+                  No existen etiquetas creadas en el sistema todavía. Crea una en la sección
+                  superior.
+                </p>
               </div>
 
               <div *ngIf="tags().length && !filteredModalTags().length" class="empty-modal-tags">
@@ -1784,16 +2886,36 @@
               </div>
 
               <div class="tags-checklist-grid" *ngIf="filteredModalTags().length">
-                <div 
-                  *ngFor="let t of filteredModalTags()" 
+                <div
+                  *ngFor="let t of filteredModalTags()"
                   class="tag-checkbox-item"
                   [class.active]="isTagSelected(t.id)"
                   (click)="toggleTagSelection(t.id)"
                 >
-                  <div class="tag-checkbox-indicator" [class.checked]="isTagSelected(t.id)" [style.background-color]="isTagSelected(t.id) ? t.color : 'transparent'" [style.border-color]="isTagSelected(t.id) ? t.color : '#cbd5e1'">
-                    <svg *ngIf="isTagSelected(t.id)" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" [attr.stroke]="getContrastColor(t.color)" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <div
+                    class="tag-checkbox-indicator"
+                    [class.checked]="isTagSelected(t.id)"
+                    [style.background-color]="isTagSelected(t.id) ? t.color : 'transparent'"
+                    [style.border-color]="isTagSelected(t.id) ? t.color : '#cbd5e1'"
+                  >
+                    <svg
+                      *ngIf="isTagSelected(t.id)"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      [attr.stroke]="getContrastColor(t.color)"
+                      stroke-width="3.5"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                   </div>
-                  <span class="tag-pill-sample" [style.background-color]="t.color" [style.color]="getContrastColor(t.color)">
+                  <span
+                    class="tag-pill-sample"
+                    [style.background-color]="t.color"
+                    [style.color]="getContrastColor(t.color)"
+                  >
                     <span class="dot" [style.background-color]="getContrastColor(t.color)"></span>
                     {{ t.name }}
                   </span>
@@ -1803,10 +2925,12 @@
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn-cancel-modal" (click)="closeUserTagsModal()">Cancelar</button>
-            <button 
-              type="button" 
-              class="btn-submit-tag" 
+            <button type="button" class="btn-cancel-modal" (click)="closeUserTagsModal()">
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="btn-submit-tag"
               (click)="saveUserTags()"
               [disabled]="isSavingUserTags()"
             >
@@ -1820,12 +2944,29 @@
       <!-- ====================================================================
            MODAL 2: CREACIÓN DE NUEVA ETIQUETA GLOBAL
            ==================================================================== -->
-      <div *ngIf="isTagModalOpen()" class="modal-overlay animate-fade-in" (click)="closeCreateTagModal()">
+      <div
+        *ngIf="isTagModalOpen()"
+        class="modal-overlay animate-fade-in"
+        (click)="closeCreateTagModal()"
+      >
         <div class="modal-card tag-modal-box animate-scale-up" (click)="$event.stopPropagation()">
           <div class="modal-header">
             <div class="modal-title-wrap">
               <div class="modal-icon-circle tag-modal-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                  />
+                  <line x1="7" y1="7" x2="7.01" y2="7" />
+                </svg>
               </div>
               <div>
                 <h3>Crear Nueva Etiqueta</h3>
@@ -1840,12 +2981,15 @@
             <div class="tag-live-preview-box">
               <span class="preview-title-label">Vista previa en tiempo real:</span>
               <div class="tag-preview-badge-container">
-                <span 
+                <span
                   class="tag-preview-pill"
                   [style.background-color]="newTagColor()"
                   [style.color]="getContrastColor(newTagColor())"
                 >
-                  <span class="tag-preview-dot" [style.background-color]="getContrastColor(newTagColor())"></span>
+                  <span
+                    class="tag-preview-dot"
+                    [style.background-color]="getContrastColor(newTagColor())"
+                  ></span>
                   {{ newTagName() || 'Nombre de la Etiqueta' }}
                 </span>
               </div>
@@ -1856,10 +3000,10 @@
               <label class="form-label">
                 Nombre de la Etiqueta <span class="required-star">*</span>
               </label>
-              <input 
-                type="text" 
-                class="form-control tag-input-name" 
-                placeholder="Ej. VIP, Staff, Estudiante, Prensa, Ponente..." 
+              <input
+                type="text"
+                class="form-control tag-input-name"
+                placeholder="Ej. VIP, Staff, Estudiante, Prensa, Ponente..."
                 [value]="newTagName()"
                 (input)="newTagName.set($any($event.target).value)"
                 maxlength="50"
@@ -1871,21 +3015,25 @@
               <label class="form-label">Color de la Etiqueta</label>
               <div class="color-picker-dual-field">
                 <!-- Rueda de color nativa / selector circular -->
-                <div class="color-wheel-wrapper" [style.background-color]="newTagColor()" title="Haz clic para abrir la rueda de colores">
-                  <input 
-                    type="color" 
-                    class="native-color-wheel" 
+                <div
+                  class="color-wheel-wrapper"
+                  [style.background-color]="newTagColor()"
+                  title="Haz clic para abrir la rueda de colores"
+                >
+                  <input
+                    type="color"
+                    class="native-color-wheel"
                     [value]="newTagColor()"
                     (input)="newTagColor.set($any($event.target).value)"
                   />
                 </div>
-                
+
                 <!-- Input Hexadecimal -->
                 <div class="hex-input-group">
                   <span class="hex-prefix">#</span>
-                  <input 
-                    type="text" 
-                    class="form-control hex-text-input" 
+                  <input
+                    type="text"
+                    class="form-control hex-text-input"
                     [value]="newTagColor().replace('#', '')"
                     (input)="onHexColorInput($event)"
                     placeholder="7C3AED"
@@ -1899,27 +3047,41 @@
             <div class="form-group">
               <label class="form-label-sub">Paleta sugerida:</label>
               <div class="preset-colors-grid">
-                <button 
-                  type="button" 
-                  *ngFor="let color of presetColors" 
+                <button
+                  type="button"
+                  *ngFor="let color of presetColors"
                   class="preset-color-dot"
                   [class.selected]="newTagColor().toUpperCase() === color.toUpperCase()"
                   [style.background-color]="color"
                   (click)="selectPresetColor(color)"
                   [title]="color"
                 >
-                  <svg *ngIf="newTagColor().toUpperCase() === color.toUpperCase()" class="check-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg
+                    *ngIf="newTagColor().toUpperCase() === color.toUpperCase()"
+                    class="check-icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </button>
               </div>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn-cancel-modal" (click)="closeCreateTagModal()">Cancelar</button>
-            <button 
-              type="button" 
-              class="btn-submit-tag" 
-              (click)="createTag()" 
+            <button type="button" class="btn-cancel-modal" (click)="closeCreateTagModal()">
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="btn-submit-tag"
+              (click)="createTag()"
               [disabled]="!newTagName().trim() || isCreatingTag()"
             >
               <span *ngIf="isCreatingTag()">Guardando...</span>
@@ -1936,7 +3098,10 @@
     <section *ngIf="activeTab() === 'settings'" class="tab-panel animate-fade-in">
       <div class="section-intro">
         <h2>Configuración del Sistema</h2>
-        <p>Ajustes generales del portal, preferencias operativas y centro de pruebas de notificaciones.</p>
+        <p>
+          Ajustes generales del portal, preferencias operativas y centro de pruebas de
+          notificaciones.
+        </p>
       </div>
 
       <div class="settings-grid">
@@ -1950,16 +3115,29 @@
             </div>
           </div>
           <p class="feature-desc">
-            Visualiza en tiempo real las plantillas oficiales de correos electrónicos (Recordatorio 24h, Evento Cancelado y Evento Finalizado), inspecciona el historial de envíos del servidor y comprueba el ciclo de vida sin depender de restricciones de red o router local.
+            Visualiza en tiempo real las plantillas oficiales de correos electrónicos (Recordatorio
+            24h, Evento Cancelado y Evento Finalizado), inspecciona el historial de envíos del
+            servidor y comprueba el ciclo de vida sin depender de restricciones de red o router
+            local.
           </p>
 
           <div class="feature-actions-row">
-            <a 
-              href="http://localhost:3000/events/preview/dashboard" 
-              target="_blank" 
+            <a
+              href="http://localhost:3000/events/preview/dashboard"
+              target="_blank"
               class="btn-open-preview-test"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                 <polyline points="15 3 21 3 21 9"></polyline>
                 <line x1="10" y1="14" x2="21" y2="3"></line>
@@ -1971,13 +3149,25 @@
           <div class="quick-samples-list">
             <span class="quick-samples-label">Acceso directo a plantillas visuales:</span>
             <div class="sample-chips">
-              <a href="http://localhost:3000/events/preview/sample/reminder24h" target="_blank" class="chip-sample gold">
+              <a
+                href="http://localhost:3000/events/preview/sample/reminder24h"
+                target="_blank"
+                class="chip-sample gold"
+              >
                 ⏰ Recordatorio 24h
               </a>
-              <a href="http://localhost:3000/events/preview/sample/cancellation" target="_blank" class="chip-sample red">
+              <a
+                href="http://localhost:3000/events/preview/sample/cancellation"
+                target="_blank"
+                class="chip-sample red"
+              >
                 ⚠️ Cancelación
               </a>
-              <a href="http://localhost:3000/events/preview/sample/ended" target="_blank" class="chip-sample cyan">
+              <a
+                href="http://localhost:3000/events/preview/sample/ended"
+                target="_blank"
+                class="chip-sample cyan"
+              >
                 🏁 Evento Finalizado
               </a>
             </div>
@@ -2002,7 +3192,6 @@
         </div>
       </div>
     </section>
-
   </main>
 
   <!-- ======================================================================
@@ -2049,43 +3238,94 @@
           </div>
 
           <!-- LISTA DE USUARIOS CON NOTIFICACIÓN ACTIVA -->
-          <div class="modal-subscribers-box" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <h5 style="font-size: 13.5px; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 6px;">
+          <div
+            class="modal-subscribers-box"
+            style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0"
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+              "
+            >
+              <h5
+                style="
+                  font-size: 13.5px;
+                  font-weight: 800;
+                  color: #0f172a;
+                  margin: 0;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                "
+              >
                 🔔 Usuarios con Notificación Activa
-                <span style="background: rgba(212,175,55,0.2); color: #946c00; font-weight: 800; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                <span
+                  style="
+                    background: rgba(212, 175, 55, 0.2);
+                    color: #946c00;
+                    font-weight: 800;
+                    padding: 2px 8px;
+                    border-radius: 12px;
+                    font-size: 11px;
+                  "
+                >
                   {{ eventSubscribers().length }}
                 </span>
               </h5>
-              <span *ngIf="loadingSubscribers()" style="font-size: 11.5px; color: #64748b;">Consultando...</span>
+              <span *ngIf="loadingSubscribers()" style="font-size: 11.5px; color: #64748b"
+                >Consultando...</span
+              >
             </div>
 
             @if (loadingSubscribers()) {
-              <p style="font-size: 12px; color: #94a3b8; font-style: italic;">Cargando lista de usuarios suscritos...</p>
+              <p style="font-size: 12px; color: #94a3b8; font-style: italic">
+                Cargando lista de usuarios suscritos...
+              </p>
             } @else if (eventSubscribers().length === 0) {
-              <p style="font-size: 12px; color: #94a3b8; font-style: italic;">Ningún usuario ha activado la notificación para este evento todavía.</p>
+              <p style="font-size: 12px; color: #94a3b8; font-style: italic">
+                Ningún usuario ha activado la notificación para este evento todavía.
+              </p>
             } @else {
-              <div style="max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                  <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; color: #64748b;">
+              <div
+                style="
+                  max-height: 180px;
+                  overflow-y: auto;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 8px;
+                "
+              >
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px">
+                  <thead
+                    style="
+                      background: #f8fafc;
+                      border-bottom: 1px solid #e2e8f0;
+                      text-align: left;
+                      color: #64748b;
+                    "
+                  >
                     <tr>
-                      <th style="padding: 6px 10px;">Usuario</th>
-                      <th style="padding: 6px 10px;">Correo</th>
-                      <th style="padding: 6px 10px;">Recordatorio 24h</th>
-                      <th style="padding: 6px 10px;">Aviso Finalizado</th>
+                      <th style="padding: 6px 10px">Usuario</th>
+                      <th style="padding: 6px 10px">Correo</th>
+                      <th style="padding: 6px 10px">Recordatorio 24h</th>
+                      <th style="padding: 6px 10px">Aviso Finalizado</th>
                     </tr>
                   </thead>
                   <tbody>
                     @for (sub of eventSubscribers(); track sub.id) {
-                      <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 6px 10px; font-weight: 600; color: #1e293b;">{{ sub.name }}</td>
-                        <td style="padding: 6px 10px; color: #0284c7;">{{ sub.email }}</td>
-                        <td style="padding: 6px 10px;">
+                      <tr style="border-bottom: 1px solid #f1f5f9">
+                        <td style="padding: 6px 10px; font-weight: 600; color: #1e293b">
+                          {{ sub.name }}
+                        </td>
+                        <td style="padding: 6px 10px; color: #0284c7">{{ sub.email }}</td>
+                        <td style="padding: 6px 10px">
                           <span [style.color]="sub.notified24h ? '#16a34a' : '#94a3b8'">
                             {{ sub.notified24h ? '✅ Enviado' : '⏳ Pendiente' }}
                           </span>
                         </td>
-                        <td style="padding: 6px 10px;">
+                        <td style="padding: 6px 10px">
                           <span [style.color]="sub.notifiedEnded ? '#16a34a' : '#94a3b8'">
                             {{ sub.notifiedEnded ? '✅ Enviado' : '⏳ Pendiente' }}
                           </span>
@@ -2100,7 +3340,9 @@
         </div>
 
         <div class="modal-bottom-actions">
-          <button type="button" class="btn-modal-dismiss" (click)="closeEventModal()">Cerrar Vista Previa</button>
+          <button type="button" class="btn-modal-dismiss" (click)="closeEventModal()">
+            Cerrar Vista Previa
+          </button>
         </div>
       </div>
     </div>
@@ -2109,12 +3351,12 @@
   <!-- ======================================================================
        INPUT OCULTO DE ARCHIVO PARA SELECCIÓN DE FOTO
        ====================================================================== -->
-  <input 
-    id="admin-image-file-input" 
-    type="file" 
-    accept="image/png,image/jpeg,image/webp,image/gif" 
-    style="display: none;" 
-    (change)="onFileSelected($event)" 
+  <input
+    id="admin-image-file-input"
+    type="file"
+    accept="image/png,image/jpeg,image/webp,image/gif"
+    style="display: none"
+    (change)="onFileSelected($event)"
   />
 
   <!-- ======================================================================
@@ -2123,28 +3365,44 @@
   @if (cropModalOpen()) {
     <div class="cropper-modal-backdrop" (click)="cancelCrop()">
       <div class="cropper-modal-container" (click)="$event.stopPropagation()">
-        
         <!-- Header -->
         <div class="cropper-modal-header">
           <div class="cropper-header-title">
             <div class="cropper-icon-badge">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M6 2v14a2 2 0 0 0 2 2h14" />
+                <path d="M18 22V8a2 2 0 0 0-2-2H2" />
+              </svg>
             </div>
             <div>
               <h3>Ajustar y Recortar Foto</h3>
               <p>Arrastra para encuadrar y ajusta el zoom para definir la vista perfecta</p>
             </div>
           </div>
-          <button type="button" class="cropper-close-btn" (click)="cancelCrop()" title="Cerrar ventana">✕</button>
+          <button
+            type="button"
+            class="cropper-close-btn"
+            (click)="cancelCrop()"
+            title="Cerrar ventana"
+          >
+            ✕
+          </button>
         </div>
 
         <!-- Cuerpo del Cropper -->
         <div class="cropper-modal-body">
-          
           <!-- Viewport Interactivo de Recorte con Canvas Directo -->
           <div class="cropper-stage-wrapper">
-            <div 
-              class="cropper-viewport" 
+            <div
+              class="cropper-viewport"
               [class.ratio-16-9]="selectedAspectRatio() === '16:9'"
               [class.ratio-4-3]="selectedAspectRatio() === '4:3'"
               [class.ratio-1-1]="selectedAspectRatio() === '1:1'"
@@ -2177,32 +3435,66 @@
 
             <!-- Hint de interacción flotante -->
             <div class="stage-drag-hint">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20" />
+              </svg>
               <span>Arrastra con el ratón para mover · Rueda para zoom</span>
             </div>
           </div>
 
           <!-- Barra de Herramientas de Control -->
           <div class="cropper-toolbar">
-            
             <!-- Control de Zoom -->
             <div class="toolbar-section zoom-control-group">
               <span class="toolbar-label">Zoom</span>
               <div class="zoom-slider-row">
                 <button type="button" class="zoom-btn" (click)="adjustZoom(-0.1)" title="Alejar">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    <line x1="8" y1="11" x2="14" y2="11" />
+                  </svg>
                 </button>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="3.5" 
-                  step="0.02" 
-                  [value]="zoom()" 
-                  (input)="setZoom($any($event.target).value)" 
-                  class="zoom-range-input" 
+                <input
+                  type="range"
+                  min="1"
+                  max="3.5"
+                  step="0.02"
+                  [value]="zoom()"
+                  (input)="setZoom($any($event.target).value)"
+                  class="zoom-range-input"
                 />
                 <button type="button" class="zoom-btn" (click)="adjustZoom(0.1)" title="Acercar">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    <line x1="11" y1="8" x2="11" y2="14" />
+                    <line x1="8" y1="11" x2="14" y2="11" />
+                  </svg>
                 </button>
                 <span class="zoom-val-text">{{ (zoom() * 100).toFixed(0) }}%</span>
               </div>
@@ -2212,25 +3504,25 @@
             <div class="toolbar-section ratio-control-group">
               <span class="toolbar-label">Formato</span>
               <div class="ratio-buttons">
-                <button 
-                  type="button" 
-                  class="ratio-pill" 
+                <button
+                  type="button"
+                  class="ratio-pill"
                   [class.active]="selectedAspectRatio() === '16:9'"
                   (click)="setAspectRatio('16:9')"
                 >
                   16:9 (Cartelera)
                 </button>
-                <button 
-                  type="button" 
-                  class="ratio-pill" 
+                <button
+                  type="button"
+                  class="ratio-pill"
                   [class.active]="selectedAspectRatio() === '4:3'"
                   (click)="setAspectRatio('4:3')"
                 >
                   4:3 (Estándar)
                 </button>
-                <button 
-                  type="button" 
-                  class="ratio-pill" 
+                <button
+                  type="button"
+                  class="ratio-pill"
                   [class.active]="selectedAspectRatio() === '1:1'"
                   (click)="setAspectRatio('1:1')"
                 >
@@ -2243,25 +3535,69 @@
             <div class="toolbar-section extra-actions">
               <span class="toolbar-label">Ajustes</span>
               <div class="extra-btn-row">
-                <button type="button" class="action-mini-btn" (click)="rotate90()" title="Girar 90 grados">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                <button
+                  type="button"
+                  class="action-mini-btn"
+                  (click)="rotate90()"
+                  title="Girar 90 grados"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                    <path d="M21 3v5h-5" />
+                  </svg>
                   <span>Rotar 90°</span>
                 </button>
-                <button type="button" class="action-mini-btn" (click)="resetPanAndZoom()" title="Centrar y reajustar">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                <button
+                  type="button"
+                  class="action-mini-btn"
+                  (click)="resetPanAndZoom()"
+                  title="Centrar y reajustar"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                    <path d="M21 3v5h-5" />
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                    <path d="M8 16H3v5" />
+                  </svg>
                   <span>Centrar</span>
                 </button>
               </div>
             </div>
-
           </div>
-
         </div>
 
         <!-- Footer del Modal -->
         <div class="cropper-modal-footer">
           <button type="button" class="btn-cropper-change" (click)="openFilePicker(cropTarget())">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
             <span>Elegir otra foto</span>
           </button>
 
@@ -2269,13 +3605,28 @@
             <button type="button" class="btn-cropper-cancel" (click)="cancelCrop()">
               Cancelar
             </button>
-            <button type="button" class="btn-cropper-apply" (click)="applyCrop()" [disabled]="cropLoading()">
-              <svg *ngIf="!cropLoading()" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <button
+              type="button"
+              class="btn-cropper-apply"
+              (click)="applyCrop()"
+              [disabled]="cropLoading()"
+            >
+              <svg
+                *ngIf="!cropLoading()"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
               <span>{{ cropLoading() ? 'Procesando...' : 'Aplicar y Guardar Foto' }}</span>
             </button>
           </div>
         </div>
-
       </div>
     </div>
   }
@@ -2301,26 +3652,59 @@
         <h4>{{ editingCategoryUuid() ? 'Editar Categoría' : 'Nueva Categoría' }}</h4>
         <div class="category-form-inputs">
           <div class="cat-input-row">
-            <input type="text" placeholder="Nombre de la categoría..." [ngModel]="categoryFormName()" (ngModelChange)="categoryFormName.set($event)" class="cat-text-input" />
+            <input
+              type="text"
+              placeholder="Nombre de la categoría..."
+              [ngModel]="categoryFormName()"
+              (ngModelChange)="categoryFormName.set($event)"
+              class="cat-text-input"
+            />
             <div class="color-picker-wrap" title="Seleccionar color">
-              <input type="color" [ngModel]="categoryFormColor()" (ngModelChange)="categoryFormColor.set($event)" class="cat-color-input" />
+              <input
+                type="color"
+                [ngModel]="categoryFormColor()"
+                (ngModelChange)="categoryFormColor.set($event)"
+                class="cat-color-input"
+              />
             </div>
           </div>
 
           <div class="emoji-picker-container">
             <label class="emoji-picker-label">Ícono / Emoji representativo:</label>
             <div class="emoji-picker-grid">
-              <button *ngFor="let emoji of emojiOptions" type="button" class="emoji-pick-btn" [class.active]="categoryFormIcon() === emoji" (click)="categoryFormIcon.set(emoji)">
+              <button
+                *ngFor="let emoji of emojiOptions"
+                type="button"
+                class="emoji-pick-btn"
+                [class.active]="categoryFormIcon() === emoji"
+                (click)="categoryFormIcon.set(emoji)"
+              >
                 {{ emoji }}
               </button>
             </div>
           </div>
 
           <div class="category-btn-row">
-            <button type="button" class="btn-primary-cat" [disabled]="categorySaving()" (click)="submitCategoryForm()">
-              {{ categorySaving() ? 'Guardando...' : (editingCategoryUuid() ? 'Guardar Cambios' : '+ Agregar Categoría') }}
+            <button
+              type="button"
+              class="btn-primary-cat"
+              [disabled]="categorySaving()"
+              (click)="submitCategoryForm()"
+            >
+              {{
+                categorySaving()
+                  ? 'Guardando...'
+                  : editingCategoryUuid()
+                    ? 'Guardar Cambios'
+                    : '+ Agregar Categoría'
+              }}
             </button>
-            <button *ngIf="editingCategoryUuid()" type="button" class="btn-cancel-cat" (click)="cancelEditCategory()">
+            <button
+              *ngIf="editingCategoryUuid()"
+              type="button"
+              class="btn-cancel-cat"
+              (click)="cancelEditCategory()"
+            >
               Cancelar Edición
             </button>
           </div>
@@ -2344,17 +3728,37 @@
 
           <div *ngIf="categoryDeleteUuid() === cat.uuid" class="confirm-del-cat">
             <span>¿Eliminar categoría?</span>
-            <button type="button" class="btn-del-yes" [disabled]="categoryDeleting()" (click)="confirmDeleteCategory()">Sí</button>
+            <button
+              type="button"
+              class="btn-del-yes"
+              [disabled]="categoryDeleting()"
+              (click)="confirmDeleteCategory()"
+            >
+              Sí
+            </button>
             <button type="button" class="btn-del-no" (click)="cancelDeleteCategory()">No</button>
           </div>
 
           <div *ngIf="categoryDeleteUuid() !== cat.uuid" class="cat-tile-actions">
-            <button type="button" class="btn-cat-action edit" (click)="startEditCategory(cat)" title="Editar categoría">✎</button>
-            <button type="button" class="btn-cat-action delete" (click)="requestDeleteCategory(cat.uuid)" title="Eliminar categoría">🗑</button>
+            <button
+              type="button"
+              class="btn-cat-action edit"
+              (click)="startEditCategory(cat)"
+              title="Editar categoría"
+            >
+              ✎
+            </button>
+            <button
+              type="button"
+              class="btn-cat-action delete"
+              (click)="requestDeleteCategory(cat.uuid)"
+              title="Eliminar categoría"
+            >
+              🗑
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
-
 </div>

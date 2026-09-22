@@ -15,30 +15,30 @@ import { environment } from '../../environments/environment';
 export type AdminTab = 'metrics' | 'home' | 'events' | 'news' | 'polls' | 'users' | 'settings';
 
 export const ADMIN_ROUTE_TAB_MAP: Record<string, AdminTab> = {
-  'metricas': 'metrics',
-  'metrics': 'metrics',
-  'home': 'metrics',
-  'inicio': 'metrics',
-  'eventos': 'events',
-  'events': 'events',
-  'noticias': 'news',
-  'news': 'news',
-  'encuestas': 'polls',
-  'polls': 'polls',
-  'usuarios': 'users',
-  'users': 'users',
-  'configuracion': 'settings',
-  'settings': 'settings',
+  metricas: 'metrics',
+  metrics: 'metrics',
+  home: 'metrics',
+  inicio: 'metrics',
+  eventos: 'events',
+  events: 'events',
+  noticias: 'news',
+  news: 'news',
+  encuestas: 'polls',
+  polls: 'polls',
+  usuarios: 'users',
+  users: 'users',
+  configuracion: 'settings',
+  settings: 'settings',
 };
 
 export const ADMIN_TAB_TO_ROUTE: Record<AdminTab, string> = {
-  'metrics': 'metricas',
-  'home': 'metricas',
-  'events': 'eventos',
-  'news': 'noticias',
-  'polls': 'encuestas',
-  'users': 'usuarios',
-  'settings': 'configuracion',
+  metrics: 'metricas',
+  home: 'metricas',
+  events: 'eventos',
+  news: 'noticias',
+  polls: 'encuestas',
+  users: 'usuarios',
+  settings: 'configuracion',
 };
 
 export interface AdminEventItem {
@@ -176,6 +176,7 @@ export class AdminComponent implements OnInit {
     categoryUuid: [''],
     content: ['', [Validators.required]],
   });
+  readonly publicationFormValueSignal = signal(this.publicationForm.getRawValue());
   readonly publicationMediaUrls = signal<string[]>(['']);
   readonly isEditingPublication = signal<boolean>(false);
   readonly editingPublicationUuid = signal<string | null>(null);
@@ -192,7 +193,19 @@ export class AdminComponent implements OnInit {
   readonly categoryError = signal<string | null>(null);
   readonly categoryDeleteUuid = signal<string | null>(null);
   readonly categoryDeleting = signal<boolean>(false);
-  readonly emojiOptions: string[] = ['📢', '🌱', '⚙️', '📅', '👥', '💼', '🔬', '🏗️', '💧', '⚡', '📁'];
+  readonly emojiOptions: string[] = [
+    '📢',
+    '🌱',
+    '⚙️',
+    '📅',
+    '👥',
+    '💼',
+    '🔬',
+    '🏗️',
+    '💧',
+    '⚡',
+    '📁',
+  ];
 
   // Filtros de búsqueda en el listado de noticias del dashboard
   readonly publicationSearchQuery = signal<string>('');
@@ -200,14 +213,14 @@ export class AdminComponent implements OnInit {
   readonly filteredPublications = computed(() => {
     const q = this.publicationSearchQuery().toLowerCase().trim();
     const cat = this.publicationCategoryFilter();
-    return this.publications().filter(pub => {
-      const matchSearch = !q ||
+    return this.publications().filter((pub) => {
+      const matchSearch =
+        !q ||
         pub.title.toLowerCase().includes(q) ||
         (pub.author?.name && pub.author.name.toLowerCase().includes(q)) ||
         (pub.content && pub.content.toLowerCase().includes(q));
-      const matchCategory = cat === 'all' ||
-        (cat === 'none' && !pub.category) ||
-        (pub.category?.uuid === cat);
+      const matchCategory =
+        cat === 'all' || (cat === 'none' && !pub.category) || pub.category?.uuid === cat;
       return matchSearch && matchCategory;
     });
   });
@@ -426,7 +439,7 @@ export class AdminComponent implements OnInit {
   readonly maxDailyVisits = computed(() => {
     const days = this.visitStats()?.recentDays || [];
     if (!days.length) return 1;
-    const max = Math.max(...days.map(d => d.visits));
+    const max = Math.max(...days.map((d) => d.visits));
     return max > 0 ? max : 1;
   });
 
@@ -465,7 +478,6 @@ export class AdminComponent implements OnInit {
     const sum = days.reduce((acc, d) => acc + d.visits, 0);
     return Math.round(sum / days.length);
   }
-
 
   getUserTags(user: UserItem): TagItem[] {
     const activeTags = this.tags() || [];
@@ -523,7 +535,20 @@ export class AdminComponent implements OnInit {
   error = '';
   isLoading = false;
 
-  isFieldInvalid(name: 'title' | 'subtitle' | 'dateDay' | 'dateMonth' | 'time' | 'startTime' | 'endTime' | 'location' | 'city' | 'description' | 'imageUrl'): boolean {
+  isFieldInvalid(
+    name:
+      | 'title'
+      | 'subtitle'
+      | 'dateDay'
+      | 'dateMonth'
+      | 'time'
+      | 'startTime'
+      | 'endTime'
+      | 'location'
+      | 'city'
+      | 'description'
+      | 'imageUrl',
+  ): boolean {
     const control = this.eventForm.controls[name];
     return control.invalid && (control.touched || control.dirty);
   }
@@ -534,7 +559,7 @@ export class AdminComponent implements OnInit {
   }
 
   toggleCustomTimeInput(): void {
-    this.showCustomTimeInput.update(v => !v);
+    this.showCustomTimeInput.update((v) => !v);
   }
 
   setTimePreset(start: string, end: string): void {
@@ -577,8 +602,18 @@ export class AdminComponent implements OnInit {
     const now = new Date();
     const formVal = this.formValueSignal();
     const monthMap: Record<string, number> = {
-      ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
-      JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11,
+      ENE: 0,
+      FEB: 1,
+      MAR: 2,
+      ABR: 3,
+      MAY: 4,
+      JUN: 5,
+      JUL: 6,
+      AGO: 7,
+      SEP: 8,
+      OCT: 9,
+      NOV: 10,
+      DIC: 11,
     };
     const day = parseInt(formVal.dateDay?.trim(), 10);
     const month = monthMap[formVal.dateMonth?.trim()?.toUpperCase()];
@@ -600,15 +635,31 @@ export class AdminComponent implements OnInit {
     const now = new Date();
     const formVal = this.formValueSignal();
     const monthMap: Record<string, number> = {
-      ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
-      JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11,
+      ENE: 0,
+      FEB: 1,
+      MAR: 2,
+      ABR: 3,
+      MAY: 4,
+      JUN: 5,
+      JUL: 6,
+      AGO: 7,
+      SEP: 8,
+      OCT: 9,
+      NOV: 10,
+      DIC: 11,
     };
     const day = parseInt(formVal.dateDay?.trim(), 10);
     const monthKey = formVal.dateMonth?.trim()?.toUpperCase();
     const month = monthMap[monthKey];
 
     if (!formVal.dateDay?.trim() || isNaN(day) || month === undefined) {
-      return { isValid: true, isPastDate: false, isPastTimeToday: false, isEndBeforeStart: false, errorMessage: null };
+      return {
+        isValid: true,
+        isPastDate: false,
+        isPastTimeToday: false,
+        isEndBeforeStart: false,
+        errorMessage: null,
+      };
     }
 
     const currentYear = now.getFullYear();
@@ -622,7 +673,8 @@ export class AdminComponent implements OnInit {
         isPastDate: true,
         isPastTimeToday: false,
         isEndBeforeStart: false,
-        errorMessage: 'La fecha seleccionada ya pasó. No se pueden programar eventos en fechas pasadas.',
+        errorMessage:
+          'La fecha seleccionada ya pasó. No se pueden programar eventos en fechas pasadas.',
       };
     }
 
@@ -639,7 +691,8 @@ export class AdminComponent implements OnInit {
             isPastDate: false,
             isPastTimeToday: true,
             isEndBeforeStart: false,
-            errorMessage: 'Para eventos programados para hoy, la hora de inicio no puede ser una hora pasada.',
+            errorMessage:
+              'Para eventos programados para hoy, la hora de inicio no puede ser una hora pasada.',
           };
         }
       }
@@ -662,7 +715,13 @@ export class AdminComponent implements OnInit {
       }
     }
 
-    return { isValid: true, isPastDate: false, isPastTimeToday: false, isEndBeforeStart: false, errorMessage: null };
+    return {
+      isValid: true,
+      isPastDate: false,
+      isPastTimeToday: false,
+      isEndBeforeStart: false,
+      errorMessage: null,
+    };
   });
 
   onCalendarDateChange(event: Event): void {
@@ -672,7 +731,20 @@ export class AdminComponent implements OnInit {
     if (parts.length === 3) {
       const day = parts[2];
       const monthIdx = parseInt(parts[1], 10) - 1;
-      const MONTH_CODES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+      const MONTH_CODES = [
+        'ENE',
+        'FEB',
+        'MAR',
+        'ABR',
+        'MAY',
+        'JUN',
+        'JUL',
+        'AGO',
+        'SEP',
+        'OCT',
+        'NOV',
+        'DIC',
+      ];
       const monthCode = MONTH_CODES[monthIdx] || 'ENE';
 
       this.calendarDateValue.set(input.value);
@@ -689,8 +761,18 @@ export class AdminComponent implements OnInit {
     this.formValueSignal.set(formVal);
 
     const monthMap: Record<string, number> = {
-      ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6,
-      JUL: 7, AGO: 8, SEP: 9, OCT: 10, NOV: 11, DIC: 12,
+      ENE: 1,
+      FEB: 2,
+      MAR: 3,
+      ABR: 4,
+      MAY: 5,
+      JUN: 6,
+      JUL: 7,
+      AGO: 8,
+      SEP: 9,
+      OCT: 10,
+      NOV: 11,
+      DIC: 12,
     };
     const day = parseInt(formVal.dateDay?.trim(), 10);
     const mNum = monthMap[formVal.dateMonth?.trim()?.toUpperCase()];
@@ -706,11 +788,16 @@ export class AdminComponent implements OnInit {
   // Vista Previa reactiva que se actualiza al escribir en el formulario
   readonly livePreview = computed<AdminEventItem>(() => {
     const val = this.formValueSignal();
-    const timeDisplay = val.time?.trim() || (val.startTime ? `${val.startTime}${val.endTime ? ' - ' + val.endTime : ''} HRS` : '20:00 - 23:00 HRS');
+    const timeDisplay =
+      val.time?.trim() ||
+      (val.startTime
+        ? `${val.startTime}${val.endTime ? ' - ' + val.endTime : ''} HRS`
+        : '20:00 - 23:00 HRS');
     return {
       uuid: 'preview-uuid-temp',
       title: val.title?.trim() || 'TÍTULO DEL EVENTO EN VIVO',
-      subtitle: val.subtitle?.trim() || 'Subtítulo descriptivo o temática del evento para la comunidad',
+      subtitle:
+        val.subtitle?.trim() || 'Subtítulo descriptivo o temática del evento para la comunidad',
       dateDay: val.dateDay?.trim() || '28',
       dateMonth: val.dateMonth?.trim() || 'OCT',
       time: timeDisplay,
@@ -718,10 +805,55 @@ export class AdminComponent implements OnInit {
       endTime: val.endTime || '23:00',
       location: val.location?.trim() || 'Gran Teatro Metropolitano',
       city: val.city?.trim() || 'Sala Principal',
-      description: val.description?.trim() || 'Disfruta de una experiencia única. Un encuentro exclusivo donde la música, el arte y la cultura se fusionan en un espacio diseñado para inspirar...',
-      imageUrl: val.imageUrl?.trim() || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
+      description:
+        val.description?.trim() ||
+        'Disfruta de una experiencia única. Un encuentro exclusivo donde la música, el arte y la cultura se fusionan en un espacio diseñado para inspirar...',
+      imageUrl:
+        val.imageUrl?.trim() ||
+        'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
       status: 'active',
       isSubscribed: false,
+    };
+  });
+
+  private extractYoutubeId(url: string): string | null {
+    const match = url.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+    );
+    return match ? match[1] : null;
+  }
+
+  private isVideoUrl(url: string): boolean {
+    if (!url) return false;
+    if (this.extractYoutubeId(url)) return true;
+    return /\.(mp4|webm|ogg)$/i.test(url);
+  }
+
+  private videoPoster(url: string): string {
+    const youtubeId = this.extractYoutubeId(url);
+    return youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : url;
+  }
+
+  readonly livePublicationPreview = computed(() => {
+    const val = this.publicationFormValueSignal();
+    const media = this.publicationMediaUrls()
+      .map((u) => u.trim())
+      .filter((u) => u.length > 0);
+    const firstMedia = media[0] || '';
+    const isVideo = this.isVideoUrl(firstMedia);
+    const category = this.categories().find((c) => c.uuid === val.categoryUuid) || null;
+
+    return {
+      title: val.title?.trim() || 'TÍTULO DE LA NOTICIA',
+      content:
+        val.content?.trim() ||
+        'Aquí aparecerá el contenido completo de la noticia a medida que lo escribas...',
+      category,
+      mediaUrl: firstMedia,
+      mediaPoster: isVideo ? this.videoPoster(firstMedia) : firstMedia,
+      isVideo,
+      author: this.authService.getUser()?.username || 'Redacción',
+      createdAt: new Date(),
     };
   });
 
@@ -753,6 +885,15 @@ export class AdminComponent implements OnInit {
     // Conectar cambios del formulario al signal reactivo
     this.eventForm.valueChanges.subscribe(() => {
       this.formValueSignal.set(this.eventForm.getRawValue());
+    });
+
+    // Conectar cambios del formulario al signal reactivo
+    this.eventForm.valueChanges.subscribe(() => {
+      this.formValueSignal.set(this.eventForm.getRawValue());
+    });
+
+    this.publicationForm.valueChanges.subscribe(() => {
+      this.publicationFormValueSignal.set(this.publicationForm.getRawValue());
     });
   }
 
@@ -816,13 +957,13 @@ export class AdminComponent implements OnInit {
 
   prevSurveyPage(): void {
     if (this.currentSurveyPage() > 1) {
-      this.currentSurveyPage.update(p => p - 1);
+      this.currentSurveyPage.update((p) => p - 1);
     }
   }
 
   nextSurveyPage(): void {
     if (this.currentSurveyPage() < this.totalSurveyPages()) {
-      this.currentSurveyPage.update(p => p + 1);
+      this.currentSurveyPage.update((p) => p + 1);
     }
   }
 
@@ -899,8 +1040,8 @@ export class AdminComponent implements OnInit {
     this.http.get<AdminEventItem[]>(this.eventsApiUrl).subscribe({
       next: (data) => {
         if (data && Array.isArray(data)) {
-          this.activeEvents.set(data.filter(e => e.status !== 'past'));
-          this.pastEvents.set(data.filter(e => e.status === 'past'));
+          this.activeEvents.set(data.filter((e) => e.status !== 'past'));
+          this.pastEvents.set(data.filter((e) => e.status === 'past'));
         }
       },
       error: () => {
@@ -911,15 +1052,17 @@ export class AdminComponent implements OnInit {
 
   loadPublications(): void {
     this.isLoading = true;
-    this.http.get<{ data: Publication[] }>(`${this.publicationsApiUrl}?limit=100`, this.options).subscribe({
-      next: response => {
-        this.publications.set(response.data || []);
-        this.isLoading = false;
-      },
-      error: () => {
-        this.isLoading = false;
-      },
-    });
+    this.http
+      .get<{ data: Publication[] }>(`${this.publicationsApiUrl}?limit=100`, this.options)
+      .subscribe({
+        next: (response) => {
+          this.publications.set(response.data || []);
+          this.isLoading = false;
+        },
+        error: () => {
+          this.isLoading = false;
+        },
+      });
   }
 
   loadUsers(): void {
@@ -946,10 +1089,14 @@ export class AdminComponent implements OnInit {
         this.loadUsers();
 
         // Verificar si se modificó la cuenta con la que actualmente se tiene la sesión iniciada
-        const isSelf = !!(currentUser && targetUser && (
-          (targetUser.email && currentUser.email && targetUser.email.toLowerCase() === currentUser.email.toLowerCase()) ||
-          (targetUser.uuid === (currentUser as any).uuid)
-        ));
+        const isSelf = !!(
+          currentUser &&
+          targetUser &&
+          ((targetUser.email &&
+            currentUser.email &&
+            targetUser.email.toLowerCase() === currentUser.email.toLowerCase()) ||
+            targetUser.uuid === (currentUser as any).uuid)
+        );
 
         if (isSelf) {
           this.authService.updateCurrentUserRole(newRole);
@@ -1066,7 +1213,12 @@ export class AdminComponent implements OnInit {
 
   deleteTag(id: number, name: string): void {
     this.clearAlerts();
-    if (!confirm(`¿Estás seguro de que deseas eliminar la etiqueta "${name}"? Se desvinculará de todos los usuarios.`)) return;
+    if (
+      !confirm(
+        `¿Estás seguro de que deseas eliminar la etiqueta "${name}"? Se desvinculará de todos los usuarios.`,
+      )
+    )
+      return;
 
     // Actualización inmediata en memoria para reflejar la eliminación sin demora
     this.tags.set(this.tags().filter((t) => t.id !== id));
@@ -1075,7 +1227,7 @@ export class AdminComponent implements OnInit {
         ...u,
         tags: (u.tags || []).filter((t) => t.id !== id),
         tag: u.tag && u.tag.id === id ? null : u.tag,
-      }))
+      })),
     );
 
     this.http.delete(`${this.tagsApiUrl}/${id}`, this.options).subscribe({
@@ -1159,7 +1311,7 @@ export class AdminComponent implements OnInit {
               };
             }
             return u;
-          })
+          }),
         );
 
         this.closeUserTagsModal();
@@ -1174,14 +1326,18 @@ export class AdminComponent implements OnInit {
   }
 
   getUserCountForTag(tagId: number): number {
-    return (this.users() || []).filter((u) => this.getUserTags(u).some((t) => t.id === tagId)).length;
+    return (this.users() || []).filter((u) => this.getUserTags(u).some((t) => t.id === tagId))
+      .length;
   }
 
   getContrastColor(hexColor: string | undefined): string {
     if (!hexColor) return '#ffffff';
     let hex = hexColor.replace('#', '');
     if (hex.length === 3) {
-      hex = hex.split('').map(c => c + c).join('');
+      hex = hex
+        .split('')
+        .map((c) => c + c)
+        .join('');
     }
     if (hex.length !== 6) return '#ffffff';
 
@@ -1189,8 +1345,8 @@ export class AdminComponent implements OnInit {
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-    return (yiq >= 150) ? '#0f172a' : '#ffffff';
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 150 ? '#0f172a' : '#ffffff';
   }
 
   createEvent(): void {
@@ -1205,7 +1361,8 @@ export class AdminComponent implements OnInit {
       if (this.eventForm.controls.startTime.invalid) missing.push('Hora de inicio');
       if (this.eventForm.controls.endTime.invalid) missing.push('Hora de fin');
       if (this.eventForm.controls.location.invalid) missing.push('Lugar / Recinto');
-      if (this.eventForm.controls.description.invalid) missing.push('Descripción (mínimo 10 letras)');
+      if (this.eventForm.controls.description.invalid)
+        missing.push('Descripción (mínimo 10 letras)');
 
       this.error = `Por favor completa los campos requeridos: ${missing.join(', ')}.`;
       return;
@@ -1222,8 +1379,18 @@ export class AdminComponent implements OnInit {
     const now = new Date();
     const currentYear = now.getFullYear();
     const monthMap: Record<string, number> = {
-      ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
-      JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11,
+      ENE: 0,
+      FEB: 1,
+      MAR: 2,
+      ABR: 3,
+      MAY: 4,
+      JUN: 5,
+      JUL: 6,
+      AGO: 7,
+      SEP: 8,
+      OCT: 9,
+      NOV: 10,
+      DIC: 11,
     };
     const day = parseInt(formVal.dateDay.trim(), 10) || now.getDate();
     const monthIndex = monthMap[formVal.dateMonth.trim().toUpperCase()] ?? now.getMonth();
@@ -1263,9 +1430,11 @@ export class AdminComponent implements OnInit {
       return;
     }
 
-    const finalTime = formVal.time?.trim() || (formVal.endTime
-      ? `${formVal.startTime} - ${formVal.endTime} HRS`
-      : `${formVal.startTime} HRS`);
+    const finalTime =
+      formVal.time?.trim() ||
+      (formVal.endTime
+        ? `${formVal.startTime} - ${formVal.endTime} HRS`
+        : `${formVal.startTime} HRS`);
 
     const payload = {
       title: formVal.title.trim().toUpperCase(),
@@ -1278,7 +1447,9 @@ export class AdminComponent implements OnInit {
       location: formVal.location.trim(),
       city: formVal.city.trim(),
       description: formVal.description.trim(),
-      imageUrl: formVal.imageUrl.trim() || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
+      imageUrl:
+        formVal.imageUrl.trim() ||
+        'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
       status: 'active',
       startDate: eventStart.toISOString(),
       endDate: eventEnd.toISOString(),
@@ -1330,32 +1501,36 @@ export class AdminComponent implements OnInit {
     this.clearAlerts();
     if (!event.uuid) return;
 
-    this.http.patch(`${this.eventsApiUrl}/${event.uuid}`, { status: 'past' }, this.options).subscribe({
-      next: () => {
-        this.message = `El evento "${event.title}" se movió a eventos vencidos.`;
-        this.error = '';
-        this.loadEvents();
-      },
-      error: (err) => {
-        this.error = err?.error?.message || 'No fue posible actualizar el estado del evento.';
-      },
-    });
+    this.http
+      .patch(`${this.eventsApiUrl}/${event.uuid}`, { status: 'past' }, this.options)
+      .subscribe({
+        next: () => {
+          this.message = `El evento "${event.title}" se movió a eventos vencidos.`;
+          this.error = '';
+          this.loadEvents();
+        },
+        error: (err) => {
+          this.error = err?.error?.message || 'No fue posible actualizar el estado del evento.';
+        },
+      });
   }
 
   restoreToActive(event: AdminEventItem): void {
     this.clearAlerts();
     if (!event.uuid) return;
 
-    this.http.patch(`${this.eventsApiUrl}/${event.uuid}`, { status: 'active' }, this.options).subscribe({
-      next: () => {
-        this.message = `El evento "${event.title}" fue reactivado en los eventos activos.`;
-        this.error = '';
-        this.loadEvents();
-      },
-      error: (err) => {
-        this.error = err?.error?.message || 'No fue posible reactivar el evento.';
-      },
-    });
+    this.http
+      .patch(`${this.eventsApiUrl}/${event.uuid}`, { status: 'active' }, this.options)
+      .subscribe({
+        next: () => {
+          this.message = `El evento "${event.title}" fue reactivado en los eventos activos.`;
+          this.error = '';
+          this.loadEvents();
+        },
+        error: (err) => {
+          this.error = err?.error?.message || 'No fue posible reactivar el evento.';
+        },
+      });
   }
 
   deleteEvent(event: AdminEventItem): void {
@@ -1374,7 +1549,8 @@ export class AdminComponent implements OnInit {
         this.loadEvents();
       },
       error: (err) => {
-        this.error = err?.error?.message || 'No tienes permiso o no fue posible eliminar este evento.';
+        this.error =
+          err?.error?.message || 'No tienes permiso o no fue posible eliminar este evento.';
       },
     });
   }
@@ -1407,18 +1583,18 @@ export class AdminComponent implements OnInit {
   // =========================================================================
 
   addPublicationMediaField(): void {
-    this.publicationMediaUrls.update(list => [...list, '']);
+    this.publicationMediaUrls.update((list) => [...list, '']);
   }
 
   removePublicationMediaField(index: number): void {
-    this.publicationMediaUrls.update(list => {
+    this.publicationMediaUrls.update((list) => {
       const updated = list.filter((_, i) => i !== index);
       return updated.length > 0 ? updated : [''];
     });
   }
 
   updatePublicationMediaField(index: number, value: string): void {
-    this.publicationMediaUrls.update(list => list.map((u, i) => i === index ? value : u));
+    this.publicationMediaUrls.update((list) => list.map((u, i) => (i === index ? value : u)));
   }
 
   createPublication(): void {
@@ -1448,8 +1624,8 @@ export class AdminComponent implements OnInit {
 
     const raw = this.publicationForm.getRawValue();
     const mediaUrls = this.publicationMediaUrls()
-      .map(u => u.trim())
-      .filter(u => u.length > 0);
+      .map((u) => u.trim())
+      .filter((u) => u.length > 0);
 
     const payload: { title: string; content: string; media?: string[]; categoryUuid?: string } = {
       title: raw.title.trim(),
@@ -1812,7 +1988,7 @@ export class AdminComponent implements OnInit {
 
   setZoom(value: string | number): void {
     const val = typeof value === 'string' ? parseFloat(value) : value;
-    this.zoom.set(Math.min(3.5, Math.max(1, +(val).toFixed(2))));
+    this.zoom.set(Math.min(3.5, Math.max(1, +val.toFixed(2))));
     this.drawCropperCanvas();
   }
 
@@ -1858,8 +2034,8 @@ export class AdminComponent implements OnInit {
       this.formValueSignal.set(this.eventForm.getRawValue());
       this.message = '¡Foto recortada y aplicada a la portada del evento!';
     } else {
-      this.publicationMediaUrls.update(urls => {
-        const filtered = urls.filter(u => u.trim().length > 0);
+      this.publicationMediaUrls.update((urls) => {
+        const filtered = urls.filter((u) => u.trim().length > 0);
         return [croppedDataUrl, ...filtered];
       });
       this.message = '¡Foto recortada y agregada a la publicación!';
@@ -1881,4 +2057,3 @@ export class AdminComponent implements OnInit {
     }, 4500);
   }
 }
-

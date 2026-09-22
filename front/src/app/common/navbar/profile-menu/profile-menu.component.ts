@@ -48,9 +48,13 @@ export class ProfileMenuComponent {
     this.closeMenu();
   }
 
-  requestProfile(): void {
-    this.profileRequested.emit();
+  goToConfig(): void {
     this.closeMenu();
+    void this.router.navigate(['/config']);
+  }
+
+  requestProfile(): void {
+    this.goToConfig();
   }
 
   requestAdministration(): void {

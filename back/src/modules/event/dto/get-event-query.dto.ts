@@ -1,16 +1,14 @@
-import { IsOptional, IsEnum, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { EventStatus } from '../enum/eventStatus.enum';
 
 export class GetAllEventQueryDto {
   @ApiPropertyOptional({
-    description: 'Filtra los eventos por estado (próximo, en curso, finalizado)',
-    enum: EventStatus,
-    example: EventStatus.ONGOING,
+    description: 'Filtra los eventos por estado (active, past, etc.)',
+    example: 'active',
   })
   @IsOptional()
-  @IsEnum(EventStatus)
-  status?: EventStatus;
+  @IsString()
+  status?: string;
 
   @ApiPropertyOptional({
     description: 'Filtra los eventos por el UUID de un tag',

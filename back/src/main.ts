@@ -32,13 +32,20 @@ async function bootstrap() {
   app.enableCors(CORS_config);
 
   ///////// GLOBAL ///////////
-  app.useGlobalPipes( new ValidationPipe({
+  app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
     transform: true
   }))
 
 
+
+  ////////// CORS /////////////
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
 
   ////////// USE ///////////////
 
@@ -57,7 +64,7 @@ async function bootstrap() {
     .addCookieAuth()
     .build()
 
-  
+
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('docs', app, document);

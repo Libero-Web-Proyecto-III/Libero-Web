@@ -11,6 +11,7 @@ import {
 } from '@nestjs/swagger';
 import { ReactionService } from './reaction.service';
 import { CreateReactionDto } from './dto/create-reaction.dto';
+import { PRIVATE } from 'src/common/decorator/private.decorator';
 
 @ApiTags('reactions')
 @Controller('reactions')
@@ -18,6 +19,7 @@ export class ReactionController {
   constructor(private readonly reactionService: ReactionService) {}
 
   @Post()
+  @PRIVATE()
   @ApiOperation({
     summary: 'Reaccionar (like/dislike) a un comentario o a una publicación. Es un toggle',
     description:

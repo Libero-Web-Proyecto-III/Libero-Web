@@ -13,11 +13,11 @@
         <article class="notice-card" (click)="openModal(item.uuid)">
 
           <div class="card-image-wrapper">
-            @if (item.media[0].type === 'video') {
-              <img [src]="item.media[0].poster" [alt]="item.title" class="card-img" />
+            @if (item.media && item.media[0] && item.media[0].type === 'video') {
+              <img [src]="item.media[0].poster || item.media[0].url" [alt]="item.title" class="card-img" />
               <span class="play-badge">▶</span>
             } @else {
-              <img [src]="item.media[0].url" [alt]="item.title" class="card-img" />
+              <img [src]="item.media && item.media[0] ? item.media[0].url : 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1400&q=80'" [alt]="item.title" class="card-img" />
             }
             <div class="card-img-overlay"></div>
           </div>
@@ -36,7 +36,7 @@
               <div class="reaction-preview">
                 <span>👍 {{ item.likes }}</span>
                 <span>👎 {{ item.dislikes }}</span>
-                <span class="comment-count">💬 {{ item.comments.length }}</span>
+                <span class="comment-count">💬 {{ item.comments ? item.comments.length : 0 }}</span>
               </div>
 
               <button class="cta-btn" (click)="openModal(item.uuid); $event.stopPropagation()">
@@ -62,11 +62,11 @@
         <button class="modal-close" (click)="closeModal()">✕</button>
 
         <div class="modal-media">
-          @if (item.media[0].type === 'video') {
+          @if (item.media && item.media[0] && item.media[0].type === 'video') {
             <video controls [poster]="item.media[0].poster">
               <source [src]="item.media[0].url" type="video/mp4" />
             </video>
-          } @else {
+          } @else if (item.media && item.media[0]) {
             <img [src]="item.media[0].url" [alt]="item.title" />
           }
         </div>

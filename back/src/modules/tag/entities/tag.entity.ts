@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
@@ -14,19 +14,8 @@ export class TagEntity {
     name: string;
 
     @ApiProperty({ example: '#ffffff', description: 'Color del tag en formato hexadecimal' })
-    @Column( { unique: true, default: '#ffffff' } )
+    @Column({ default: '#ffffff' })
     color: string;
-
-    @ApiProperty({
-        example: '2026-08-08T12:00:00.000Z',
-        description: 'Fecha en la que el tag fue eliminado lógicamente',
-        required: false,
-        nullable: true,
-        type: String,
-        format: 'date-time',
-    })
-    @DeleteDateColumn({ type: 'timestamp', name: 'deletedAt' })
-    deletedAt: Date;
 
     @ApiProperty({
         example: '2026-08-08T12:00:00.000Z',
@@ -48,6 +37,6 @@ export class TagEntity {
 
     @ApiHideProperty()
     @Exclude()
-    @OneToMany( () => UserEntity, (user) => user.tag )
+    @ManyToMany( () => UserEntity, (user) => user.tags )
     users: UserEntity[];
 }

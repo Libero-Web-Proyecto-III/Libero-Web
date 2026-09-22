@@ -19,9 +19,8 @@ export class CreateTagDto {
     })
     @IsString()
     @IsOptional()
-    @MaxLength(7)
-    @MinLength(7)
-    color: string;
+    @MaxLength(20)
+    color?: string;
 
     @ApiPropertyOptional({
         example: true,

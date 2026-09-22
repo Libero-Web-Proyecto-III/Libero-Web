@@ -20,4 +20,20 @@ export class FacebookController {
     const count = limit ? Number(limit) : 3;
     return this.facebookService.getLatestPosts(count);
   }
+
+  @Public()
+  @Get('refresh')
+  @ApiOperation({
+    summary: 'Forzar actualización en segundo plano',
+    description: 'Dispara la extracción de publicaciones de Facebook en segundo plano.',
+  })
+  async refresh(): Promise<{ success: boolean; message: string }> {
+    const started = this.facebookService.triggerBackgroundScrape();
+    return {
+      success: started,
+      message: started
+        ? 'Actualización de publicaciones de Facebook iniciada en segundo plano.'
+        : 'La actualización ya se encuentra en curso.',
+    };
+  }
 }

@@ -8,6 +8,7 @@ import { GetCommentQueryDto } from './dto/get-comment-query.dto';
 import { AllResponse } from 'src/common/interface/res-all.dto';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { PublicationEntity } from 'src/modules/publication/entities/publication.entity';
+import { enumRol } from 'src/common/enums/rol.enum';
 
 @Injectable()
 export class CommentService {
@@ -21,7 +22,7 @@ export class CommentService {
   // Un mismo usuario puede llamar esto varias veces sobre la misma
   // publicación: no hay ninguna restricción de unicidad, cada llamada
   // crea un comentario nuevo.
-  async create(dto: CreateCommentDto, author: UserEntity): Promise<CommentEntity> {
+  async create(dto: CreateCommentDto, author: UserEntity & { id?: number }): Promise<CommentEntity> {
     const publication = await this.publicationRepository.findOne({
       where: { uuid: dto.publicationUuid },
     });
@@ -32,7 +33,7 @@ export class CommentService {
     const comment = this.commentRepository.create({
       content: dto.content,
       publication,
-      author,
+      author: { index: author.id } as UserEntity,
     });
     return this.commentRepository.save(comment);
   }
@@ -72,17 +73,17 @@ export class CommentService {
     },
   };
 
-  async update(uuid: string, dto: UpdateCommentDto, requester: UserEntity): Promise<CommentEntity> {
+  async update(uuid: string, dto: UpdateCommentDto, requester: UserEntity & { id?: number; role?: string }): Promise<CommentEntity> {
     const comment = await this.findOneBy.uuid(uuid);
-    if (comment.author.uuid !== requester.uuid) {
-      throw new ForbiddenException('No puedes editar un comentario que no es tuyo');
+    if (requester.role !== enumRol.ADMIN) {
+      throw new ForbiddenException('Solo un administrador puede editar comentarios');
     }
     return this.commentRepository.save({ index: comment.index, ...dto });
   }
 
-  async remove(uuid: string, requester: UserEntity) {
+  async remove(uuid: string, requester: UserEntity & { id?: number; role?: string }) {
     const comment = await this.findOneBy.uuid(uuid);
-    if (comment.author.uuid !== requester.uuid) {
+    if (requester.role !== enumRol.ADMIN && requester.role !== enumRol.MOD && comment.author.index !== requester.id) {
       throw new ForbiddenException('No puedes eliminar un comentario que no es tuyo');
     }
     return {

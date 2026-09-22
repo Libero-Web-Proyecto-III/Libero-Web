@@ -9,7 +9,6 @@ import { RolModule } from './modules/rol/rol.module';
 import { UserModule } from './modules/user/user.module';
 import { PublicationModule } from './modules/publication/publication.module';
 import { EventModule } from './modules/event/event.module';
-import { FacebookModule } from './modules/facebook/facebook.module';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
@@ -17,7 +16,11 @@ import { JwtAuthGuard } from './common/guard/jwt-auth.guard';
 import { RolesGuard } from './common/guard/roles.guard';
 import { ReactionModule } from './modules/reaction/reaction.module';
 import { CommentModule } from './modules/comment/comment.module';
+import { SurveyModule } from './modules/survey/survey.module';
+import { VisitModule } from './modules/visit/visit.module';
+import { FacebookModule } from './modules/facebook/facebook.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+
 
 
 @Module({
@@ -38,7 +41,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
     TagModule, RolModule,
     UserModule, PublicationModule, ReactionModule,
-    EventModule, AuthModule, CommentModule, FacebookModule
+    EventModule, AuthModule, CommentModule, SurveyModule,
+    VisitModule, FacebookModule
 ],
   controllers: [AppController],
   providers: [

@@ -6088,151 +6088,620 @@
   }
 }
 
-.np-notice-card {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  overflow: hidden;
-}
+/* ══════════════════════════════════════════════════════════
+   VISTAS PREVIAS DE NOTICIAS (ALTA FIDELIDAD CON VISTA PÚBLICA)
+   ══════════════════════════════════════════════════════════ */
 
-.np-image-wrapper {
-  position: relative;
-  min-height: 140px;
-  background: #000000;
-
-  .np-img { width: 100%; height: 100%; object-fit: cover; }
-  .np-fallback { object-fit: contain; opacity: 0.5; background: #f1f5f9; }
-
-  .np-img-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 100%);
-  }
-
-  .np-play-badge {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.75);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-  }
-}
-
-.np-content { padding: 0.9rem 1.1rem; display: flex; flex-direction: column; }
-
-.np-category-pill {
-  display: inline-block;
-  align-self: flex-start;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  color: #ffffff;
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  margin-bottom: 0.4rem;
-}
-
-.np-meta { display: flex; gap: 0.35rem; font-size: 0.72rem; color: #71717a; margin-bottom: 0.4rem; }
-
-.np-title { font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0 0 0.3rem; line-height: 1.3; }
-
-.np-desc {
-  font-size: 0.8rem;
-  color: #64748b;
-  line-height: 1.5;
-  margin-bottom: 0.6rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.np-footer {
+.preview-header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: auto;
-  padding-top: 0.5rem;
-  border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
 
-  .np-reaction-preview { display: flex; gap: 0.6rem; font-size: 0.72rem; color: #71717a; }
-
-  .np-cta-btn {
-    display: inline-flex;
+  .preview-label {
+    display: flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.4rem 0.8rem;
-    background: #09090b;
-    color: #ffffff;
-    font-size: 0.68rem;
-    font-weight: 800;
-    border-radius: 4px;
+    gap: 0.5rem;
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    .badge-number {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #d86e00;
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .preview-mode-switch {
+    display: flex;
+    background: #e2e8f0;
+    padding: 2px;
+    border-radius: 8px;
+
+    .mode-switch-btn {
+      border: none;
+      background: transparent;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #64748b;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: #0f172a;
+      }
+
+      &.active {
+        background: #ffffff;
+        color: #0f172a;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+    }
   }
 }
 
-.np-modal-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; position: relative; }
-
-.np-modal-close {
-  position: absolute;
-  top: 0.85rem;
-  right: 0.85rem;
-  background: none;
-  border: none;
-  color: #94a3b8;
-  font-size: 1.1rem;
-  cursor: not-allowed;
-}
-
-.np-modal-media {
-  width: 100%;
-  height: 160px;
-  border-radius: 6px;
+/* --- VISTA PREVIA 1: TARJETA ESTÁNDAR (IDÉNTICA A NOTICIAS) --- */
+.pub-preview-recent-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  .pub-preview-image-wrapper {
+    position: relative;
+    height: 145px;
+    background: #000000;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    &.no-media {
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .pub-preview-fallback-logo {
+        width: 38%;
+        height: 38%;
+        object-fit: contain;
+        opacity: 0.45;
+      }
+    }
+
+    .pub-preview-play-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.75);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  .pub-preview-card-body {
+    padding: 0.95rem 1rem 1rem;
+
+    .pub-preview-category-pill {
+      display: inline-block;
+      background: #ffffff;
+      border: 1.5px solid;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.4rem;
+    }
+
+    .pub-preview-card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0.2rem 0 0.35rem;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .pub-preview-card-desc {
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 0.55rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .pub-preview-meta {
+      font-size: 0.74rem;
+      color: #94a3b8;
+      display: block;
+    }
+  }
+}
+
+/* --- VISTA PREVIA 1: TARJETA DESTACADA (HERO) --- */
+.pub-preview-hero-card {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+
+  .pub-preview-hero-media {
+    position: relative;
+    min-height: 180px;
+    background: #000000;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    &.no-media {
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .pub-preview-fallback-logo {
+        width: 38%;
+        height: 38%;
+        object-fit: contain;
+        opacity: 0.45;
+      }
+    }
+
+    .pub-preview-hero-badge {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      background: #f97316;
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+    }
+
+    .pub-preview-floating-meta {
+      position: absolute;
+      bottom: 0.75rem;
+      left: 0.75rem;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      display: flex;
+      gap: 0.6rem;
+      font-size: 0.7rem;
+      color: #475569;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+
+    .pub-preview-play-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.75);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+  }
+
+  .pub-preview-hero-content {
+    padding: 1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .pub-preview-eyebrow {
+      color: #f97316;
+      font-weight: 800;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.3rem;
+    }
+
+    .pub-preview-hero-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.3;
+      margin: 0 0 0.35rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .pub-preview-hero-desc {
+      color: #64748b;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .pub-preview-hero-cta {
+      align-self: flex-start;
+      background: #f97316;
+      color: #ffffff;
+      border: none;
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      cursor: default;
+    }
+  }
+}
+
+/* --- VISTA PREVIA 2: TARJETA ABIERTA (MODAL DE DETALLE LIMPIO) --- */
+.pub-modal-preview-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+
+  .pub-modal-close-btn {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.25rem;
+    background: transparent;
+    border: none;
+    color: #71717a;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: default;
+    z-index: 5;
+    padding: 0.25rem;
+
+    &:hover {
+      color: #09090b;
+    }
+  }
+}
+
+.pub-modal-scroll-area {
+  padding: 1.5rem;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.pub-modal-media-wrap {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  background: #000000;
+  max-height: 200px;
+
+  img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .pub-modal-video-box {
+    position: relative;
+    height: 200px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .pub-video-overlay-play {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      color: #ffffff;
+
+      .play-triangle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        color: #000000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        padding-left: 2px;
+      }
+
+      .video-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+    }
+  }
+}
+
+.pub-modal-header-block {
   margin-bottom: 0.85rem;
-  background: #000;
 
-  img { width: 100%; height: 100%; object-fit: cover; }
+  .pub-modal-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+
+    .pub-modal-category-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      color: #ffffff;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .pub-modal-author-info {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.74rem;
+      color: #64748b;
+
+      .pub-modal-avatar-circle {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #d86e00 0%, #d84e18 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        font-weight: 800;
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .pub-modal-author-name {
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      .meta-separator {
+        color: #cbd5e1;
+      }
+
+      .pub-modal-date {
+        color: #64748b;
+      }
+    }
+  }
+
+  .pub-modal-main-title {
+    font-family: 'Syne', system-ui, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.3;
+    margin: 0;
+  }
 }
 
-.np-modal-header {
-  .np-modal-meta { font-size: 0.72rem; color: #71717a; }
-  .np-modal-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0.2rem 0 0; }
+.pub-modal-text-content {
+  font-size: 0.88rem;
+  color: #334155;
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+  white-space: pre-line;
 }
 
-.np-modal-text { font-size: 0.82rem; color: #475569; line-height: 1.6; margin: 0.75rem 0 1rem; }
-
-.np-modal-reaction-bar {
+.pub-modal-reaction-bar {
   display: flex;
   gap: 0.6rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
   margin-bottom: 1rem;
 
-  .np-reaction-btn {
-    display: flex;
+  .pub-reaction-btn {
+    display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.4rem 0.8rem;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 6px;
     border: 1px solid #e2e8f0;
-    border-radius: 4px;
     background: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 600;
     color: #334155;
-    font-size: 0.78rem;
-    cursor: not-allowed;
+    cursor: default;
+
+    .reaction-count {
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .reaction-label {
+      font-size: 0.72rem;
+      color: #64748b;
+    }
   }
 }
 
-.np-modal-comments {
-  h5 { font-size: 0.85rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; }
-  .np-no-comments { font-size: 0.78rem; color: #94a3b8; }
+.pub-modal-comments-section {
+  .pub-comments-header {
+    margin-bottom: 0.75rem;
+
+    .pub-comments-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+    }
+  }
+
+  .pub-comment-form-sim {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+
+    .pub-comment-user-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+
+      .pub-comment-avatar {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #d84e18 0%, #d86e00 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.6rem;
+        font-weight: 800;
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .pub-comment-user-text {
+        font-size: 0.74rem;
+        color: #64748b;
+
+        strong {
+          color: #1e293b;
+        }
+      }
+    }
+
+    .pub-comment-input-box {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 0.5rem 0.65rem;
+      min-height: 44px;
+      margin-bottom: 0.5rem;
+
+      .placeholder-text {
+        font-size: 0.78rem;
+        color: #94a3b8;
+      }
+    }
+
+    .pub-comment-actions {
+      display: flex;
+      justify-content: flex-end;
+
+      .pub-comment-btn {
+        background: #09090b;
+        color: #ffffff;
+        border: none;
+        padding: 0.35rem 0.85rem;
+        border-radius: 4px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: default;
+      }
+    }
+  }
+
+  .pub-no-comments-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+
+    .speech-icon {
+      font-size: 0.9rem;
+    }
+
+    p {
+      font-size: 0.74rem;
+      color: #64748b;
+      margin: 0;
+    }
+  }
 }

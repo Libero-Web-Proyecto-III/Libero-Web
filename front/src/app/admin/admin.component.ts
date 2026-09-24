@@ -863,6 +863,20 @@ export class AdminComponent implements OnInit {
     return user.username.charAt(0).toUpperCase();
   });
 
+  readonly publicationPreviewMode = signal<'standard' | 'hero'>('standard');
+
+  setPublicationPreviewMode(mode: 'standard' | 'hero'): void {
+    this.publicationPreviewMode.set(mode);
+  }
+
+  onPublicationImageError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.src = '/logo.png';
+      target.classList.add('fallback-logo');
+    }
+  }
+
   ngOnInit(): void {
     if (!this.authService.isAdmin()) {
       void this.router.navigate(['/']);

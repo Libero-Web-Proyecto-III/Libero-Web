@@ -46,10 +46,8 @@
         } @else {
           <!-- Acciones para usuario autenticado -->
           <button type="button" (click)="goToConfig()">Configuración</button>
-          @if (authService.isAdmin()) {
-            <!-- Panel habilitado únicamente para administradores -->
-            <button type="button" (click)="requestAdministration()">Panel de Administración</button>
-          }
+          <!-- Panel habilitado condicionalmente mediante directiva estructural *can (equivalente a v-can) -->
+          <button *can="['view', 'admin']" type="button" (click)="requestAdministration()">Panel de Administración</button>
           <button type="button" (click)="signOut()">Cerrar sesión</button>
         }
       </div>

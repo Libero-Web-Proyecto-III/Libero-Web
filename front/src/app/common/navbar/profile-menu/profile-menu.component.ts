@@ -1,10 +1,12 @@
 import { Component, ElementRef, HostListener, computed, inject, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
+import { CanDirective } from '../../../core/directive';
 
 @Component({
   selector: 'app-profile-menu',
   standalone: true,
+  imports: [CanDirective],
   templateUrl: './profile-menu.component.html',
   styleUrl: './profile-menu.component.scss',
 })

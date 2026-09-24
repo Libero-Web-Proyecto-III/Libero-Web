@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { RoleEnum } from '../../core/enum/role.enum';
 
 export interface AuthUser {
   id: number;
@@ -196,6 +197,62 @@ export class AuthService {
   // # Este bloque tiene como objetivo determinar si el usuario posee rol administrativo (admin o mod)
   hasManagementRole(): boolean {
     return this.isAdmin() || this.isMod();
+  }
+
+  // # Este bloque tiene como objetivo determinar si el usuario actual posee alguno de los roles indicados
+  hasRole(roles: string | string[] | RoleEnum | RoleEnum[]): boolean {
+    if (!this.isLoggedIn()) return false;
+    const userRole = this.currentUser()?.role?.toLowerCase()?.trim();
+    if (!userRole) return false;
+
+    const normalizedUserRole = userRole === 'administrador' ? 'admin' : (userRole === 'moderador' ? 'mod' : userRole);
+    const roleList = Array.isArray(roles) ? roles : [roles];
+
+    return roleList.some((r) => {
+      const normalizedTarget = r.toString().toLowerCase().trim();
+      const target = normalizedTarget === 'administrador' ? 'admin' : (normalizedTarget === 'moderador' ? 'mod' : normalizedTarget);
+      return target === normalizedUserRole;
+    });
+  }
+
+  // # Este bloque tiene como objetivo evaluar si el usuario tiene autorización para ejecutar una acción sobre un sujeto según la matriz de permisos
+  can(action: string, subject: string): boolean {
+    if (!this.isLoggedIn()) return false;
+
+    // Administrador cuenta con autorización total (all: true) según la convención de permisos
+    if (this.isAdmin()) return true;
+
+    const userRole = this.currentUser()?.role?.toLowerCase()?.trim();
+    const normalizedRole = userRole === 'moderador' ? 'mod' : (userRole === 'administrador' ? 'admin' : (userRole || 'user'));
+
+    const normalizedAction = action.toLowerCase().trim();
+    const normalizedSubject = subject.toLowerCase().trim();
+
+    // Matriz de permisos orientada a módulos según TEC.md
+    const permissionMap: Record<string, Record<string, string[]>> = {
+      mod: {
+        admin: ['view'],
+        publication: ['view', 'edit', 'delete'],
+        event: ['view', 'edit'],
+        comment: ['view', 'create', 'delete'],
+        survey: ['view', 'participate'],
+      },
+      user: {
+        admin: [],
+        publication: ['view'],
+        event: ['view'],
+        comment: ['view', 'create'],
+        survey: ['view', 'participate'],
+      },
+    };
+
+    const rolePermissions = permissionMap[normalizedRole];
+    if (!rolePermissions) return false;
+
+    const allowedActions = rolePermissions[normalizedSubject];
+    if (!allowedActions) return false;
+
+    return allowedActions.includes(normalizedAction);
   }
 
   // # Este bloque tiene como objetivo guardar la sesión en localStorage o sessionStorage

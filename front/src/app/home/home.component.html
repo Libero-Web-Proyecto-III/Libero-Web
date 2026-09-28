@@ -1,29 +1,46 @@
-﻿<div class="page-wrapper">
+<div class="page-wrapper">
   <!-- ════════════ NAVBAR ════════════ -->
   <app-navbar></app-navbar>
 
   <main class="main-content">
-
     <!-- ════════════ SECCIÓN 1: CARRUSEL ════════════ -->
     <section id="inicio" class="carousel-section">
       <div class="carousel">
         <!-- Slides -->
         <div class="carousel__track">
-          @for (slide of slides; track slide.bgClass; let i = $index) {
-          <div class="carousel__slide" [class]="slide.bgClass" [class.active]="currentSlide() === i"
-            [style.background-image]="'url(\'' + slide.imageUrl + '\')'">
-            <div class="carousel__overlay"></div>
-          </div>
+          @for (slide of slides; track slide.imageUrl; let i = $index) {
+            <div
+              class="carousel__slide"
+              [class]="slide.bgClass"
+              [class.active]="currentSlide() === i"
+              [style.background-image]="'url(\'' + slide.imageUrl + '\')'"
+            >
+              <div class="carousel__overlay"></div>
+              <div class="carousel__content">
+                <h2 class="carousel__title">{{ slide.title }}</h2>
+                @if (slide.subtitle) {
+                  <p class="carousel__subtitle">{{ slide.subtitle }}</p>
+                }
+              </div>
+            </div>
           }
         </div>
 
         <!-- Controles de navegación -->
-        <button class="carousel__btn carousel__btn--prev" (click)="prevSlide()" aria-label="Slide anterior">
+        <button
+          class="carousel__btn carousel__btn--prev"
+          (click)="prevSlide()"
+          aria-label="Slide anterior"
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        <button class="carousel__btn carousel__btn--next" (click)="nextSlide()" aria-label="Siguiente slide">
+        <button
+          class="carousel__btn carousel__btn--next"
+          (click)="nextSlide()"
+          aria-label="Siguiente slide"
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M9 18l6-6-6-6" />
           </svg>
@@ -31,14 +48,17 @@
 
         <!-- Indicadores (puntos) -->
         <div class="carousel__indicators">
-          @for (slide of slides; track slide.bgClass; let i = $index) {
-          <button class="carousel__dot" [class.active]="currentSlide() === i" (click)="goToSlide(i)"
-            [attr.aria-label]="'Ir al slide ' + (i + 1)"></button>
+          @for (slide of slides; track slide.imageUrl; let i = $index) {
+            <button
+              class="carousel__dot"
+              [class.active]="currentSlide() === i"
+              (click)="goToSlide(i)"
+              [attr.aria-label]="'Ir al slide ' + (i + 1)"
+            ></button>
           }
         </div>
       </div>
     </section>
-
 
     <!-- ════════════ SECCIÓN 2: PRESENTACIÓN DE LA EMPRESA + GALERÍA ════════════ -->
     <section id="presentacion" class="presentation-section">
@@ -51,10 +71,12 @@
             <span class="presentation-section__headline--accent">Futuro de Colombia</span>
           </h1>
           <p class="presentation-section__subtitle">
-            Libero Cobre lidera la exploración del yacimiento de <strong>cobre-molibdeno más significativo de
-            Colombia</strong>, ubicado en el municipio de Mocoa, Putumayo. Con más de 1.300 megatoneladas de
-            recursos estimados y un compromiso irrenunciable con la sostenibilidad, impulsamos la
-            <strong>transición energética global</strong> desde el corazón de la Amazonia colombiana.
+            Libero Cobre lidera la exploración del yacimiento de
+            <strong>cobre-molibdeno más significativo de Colombia</strong>, ubicado en el municipio
+            de Mocoa, Putumayo. Con más de 1.300 megatoneladas de recursos estimados y un compromiso
+            irrenunciable con la sostenibilidad, impulsamos la
+            <strong>transición energética global</strong> desde el corazón de la Amazonia
+            colombiana.
           </p>
           <div class="presentation-section__badges">
             <span class="pres-badge pres-badge--copper">⛏️ Cobre · Molibdeno</span>
@@ -78,29 +100,47 @@
                 title="Video de Facebook sobre Libero Cobre"
                 loading="lazy"
                 allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                allowfullscreen>
+                allowfullscreen
+              >
               </iframe>
             </div>
           </div>
           <div class="collage-item">
-            <button type="button" class="collage-image-button"
+            <button
+              type="button"
+              class="collage-image-button"
               (click)="openGalleryImage('/galeria/%23ESCONCIENCIA.jpg')"
-              aria-label="Ampliar imagen de conciencia ambiental">
-              <img src="/galeria/%23ESCONCIENCIA.jpg" alt="Actividad de conciencia ambiental" loading="lazy" />
+              aria-label="Ampliar imagen de conciencia ambiental"
+            >
+              <img
+                src="/galeria/%23ESCONCIENCIA.jpg"
+                alt="Actividad de conciencia ambiental"
+                loading="lazy"
+              />
             </button>
           </div>
           <div class="collage-item">
-            <button type="button" class="collage-image-button"
+            <button
+              type="button"
+              class="collage-image-button"
               (click)="openGalleryImage('/galeria/Actividad_n.jpg')"
-              aria-label="Ampliar imagen de actividad de Libero Cobre">
+              aria-label="Ampliar imagen de actividad de Libero Cobre"
+            >
               <img src="/galeria/Actividad_n.jpg" alt="Actividad de Libero Cobre" loading="lazy" />
             </button>
           </div>
           <div class="collage-item">
-            <button type="button" class="collage-image-button"
+            <button
+              type="button"
+              class="collage-image-button"
               (click)="openGalleryImage('/galeria/cobre%20nuevo%20petroleo.jpg')"
-              aria-label="Ampliar imagen sobre el cobre como nuevo petróleo">
-              <img src="/galeria/cobre%20nuevo%20petroleo.jpg" alt="El cobre como nuevo petróleo" loading="lazy" />
+              aria-label="Ampliar imagen sobre el cobre como nuevo petróleo"
+            >
+              <img
+                src="/galeria/cobre%20nuevo%20petroleo.jpg"
+                alt="El cobre como nuevo petróleo"
+                loading="lazy"
+              />
             </button>
           </div>
         </div>
@@ -109,13 +149,27 @@
 
     <!-- Lightbox de galería -->
     @if (selectedGalleryImage()) {
-    <div class="gallery-lightbox" (click)="closeGalleryImage()" role="dialog" aria-modal="true"
-      aria-label="Imagen ampliada">
-      <img [src]="selectedGalleryImage()!" alt="Imagen ampliada de la galería" (click)="$event.stopPropagation()" />
-      <button class="gallery-lightbox__close" (click)="closeGalleryImage()" aria-label="Cerrar imagen">×</button>
-    </div>
+      <div
+        class="gallery-lightbox"
+        (click)="closeGalleryImage()"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Imagen ampliada"
+      >
+        <img
+          [src]="selectedGalleryImage()!"
+          alt="Imagen ampliada de la galería"
+          (click)="$event.stopPropagation()"
+        />
+        <button
+          class="gallery-lightbox__close"
+          (click)="closeGalleryImage()"
+          aria-label="Cerrar imagen"
+        >
+          
+        </button>
+      </div>
     }
-
 
     <!-- ════════════ SECCIÓN 3: NOTICIAS Y ACTUALIZACIONES RECIENTES ════════════ -->
     <section id="facebook" class="facebook-section">
@@ -131,10 +185,19 @@
 
         <div class="fb-slider-wrapper">
           <!-- Botón de navegación Izquierda -->
-          <button class="fb-slider-btn fb-slider-btn--prev" (click)="scrollFbLeft(fbTrack)"
-            aria-label="Deslizar a la izquierda">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-              stroke-linejoin="round">
+          <button
+            class="fb-slider-btn fb-slider-btn--prev"
+            (click)="scrollFbLeft(fbTrack)"
+            aria-label="Deslizar a la izquierda"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
@@ -142,57 +205,85 @@
           <!-- Track deslizable horizontal -->
           <div class="fb-slider-track" #fbTrack>
             @for (post of facebookPosts(); track post.id) {
-            <article class="fb-card">
-              <div class="fb-card__header">
-                <div class="fb-card__author">
-                  <div class="fb-card__avatar">
-                    <img src="facebookicon.jpg" alt="Libero Cobre Avatar" class="fb-avatar-img" />
+              <article class="fb-card">
+                <div class="fb-card__header">
+                  <div class="fb-card__author">
+                    <div class="fb-card__avatar">
+                      <img src="facebookicon.jpg" alt="Libero Cobre Avatar" class="fb-avatar-img" />
+                    </div>
+                    <div class="fb-card__meta">
+                      <span class="fb-card__name">Libero Cobre</span>
+                      <span class="fb-card__date">{{
+                        post.created_time | date: 'dd MMM yyyy'
+                      }}</span>
+                    </div>
                   </div>
-                  <div class="fb-card__meta">
-                    <span class="fb-card__name">Libero Cobre</span>
-                    <span class="fb-card__date">{{ post.created_time | date:'dd MMM yyyy' }}</span>
-                  </div>
+                  <div class="fb-card__badge">Facebook</div>
                 </div>
-                <div class="fb-card__badge">Facebook</div>
-              </div>
 
-              <!-- Cuerpo de la publicación: Texto de la noticia y al final la imagen multimedia -->
-              <div class="fb-card__body">
-                <p class="fb-card__text">{{ post.message }}</p>
-                @if (post.full_picture) {
-                  <div class="fb-card__image-wrap">
-                    <img [src]="post.full_picture" (error)="onImageError(post)" [alt]="post.message" class="fb-card__image" loading="lazy" />
-                  </div>
-                }
-              </div>
+                <!-- Cuerpo de la publicación: Texto de la noticia y al final la imagen multimedia -->
+                <div class="fb-card__body">
+                  <p class="fb-card__text">{{ post.message }}</p>
+                  @if (post.full_picture) {
+                    <div class="fb-card__image-wrap">
+                      <img
+                        [src]="post.full_picture"
+                        (error)="onImageError(post)"
+                        [alt]="post.message"
+                        class="fb-card__image"
+                        loading="lazy"
+                      />
+                    </div>
+                  }
+                </div>
 
-              <div class="fb-card__footer">
-                <a [href]="post.permalink_url" target="_blank" rel="noopener noreferrer" class="fb-card__btn">
-                  <span>Ver en Facebook</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" class="fb-card__btn-icon">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                    <polyline points="15 3 21 3 21 9"></polyline>
-                    <line x1="10" y1="14" x2="21" y2="3"></line>
-                  </svg>
-                </a>
-              </div>
-            </article>
+                <div class="fb-card__footer">
+                  <a
+                    [href]="post.permalink_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="fb-card__btn"
+                  >
+                    <span>Ver en Facebook</span>
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="fb-card__btn-icon"
+                    >
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                      <polyline points="15 3 21 3 21 9"></polyline>
+                      <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                  </a>
+                </div>
+              </article>
             }
           </div>
 
           <!-- Botón de navegación Derecha -->
-          <button class="fb-slider-btn fb-slider-btn--next" (click)="scrollFbRight(fbTrack)"
-            aria-label="Deslizar a la derecha">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-              stroke-linejoin="round">
+          <button
+            class="fb-slider-btn fb-slider-btn--next"
+            (click)="scrollFbRight(fbTrack)"
+            aria-label="Deslizar a la derecha"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
         </div>
       </div>
     </section>
-
 
     <!-- ════════════ SECCIÓN ENCUESTAS Y CONSULTA PÚBLICA (RF-17 / RF-18) ════════════ -->
     <!-- # Este bloque tiene como objetivo estructurar la sección de encuestas activas en formato carrusel interactivo con navegación prev/next -->
@@ -201,28 +292,43 @@
         <div class="surveys-header">
           <div class="section-tag">Participación Ciudadana</div>
           <h2 class="section-title">Encuestas Disponibles y Consulta Pública</h2>
-          <p class="surveys-lead">Tu opinión es fundamental para el desarrollo sostenible de Mocoa y Putumayo. Participa activamente en nuestras encuestas dinámicas.</p>
+          <p class="surveys-lead">
+            Tu opinión es fundamental para el desarrollo sostenible de Mocoa y Putumayo. Participa
+            activamente en nuestras encuestas dinámicas.
+          </p>
         </div>
 
         <div class="surveys-carousel-wrapper">
           <!-- Controles de navegación de carrusel cuando hay más de 1 encuesta -->
           <div class="carousel-controls-bar" *ngIf="activeSurveys.length > 1">
-            <button type="button" class="carousel-btn btn-prev" (click)="prevSurvey()" aria-label="Encuesta anterior">
+            <button
+              type="button"
+              class="carousel-btn btn-prev"
+              (click)="prevSurvey()"
+              aria-label="Encuesta anterior"
+            >
               ◀ Anterior
             </button>
-            
+
             <div class="carousel-indicators">
-              <span 
+              <span
                 *ngFor="let survey of activeSurveys; let i = index"
                 class="carousel-dot"
                 [class.active]="i === currentSurveyIndex"
                 (click)="goToSurvey(i)"
                 [attr.title]="'Ver ' + survey.title"
               ></span>
-              <span class="carousel-counter-badge">Encuesta {{ currentSurveyIndex + 1 }} de {{ activeSurveys.length }}</span>
+              <span class="carousel-counter-badge"
+                >Encuesta {{ currentSurveyIndex + 1 }} de {{ activeSurveys.length }}</span
+              >
             </div>
 
-            <button type="button" class="carousel-btn btn-next" (click)="nextSurvey()" aria-label="Siguiente encuesta">
+            <button
+              type="button"
+              class="carousel-btn btn-next"
+              (click)="nextSurvey()"
+              aria-label="Siguiente encuesta"
+            >
               Siguiente ▶
             </button>
           </div>
@@ -233,17 +339,30 @@
               <div class="survey-card-top">
                 <span class="public-badge">🌐 Consulta Pública</span>
                 <h3 class="survey-card-title">{{ survey.title }}</h3>
-                <p class="survey-card-desc">{{ survey.description || 'Participa y comparte tu opinión sobre este tema.' }}</p>
+                <p class="survey-card-desc">
+                  {{ survey.description || 'Participa y comparte tu opinión sobre este tema.' }}
+                </p>
                 <div class="survey-card-meta">
                   <span>📋 {{ survey.questions.length }} Preguntas</span>
                 </div>
               </div>
 
-              <button type="button" class="btn-toggle-survey" (click)="toggleAnswerSurvey(survey.index)">
-                {{ selectedSurveyIdToAnswer === survey.index ? '✕ Cerrar Encuesta' : '✍️ Responder Encuesta' }}
+              <button
+                type="button"
+                class="btn-toggle-survey"
+                (click)="toggleAnswerSurvey(survey.index)"
+              >
+                {{
+                  selectedSurveyIdToAnswer === survey.index
+                    ? '✕ Cerrar Encuesta'
+                    : '✍️ Responder Encuesta'
+                }}
               </button>
 
-              <div *ngIf="selectedSurveyIdToAnswer === survey.index" class="survey-viewer-modal-wrapper">
+              <div
+                *ngIf="selectedSurveyIdToAnswer === survey.index"
+                class="survey-viewer-modal-wrapper"
+              >
                 <app-survey-viewer [surveyId]="survey.index"></app-survey-viewer>
               </div>
             </div>
@@ -252,13 +371,14 @@
       </div>
     </section>
 
-
     <!-- ════════════ SECCIÓN 4: ASPECTOS DESTACADOS / INDICADORES CLAVE ════════════ -->
     <section id="highlights" class="highlights-section">
       <div class="highlights-section__container">
         <div class="highlights-section__header">
           <div class="section-tag">Sección Corporativa</div>
-          <h2 class="section-title highlights-section__title">Datos que Respaldan el Proyecto Mocoa</h2>
+          <h2 class="section-title highlights-section__title">
+            Datos que Respaldan el Proyecto Mocoa
+          </h2>
           <p class="highlights-section__lead">
             El yacimiento de Mocoa representa una oportunidad estratégica para Colombia, con cifras
             que consolidan su posición como uno de los más relevantes de América Latina.
@@ -272,9 +392,9 @@
             <div class="highlights-main-metric__value">1.300 Mt</div>
             <div class="highlights-main-metric__sub">a 0.49% Cu eq.</div>
             <p class="highlights-main-metric__desc">
-              El Proyecto Mocoa alberga recursos estimados de 1.300 megatoneladas con una ley equivalente
-              de cobre del 0.49%, posicionándolo como uno de los depósitos de cobre-molibdeno más
-              significativos de Colombia y de la región andino-amazónica.
+              El Proyecto Mocoa alberga recursos estimados de 1.300 megatoneladas con una ley
+              equivalente de cobre del 0.49%, posicionándolo como uno de los depósitos de
+              cobre-molibdeno más significativos de Colombia y de la región andino-amazónica.
             </p>
           </div>
         </div>
@@ -282,91 +402,102 @@
         <!-- Grid de estadísticas -->
         <div class="highlights-stats">
           @for (stat of stats; track stat.label) {
-          <div class="highlights-stat-card">
-            <span class="highlights-stat-card__icon">{{ stat.icon }}</span>
-            <span class="highlights-stat-card__value">{{ stat.value }}</span>
-            <span class="highlights-stat-card__label">{{ stat.label }}</span>
-          </div>
+            <div class="highlights-stat-card">
+              <span class="highlights-stat-card__icon">{{ stat.icon }}</span>
+              <span class="highlights-stat-card__value">{{ stat.value }}</span>
+              <span class="highlights-stat-card__label">{{ stat.label }}</span>
+            </div>
           }
         </div>
 
         <!-- Nota Técnica / Metodología -->
         <div class="highlights-technical-note">
           <svg viewBox="0 0 20 20" fill="currentColor" class="highlights-technical-note__icon">
-            <path fill-rule="evenodd"
+            <path
+              fill-rule="evenodd"
               d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9z"
-              clip-rule="evenodd" />
+              clip-rule="evenodd"
+            />
           </svg>
           <p>
-            <strong>Nota metodológica:</strong> Los recursos minerales corresponden a estimaciones indicadas
-            e inferidas según los estándares NI 43-101 y el código JORC. La ley equivalente de cobre (Cu eq.)
-            se calcula incorporando los valores de molibdeno (Mo) y demás subproductos asociados al yacimiento
-            pórfido de Mocoa, Putumayo, Colombia. Las cifras están sujetas a revisión según el avance de las
-            actividades de exploración y definición de recursos.
+            <strong>Nota metodológica:</strong> Los recursos minerales corresponden a estimaciones
+            indicadas e inferidas según los estándares NI 43-101 y el código JORC. La ley
+            equivalente de cobre (Cu eq.) se calcula incorporando los valores de molibdeno (Mo) y
+            demás subproductos asociados al yacimiento pórfido de Mocoa, Putumayo, Colombia. Las
+            cifras están sujetas a revisión según el avance de las actividades de exploración y
+            definición de recursos.
           </p>
         </div>
       </div>
     </section>
-
 
     <!-- ════════════ SECCIÓN 5: HUELLITAS VERDES – GRID DE TARJETAS ════════════ -->
     <section id="huellitas-verdes" class="huellitas-section">
       <div class="huellitas-section__bg-pattern"></div>
       <div class="huellitas-section__container">
         <div class="huellitas-section__header">
-          <div class="huellitas-badge">
-            <span>🐾 Huellitas Verdes</span>
+          <div class="huellitas-logo-wrap">
+            <img
+              src="huellitasVerdes-removebg-preview.png"
+              alt="Logo Huellitas Verdes"
+              class="huellitas-logo"
+            />
           </div>
-          <h2 class="section-title section-title--light">Huellitas Verdes Mocoa · Libero Cobre</h2>
           <p class="huellitas-section__lead">
-            <strong>Huellitas Verdes</strong> es nuestra iniciativa de responsabilidad ambiental y social
-            enfocada en la conservación del ecosistema del piedemonte amazónico de Mocoa, Putumayo.
-            A través de programas concretos de reforestación, educación ambiental, monitoreo hídrico
-            y apoyo comunitario, dejamos una huella positiva en cada territorio donde operamos —
-            porque el mejor yacimiento que podemos proteger es la naturaleza misma.
+            <strong>Huellitas Verdes</strong> es un club infantil impulsado por
+            Líbero Cobre en Mocoa, donde los más pequeños se convierten en guardianes de la
+            naturaleza. A través de juegos, talleres divertidos, siembra de árboles y la creación de
+            huertas, inspiramos a las futuras generaciones a proteger nuestros bosques, el agua y el
+            futuro del planeta.
           </p>
         </div>
 
         <!-- Grid de 6 tarjetas temáticas -->
         <div class="huellitas-cards-grid" aria-label="Pilares de Huellitas Verdes">
           @for (card of huellitasCards; track card.title) {
-          <article class="huellitas-card">
-            <!-- Encabezado de la tarjeta -->
-            <div class="huellitas-card__header">
-              <h3 class="huellitas-card__title">{{ card.title }}</h3>
-              <p class="huellitas-card__subtitle">{{ card.subtitle }}</p>
-            </div>
+            <article class="huellitas-card">
+              <!-- Encabezado de la tarjeta -->
+              <div class="huellitas-card__header">
+                <h3 class="huellitas-card__title">{{ card.title }}</h3>
+                <p class="huellitas-card__subtitle">{{ card.subtitle }}</p>
+              </div>
 
-            <!-- iframe de Facebook -->
-            <div class="huellitas-card__video-frame">
-              <iframe
-                [src]="card.videoUrl"
-                title="Video Huellitas Verdes – {{ card.title }}"
-                loading="lazy"
-                scrolling="no"
-                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                allowfullscreen>
-              </iframe>
-            </div>
+              <!-- iframe de Facebook -->
+              <div class="huellitas-card__video-frame">
+                <iframe
+                  [src]="card.videoUrl"
+                  title="Video Huellitas Verdes – {{ card.title }}"
+                  loading="lazy"
+                  scrolling="no"
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                  allowfullscreen
+                >
+                </iframe>
+              </div>
 
-            <!-- Enlace Saber más -->
-            <div class="huellitas-card__footer">
-              <a [href]="card.link" target="_blank" rel="noopener noreferrer" class="huellitas-card__link">
-                Saber más
-                <svg viewBox="0 0 20 20" fill="currentColor" class="huellitas-card__link-icon">
-                  <path fill-rule="evenodd"
-                    d="M5.22 14.78a.75.75 0 0 0 1.06 0l7.22-7.22v5.69a.75.75 0 0 0 1.5 0v-7.5a.75.75 0 0 0-.75-.75h-7.5a.75.75 0 0 0 0 1.5h5.69l-7.22 7.22a.75.75 0 0 0 0 1.06Z"
-                    clip-rule="evenodd" />
-                </svg>
-              </a>
-            </div>
-          </article>
+              <!-- Enlace Saber más -->
+              <div class="huellitas-card__footer">
+                <a
+                  [href]="card.link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="huellitas-card__link"
+                >
+                  Saber más
+                  <svg viewBox="0 0 20 20" fill="currentColor" class="huellitas-card__link-icon">
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.22 14.78a.75.75 0 0 0 1.06 0l7.22-7.22v5.69a.75.75 0 0 0 1.5 0v-7.5a.75.75 0 0 0-.75-.75h-7.5a.75.75 0 0 0 0 1.5h5.69l-7.22 7.22a.75.75 0 0 0 0 1.06Z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </article>
           }
         </div>
-
       </div>
     </section>
-
 
     <!-- ════════════ SECCIÓN 6: SOBRE NOSOTROS / ACERCA DE LA ORGANIZACIÓN ════════════ -->
     <section id="quienes-somos" class="about-section">
@@ -377,29 +508,31 @@
 
           <!-- Párrafo Introductorio de Respaldo -->
           <p>
-            <strong>Libero Cobre</strong> es una empresa de exploración y desarrollo minero enfocada en el
-            <strong>Proyecto Mocoa</strong>, ubicado en el municipio de Mocoa, departamento de Putumayo,
-            en el piedemonte amazónico colombiano. Hacemos parte de un grupo corporativo con sólida trayectoria
-            internacional en el sector minero, comprometido con los más altos estándares de gobernanza,
-            transparencia y responsabilidad social.
+            <strong>Libero Cobre</strong> es una empresa de exploración y desarrollo minero enfocada
+            en el <strong>Proyecto Mocoa</strong>, ubicado en el municipio de Mocoa, departamento de
+            Putumayo, en el piedemonte amazónico colombiano. Hacemos parte de un grupo corporativo
+            con sólida trayectoria internacional en el sector minero, comprometido con los más altos
+            estándares de gobernanza, transparencia y responsabilidad social.
           </p>
 
           <!-- Párrafo de Enfoque Operativo -->
           <p>
-            Nuestro proyecto alberga uno de los depósitos de <strong>cobre-molibdeno más significativos de
-              Colombia</strong>, con recursos estimados de 1.300 megatoneladas a una ley equivalente de cobre
-            del 0.49%. El Proyecto Mocoa se localiza estratégicamente en las estribaciones de la cordillera
-            andino-amazónica, y sus minerales son fundamentales para la <em>transición energética global</em>,
-            siendo el cobre el metal esencial en la infraestructura eléctrica, paneles solares y vehículos
+            Nuestro proyecto alberga uno de los depósitos de
+            <strong>cobre-molibdeno más significativos de Colombia</strong>, con recursos estimados
+            de 1.300 megatoneladas a una ley equivalente de cobre del 0.49%. El Proyecto Mocoa se
+            localiza estratégicamente en las estribaciones de la cordillera andino-amazónica, y sus
+            minerales son fundamentales para la <em>transición energética global</em>, siendo el
+            cobre el metal esencial en la infraestructura eléctrica, paneles solares y vehículos
             eléctricos.
           </p>
 
           <!-- Valores / Filosofía -->
           <p>
             Nuestro enfoque es el desarrollo responsable: operamos en equilibrio con los ecosistemas
-            amazónicos y en coordinación constante con las comunidades locales, autoridades ambientales
-            y grupos de interés de Putumayo. Creemos que la minería y la naturaleza pueden coexistir
-            cuando se construyen sobre diálogo, ciencia y respeto por el territorio.
+            amazónicos y en coordinación constante con las comunidades locales, autoridades
+            ambientales y grupos de interés de Putumayo. Creemos que la minería y la naturaleza
+            pueden coexistir cuando se construyen sobre diálogo, ciencia y respeto por el
+            territorio.
           </p>
 
           <div class="about-section__actions">
@@ -444,7 +577,6 @@
       </div>
     </section>
 
-
     <!-- ════════════ SECCIÓN MAPA GOOGLE MAPS / UBICACIÓN ════════════ -->
     <section id="contacto" class="map-section">
       <div class="map-section__container">
@@ -479,8 +611,13 @@
 
         <div class="map-section__map">
           <div class="map-frame">
-            <iframe [src]="mapUrl" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-              title="Ubicación Proyecto Mocoa - Libero Cobre, Putumayo"></iframe>
+            <iframe
+              [src]="mapUrl"
+              allowfullscreen
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title="Ubicación Proyecto Mocoa - Libero Cobre, Putumayo"
+            ></iframe>
             <div class="map-frame__pin">
               <span>Mocoa, Putumayo</span>
             </div>
@@ -488,10 +625,8 @@
         </div>
       </div>
     </section>
-
   </main>
 
   <!-- ════════════ FOOTER ════════════ -->
   <app-footer></app-footer>
-
 </div>

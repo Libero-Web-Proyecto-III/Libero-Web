@@ -1075,9 +1075,251 @@
           </div>
         </div>
 
-        <!-- Listado de Noticias -->
-        <div class="card list-card">
-          <div class="card-header list-header">
+        <!-- COLUMNA DERECHA: VISTAS PREVIAS EN VIVO -->
+        <div class="previews-column" *ngIf="authService.isAdmin()">
+          <!-- VISTA PREVIA 1: TARJETA EN NOTICIAS (VISTA PÚBLICA) -->
+          <div class="preview-block">
+            <div class="preview-header-bar">
+              <div class="preview-label">
+                <span class="badge-number">1</span>
+                <span>Vista Previa: Tarjeta en Noticias (Público)</span>
+              </div>
+              <div class="preview-mode-switch">
+                <button
+                  type="button"
+                  class="mode-switch-btn"
+                  [class.active]="publicationPreviewMode() === 'standard'"
+                  (click)="setPublicationPreviewMode('standard')"
+                  title="Ver cómo se muestra en la cuadrícula de noticias recientes"
+                >
+                  Estándar
+                </button>
+                <button
+                  type="button"
+                  class="mode-switch-btn"
+                  [class.active]="publicationPreviewMode() === 'hero'"
+                  (click)="setPublicationPreviewMode('hero')"
+                  title="Ver cómo se muestra si es la noticia destacada principal"
+                >
+                  Destacada
+                </button>
+              </div>
+            </div>
+
+            <div class="preview-card-wrapper">
+              <!-- MODO A: TARJETA ESTÁNDAR (Exacta a como la ve el usuario en la cuadrícula de noticias) -->
+              <article *ngIf="publicationPreviewMode() === 'standard'" class="pub-preview-recent-card">
+                <div class="pub-preview-image-wrapper" [class.no-media]="!livePublicationPreview().mediaUrl">
+                  <ng-container *ngIf="livePublicationPreview().mediaUrl; else npFallback">
+                    <img
+                      *ngIf="!livePublicationPreview().isVideo"
+                      [src]="livePublicationPreview().mediaUrl"
+                      [alt]="livePublicationPreview().title"
+                      (error)="onPublicationImageError($event)"
+                    />
+                    <ng-container *ngIf="livePublicationPreview().isVideo">
+                      <img
+                        [src]="livePublicationPreview().mediaPoster"
+                        [alt]="livePublicationPreview().title"
+                        (error)="onPublicationImageError($event)"
+                      />
+                      <span class="pub-preview-play-badge">▶</span>
+                    </ng-container>
+                  </ng-container>
+                  <ng-template #npFallback>
+                    <img
+                      src="/logo.png"
+                      [alt]="livePublicationPreview().title"
+                      class="pub-preview-fallback-logo"
+                    />
+                  </ng-template>
+                </div>
+
+                <div class="pub-preview-card-body">
+                  <span
+                    *ngIf="livePublicationPreview().category as cat"
+                    class="pub-preview-category-pill"
+                    [style.color]="cat.color"
+                    [style.borderColor]="cat.color"
+                  >
+                    {{ cat.name }}
+                  </span>
+                  <h3 class="pub-preview-card-title">{{ livePublicationPreview().title }}</h3>
+                  <p class="pub-preview-card-desc">{{ livePublicationPreview().content }}</p>
+                  <span class="pub-preview-meta">
+                    📅 {{ livePublicationPreview().createdAt | date: 'd MMM. y' }} &nbsp;·&nbsp; 💬 0 comentarios
+                  </span>
+                </div>
+              </article>
+
+              <!-- MODO B: TARJETA DESTACADA (HERO) -->
+              <article *ngIf="publicationPreviewMode() === 'hero'" class="pub-preview-hero-card">
+                <div class="pub-preview-hero-media" [class.no-media]="!livePublicationPreview().mediaUrl">
+                  <ng-container *ngIf="livePublicationPreview().mediaUrl; else heroFallback">
+                    <img
+                      *ngIf="!livePublicationPreview().isVideo"
+                      [src]="livePublicationPreview().mediaUrl"
+                      [alt]="livePublicationPreview().title"
+                      (error)="onPublicationImageError($event)"
+                    />
+                    <ng-container *ngIf="livePublicationPreview().isVideo">
+                      <img
+                        [src]="livePublicationPreview().mediaPoster"
+                        [alt]="livePublicationPreview().title"
+                        (error)="onPublicationImageError($event)"
+                      />
+                      <span class="pub-preview-play-badge">▶</span>
+                    </ng-container>
+                  </ng-container>
+                  <ng-template #heroFallback>
+                    <img src="/logo.png" [alt]="livePublicationPreview().title" class="pub-preview-fallback-logo" />
+                  </ng-template>
+                  <span class="pub-preview-hero-badge">DESTACADO</span>
+                  <div class="pub-preview-floating-meta">
+                    <span>📅 {{ livePublicationPreview().createdAt | date: 'd MMM. y' }}</span>
+                    <span>💬 0 comentarios</span>
+                  </div>
+                </div>
+
+                <div class="pub-preview-hero-content">
+                  <span class="pub-preview-eyebrow">NOTICIAS</span>
+                  <h2 class="pub-preview-hero-title">{{ livePublicationPreview().title }}</h2>
+                  <p class="pub-preview-hero-desc">{{ livePublicationPreview().content }}</p>
+                  <button type="button" class="pub-preview-hero-cta" disabled>Leer más →</button>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- VISTA PREVIA 2: PUBLICACIÓN ABIERTA (MODAL DE DETALLE) -->
+          <div class="preview-block">
+            <div class="preview-header-bar">
+              <div class="preview-label">
+                <span class="badge-number">2</span>
+                <span>Vista Previa: Tarjeta Abierta (Modal de Detalle)</span>
+              </div>
+            </div>
+
+            <div class="preview-modal-wrapper">
+              <!-- Tarjeta de vista previa del modal limpia y fiel a la interfaz real -->
+              <div class="pub-modal-preview-card">
+                <button type="button" class="pub-modal-close-btn" disabled title="Cerrar modal (simulado)">✕</button>
+
+                <div class="pub-modal-scroll-area">
+                  <!-- Multimedia de la noticia -->
+                  <div class="pub-modal-media-wrap" *ngIf="livePublicationPreview().mediaUrl">
+                    <img
+                      *ngIf="!livePublicationPreview().isVideo"
+                      [src]="livePublicationPreview().mediaUrl"
+                      [alt]="livePublicationPreview().title"
+                      (error)="onPublicationImageError($event)"
+                    />
+                    <div *ngIf="livePublicationPreview().isVideo" class="pub-modal-video-box">
+                      <img
+                        [src]="livePublicationPreview().mediaPoster"
+                        [alt]="livePublicationPreview().title"
+                        (error)="onPublicationImageError($event)"
+                      />
+                      <div class="pub-video-overlay-play">
+                        <span class="play-triangle">▶</span>
+                        <span class="video-label">Video de la noticia</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Categoría y cabecera -->
+                  <div class="pub-modal-header-block">
+                    <div class="pub-modal-meta-row">
+                      <span
+                        *ngIf="livePublicationPreview().category as cat"
+                        class="pub-modal-category-tag"
+                        [style.background]="cat.color"
+                      >
+                        {{ cat.icon }} {{ cat.name }}
+                      </span>
+                      <div class="pub-modal-author-info">
+                        <div class="pub-modal-avatar-circle">
+                          <img
+                            *ngIf="authService.currentUser()?.avatar"
+                            [src]="authService.currentUser()?.avatar"
+                            alt="Avatar"
+                          />
+                          <span *ngIf="!authService.currentUser()?.avatar">{{ userInitials() }}</span>
+                        </div>
+                        <span class="pub-modal-author-name">{{ livePublicationPreview().author }}</span>
+                        <span class="meta-separator">·</span>
+                        <span class="pub-modal-date">{{ livePublicationPreview().createdAt | date: 'longDate' }}</span>
+                      </div>
+                    </div>
+
+                    <h2 class="pub-modal-main-title">{{ livePublicationPreview().title }}</h2>
+                  </div>
+
+                  <!-- Cuerpo del contenido -->
+                  <div class="pub-modal-text-content">
+                    <p>{{ livePublicationPreview().content }}</p>
+                  </div>
+
+                  <!-- Barra interactiva de reacciones -->
+                  <div class="pub-modal-reaction-bar">
+                    <button type="button" class="pub-reaction-btn" disabled>
+                      <span class="reaction-emoji">👍</span>
+                      <span class="reaction-count">0</span>
+                      <span class="reaction-label">Me gusta</span>
+                    </button>
+                    <button type="button" class="pub-reaction-btn" disabled>
+                      <span class="reaction-emoji">👎</span>
+                      <span class="reaction-count">0</span>
+                      <span class="reaction-label">No me gusta</span>
+                    </button>
+                  </div>
+
+                  <!-- Sección de comentarios idéntica a la vista real -->
+                  <section class="pub-modal-comments-section">
+                    <div class="pub-comments-header">
+                      <h4 class="pub-comments-title">Comentarios (0)</h4>
+                    </div>
+
+                    <!-- Caja de escritura simulada para comentar -->
+                    <div class="pub-comment-form-sim">
+                      <div class="pub-comment-user-pill">
+                        <div class="pub-comment-avatar">
+                          <img
+                            *ngIf="authService.currentUser()?.avatar"
+                            [src]="authService.currentUser()?.avatar"
+                            alt="Avatar"
+                          />
+                          <span *ngIf="!authService.currentUser()?.avatar">{{ userInitials() }}</span>
+                        </div>
+                        <span class="pub-comment-user-text">
+                          Comentando como <strong>{{ livePublicationPreview().author }}</strong>
+                        </span>
+                      </div>
+                      <div class="pub-comment-input-box">
+                        <span class="placeholder-text">Escribe un comentario...</span>
+                      </div>
+                      <div class="pub-comment-actions">
+                        <button type="button" class="pub-comment-btn" disabled>Comentar</button>
+                      </div>
+                    </div>
+
+                    <!-- Estado vacío de comentarios -->
+                    <div class="pub-no-comments-box">
+                      <span class="speech-icon">💬</span>
+                      <p>Sé el primero en comentar esta noticia una vez publicada.</p>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Listado de Noticias y Artículos (SIN CAMBIOS, se queda exactamente como estaba) -->
+      <div class="card list-card">
+        <div class="card-header list-header">
+          <div class="list-title-row">
             <h3>Artículos Publicados</h3>
             <span class="counter-badge">{{ publications().length }}</span>
           </div>

@@ -7,5 +7,13 @@ export const adminGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  return authService.hasManagementRole() ? true : router.createUrlTree(['/auth/login']);
+  if (!authService.isLoggedIn()) {
+    return router.createUrlTree(['/auth/login']);
+  }
+
+  if (authService.can('view', 'admin')) {
+    return true;
+  }
+
+  return router.createUrlTree(['/']);
 };

@@ -69,6 +69,8 @@ export class UserController {
   }
 
   // # Este bloque tiene como objetivo buscar un usuario por su nombre
+  @PRIVATE()
+  @ROLES([enumRol.ADMIN, enumRol.MOD])
   @ApiOperation({ summary: 'Busca un usuario por su NOMBRE' })
   @ApiOkResponse({ description: 'Usuario hallado con exito', type: UserEntity })
   @Get(':name')

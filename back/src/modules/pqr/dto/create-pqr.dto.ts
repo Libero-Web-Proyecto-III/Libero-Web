@@ -1,23 +1,29 @@
-import { IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { enumPqrType } from '../../../common/enums/pqr-type.enum';
 
 export class CreatePqrDto {
-  @ApiProperty({ description: 'Nombre completo', example: 'Ana María Rojas' })
+  @ApiPropertyOptional({ description: 'Nombre completo', example: 'Ana María Rojas' })
+  @IsOptional()
   @IsString({ message: 'El nombre debe ser un texto válido' })
-  @MinLength(3, { message: 'El nombre debe tener al menos 3 caracteres' })
   @MaxLength(150, { message: 'El nombre no puede superar los 150 caracteres' })
-  fullName!: string;
+  fullName?: string;
 
-  @ApiProperty({ description: 'Correo de contacto', example: 'ana@example.com' })
+  @ApiPropertyOptional({ description: 'Correo de contacto', example: 'ana@example.com' })
+  @IsOptional()
   @IsEmail({}, { message: 'Debes ingresar un correo electrónico válido' })
-  email!: string;
+  email?: string;
 
   @ApiPropertyOptional({ description: 'Teléfono de contacto', example: '3001234567' })
   @IsOptional()
   @IsString({ message: 'El teléfono debe ser un texto válido' })
   @MaxLength(20, { message: 'El teléfono no puede superar los 20 caracteres' })
   phone?: string;
+
+  @ApiPropertyOptional({ description: 'Indica si se envía de forma anónima', default: false })
+  @IsOptional()
+  @IsBoolean({ message: 'isAnonymous debe ser un booleano' })
+  isAnonymous?: boolean;
 
   @ApiProperty({ description: 'Tipo de PQR', enum: enumPqrType, example: enumPqrType.PETICION })
   @IsEnum(enumPqrType, { message: 'El tipo debe ser: peticion, queja, reclamo o sugerencia' })

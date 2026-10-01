@@ -2,7 +2,7 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { QuestionTypeEnum, SubmitAnswerDto, Survey } from '../../models/survey.model';
+import { QuestionTypeEnum, SubmitAnswerDto, Survey, SurveyStatusEnum } from '../../models/survey.model';
 import { SurveyService } from '../../services/survey.service';
 import { AuthService } from '../../../auth/services/auth.service';
 
@@ -29,6 +29,18 @@ export class SurveyViewerComponent implements OnInit {
 
   // Almacenamiento local de respuestas ingresadas por el usuario
   answersMap: Record<number, { optionId?: number; optionIds?: number[]; textValue?: string }> = {};
+
+  isSurveyClosed(): boolean {
+    if (!this.survey) return false;
+    if (this.survey.status === SurveyStatusEnum.CLOSED) return true;
+    if (this.survey.endDate && new Date(this.survey.endDate).getTime() <= Date.now()) return true;
+    return false;
+  }
+
+  isSurveyDraft(): boolean {
+    if (!this.survey) return false;
+    return this.survey.status === SurveyStatusEnum.DRAFT;
+  }
 
   ngOnInit(): void {
     this.isLoggedIn = !!this.authService.getToken();

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { TermsModalComponent } from '../../common/terms-modal/terms-modal.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, TermsModalComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
 })
@@ -19,6 +20,10 @@ export class RegisterComponent {
   public ShowConfirmPassword: boolean = false;
   public ErrorMessage: string | null = null;
   public SuccessMessage: string | null = null;
+
+  // Estado del modal de Términos y Condiciones
+  public IsTermsModalOpen: boolean = false;
+  public TermsModalTab: 'terms' | 'privacy' = 'terms';
 
   // Constructor: Inyección de servicios e inicialización de validaciones de Registro
   constructor(
@@ -61,6 +66,16 @@ export class RegisterComponent {
   // Alternar la visibilidad de la confirmación de contraseña
   public ToggleConfirmPasswordVisibility(): void {
     this.ShowConfirmPassword = !this.ShowConfirmPassword;
+  }
+
+  // Apertura y control del modal de Términos y Condiciones
+  public OpenTermsModal(tab: 'terms' | 'privacy' = 'terms'): void {
+    this.TermsModalTab = tab;
+    this.IsTermsModalOpen = true;
+  }
+
+  public CloseTermsModal(): void {
+    this.IsTermsModalOpen = false;
   }
 
   // Procesamiento y envío del formulario de registro de usuario

@@ -16,19 +16,6 @@
     padding-bottom: 1rem;
     border-bottom: 1px solid #E4EBED;
 
-    .badge {
-      display: inline-block;
-      background: #fff7ed;
-      color: #D84E18;
-      border: 1px solid #D86E00;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 0.25rem 0.6rem;
-      border-radius: 9999px;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-
     h3 {
       font-family: 'Outfit', sans-serif;
       font-size: 1.4rem;
@@ -138,6 +125,301 @@
 
     .flex-1 { flex: 1; }
     .flex-2 { flex: 2; }
+  }
+
+  /* TOGGLES Y CHECKBOXES DE CONFIGURACIÓN */
+  .survey-config-toggles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.85rem;
+    margin: 1.25rem 0;
+
+    .config-toggle-item {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #0080A3;
+        background: #f8fafc;
+      }
+
+      &.checked {
+        border-color: #D84E18;
+        background: #fff8f5;
+        box-shadow: 0 2px 8px rgba(216, 78, 24, 0.08);
+
+        .custom-checkbox-ui {
+          background: #D84E18;
+          border-color: #D84E18;
+
+          svg {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .toggle-title {
+          color: #9c340d;
+        }
+      }
+
+      .custom-toggle-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        cursor: pointer;
+        user-select: none;
+
+        input[type='checkbox'] {
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+        }
+      }
+
+      .custom-checkbox-ui {
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        border-radius: 5px;
+        border: 2px solid #94a3b8;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 2px;
+        transition: all 0.2s ease;
+
+        svg {
+          color: #ffffff;
+          opacity: 0;
+          transform: scale(0.5);
+          transition: all 0.2s ease;
+        }
+      }
+
+      .toggle-text-block {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+
+        .toggle-title {
+          font-size: 0.9rem;
+          font-weight: 700;
+          color: #0f172a;
+          transition: color 0.2s ease;
+        }
+
+        .toggle-desc {
+          font-size: 0.78rem;
+          color: #64748b;
+          line-height: 1.35;
+        }
+      }
+    }
+  }
+
+  /* APARTADO INTERACTIVO DE PROGRAMACIÓN DE FECHA Y HORA */
+  .schedule-picker-box {
+    background: #ffffff;
+    border: 1.5px solid #D84E18;
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-top: 1rem;
+    box-shadow: 0 4px 12px rgba(216, 78, 24, 0.08);
+
+    .schedule-box-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.1rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px dashed #fdba74;
+
+      svg {
+        stroke: #D84E18;
+      }
+
+      h5 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #9c340d;
+        margin: 0;
+      }
+    }
+
+    .schedule-inputs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .schedule-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+
+      label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #006581;
+
+        svg {
+          stroke: #006581;
+        }
+      }
+
+      .date-picker-input {
+        padding: 0.6rem 0.85rem;
+        border-radius: 6px;
+        border: 1.5px solid #0080A3;
+        font-size: 0.95rem;
+        font-family: inherit;
+        color: #0f172a;
+        background: #ffffff;
+        transition: all 0.2s ease;
+
+        &:focus {
+          outline: none;
+          border-color: #D84E18;
+          box-shadow: 0 0 0 3px rgba(216, 78, 24, 0.15);
+        }
+      }
+    }
+
+    /* CONTROLES DE HORA 12H + AM/PM */
+    .time-picker-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .select-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.2rem;
+        flex: 1;
+
+        .time-unit-select {
+          width: 100%;
+          padding: 0.55rem 0.5rem;
+          border-radius: 6px;
+          border: 1.5px solid #0080A3;
+          font-size: 1rem;
+          font-weight: 700;
+          color: #0f172a;
+          background: #ffffff;
+          text-align: center;
+          cursor: pointer;
+
+          &:focus {
+            outline: none;
+            border-color: #D84E18;
+            box-shadow: 0 0 0 3px rgba(216, 78, 24, 0.15);
+          }
+        }
+
+        .unit-label {
+          font-size: 0.72rem;
+          font-weight: 600;
+          color: #64748b;
+          text-transform: uppercase;
+        }
+      }
+
+      .time-colon {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #006581;
+        margin-bottom: 1rem;
+      }
+
+      .ampm-toggle-group {
+        display: flex;
+        border: 1.5px solid #0080A3;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+
+        .ampm-btn {
+          padding: 0.55rem 0.75rem;
+          border: none;
+          background: #ffffff;
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: #006581;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: #e0f2fe;
+          }
+
+          &.active {
+            background: #D84E18;
+            color: #ffffff;
+          }
+
+          &:first-child {
+            border-right: 1px solid #0080A3;
+          }
+        }
+      }
+    }
+
+    /* ERROR VALIDACIÓN FECHA/HORA PASADA */
+    .schedule-time-error {
+      margin-top: 1rem;
+      padding: 0.65rem 0.85rem;
+      background: #fef2f2;
+      border: 1px solid #f87171;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #b91c1c;
+      font-size: 0.85rem;
+      font-weight: 600;
+
+      svg {
+        stroke: #dc2626;
+        flex-shrink: 0;
+      }
+    }
+
+    /* PREVIEW RESUMEN CIERRE PROGRAMADO */
+    .schedule-preview-pill {
+      margin-top: 1rem;
+      padding: 0.65rem 0.85rem;
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #166534;
+      font-size: 0.85rem;
+
+      svg {
+        stroke: #16a34a;
+        flex-shrink: 0;
+      }
+
+      strong {
+        color: #14532d;
+      }
+    }
   }
 
   .checkbox-group {
@@ -279,8 +561,8 @@
       }
 
       &:disabled {
-        background: #0080A3;
-        opacity: 0.5;
+        background: #94a3b8;
+        opacity: 0.6;
         cursor: not-allowed;
       }
     }

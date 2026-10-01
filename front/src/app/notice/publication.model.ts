@@ -9,9 +9,20 @@ export interface PublicationMedia {
 
 export type ReactionType = 'like' | 'dislike';
 
+export interface UserTagInfo {
+  id?: number;
+  name: string;
+  color?: string;
+}
+
 export interface Comment {
   uuid: string;
   author: string;
+  authorUuid?: string;
+  authorRole?: string;
+  authorTag?: string;
+  authorTagColor?: string;
+  authorTags: UserTagInfo[];
   avatar?: string;
   content: string;
   createdAt: Date;

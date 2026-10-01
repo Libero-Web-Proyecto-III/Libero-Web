@@ -279,7 +279,7 @@ export class ConfigComponent implements OnInit {
         this.isVerifyingPassword.set(false);
         this.isCurrentPasswordVerified.set(true);
         this.passwordMessageType.set('success');
-        this.passwordMessage.set('✓ Contraseña actual verificada correctamente. Ya puedes ingresar tu nueva contraseña.');
+        this.passwordMessage.set('Contraseña actual verificada correctamente. Ya puedes ingresar tu nueva contraseña.');
       },
       error: (err) => {
         this.isVerifyingPassword.set(false);

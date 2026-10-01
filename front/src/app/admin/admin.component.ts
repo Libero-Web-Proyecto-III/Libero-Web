@@ -10,9 +10,12 @@ import { SurveyService } from '../survey/services/survey.service';
 import { Survey, SurveyStatusEnum } from '../survey/models/survey.model';
 import { Category } from '../notice/publication.model';
 import { CategoryService } from '../notice/services/category.service';
+import { Pqr, PqrStatus, PqrType } from '../pqr/pqr.model';
+import { PqrService } from '../pqr/services/pqr.service';
+import { CategoryIconComponent, CATEGORY_ICON_OPTIONS, CategoryIconOption } from '../common/category-icon/category-icon.component';
 import { environment } from '../../environments/environment';
 
-export type AdminTab = 'metrics' | 'home' | 'events' | 'news' | 'polls' | 'users' | 'settings';
+export type AdminTab = 'metrics' | 'home' | 'events' | 'news' | 'polls' | 'users' | 'pqrs';
 
 export const ADMIN_ROUTE_TAB_MAP: Record<string, AdminTab> = {
   metricas: 'metrics',
@@ -27,8 +30,10 @@ export const ADMIN_ROUTE_TAB_MAP: Record<string, AdminTab> = {
   polls: 'polls',
   usuarios: 'users',
   users: 'users',
-  configuracion: 'settings',
-  settings: 'settings',
+  pqrs: 'pqrs',
+  pqr: 'pqrs',
+  configuracion: 'metrics',
+  settings: 'metrics',
 };
 
 export const ADMIN_TAB_TO_ROUTE: Record<AdminTab, string> = {
@@ -38,7 +43,7 @@ export const ADMIN_TAB_TO_ROUTE: Record<AdminTab, string> = {
   news: 'noticias',
   polls: 'encuestas',
   users: 'usuarios',
-  settings: 'configuracion',
+  pqrs: 'pqrs',
 };
 
 export interface AdminEventItem {
@@ -120,6 +125,7 @@ export interface VisitStats {
     RouterLink,
     SurveyBuilderComponent,
     SurveyResultsComponent,
+    CategoryIconComponent,
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
@@ -129,6 +135,7 @@ export class AdminComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly surveyService = inject(SurveyService);
   private readonly categoryService = inject(CategoryService);
+  private readonly pqrService = inject(PqrService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   readonly authService = inject(AuthService);
@@ -188,24 +195,12 @@ export class AdminComponent implements OnInit {
   readonly editingCategoryUuid = signal<string | null>(null);
   readonly categoryFormName = signal<string>('');
   readonly categoryFormColor = signal<string>('#D84E18');
-  readonly categoryFormIcon = signal<string>('📢');
+  readonly categoryFormIcon = signal<string>('megaphone');
   readonly categorySaving = signal<boolean>(false);
   readonly categoryError = signal<string | null>(null);
   readonly categoryDeleteUuid = signal<string | null>(null);
   readonly categoryDeleting = signal<boolean>(false);
-  readonly emojiOptions: string[] = [
-    '📢',
-    '🌱',
-    '⚙️',
-    '📅',
-    '👥',
-    '💼',
-    '🔬',
-    '🏗️',
-    '💧',
-    '⚡',
-    '📁',
-  ];
+  readonly categoryIconOptions: CategoryIconOption[] = CATEGORY_ICON_OPTIONS;
 
   // Filtros de búsqueda en el listado de noticias del dashboard
   readonly publicationSearchQuery = signal<string>('');
@@ -337,21 +332,106 @@ export class AdminComponent implements OnInit {
 
   // Gestión de Encuestas (RF-17 / RF-18)
   surveys = signal<Survey[]>([]);
+  surveySearchQuery = signal<string>('');
   selectedSurveyResultsId = signal<number | null>(null);
   currentSurveyPage = signal<number>(1);
   surveysPerPage = 5;
 
+  // Estado del Modal de Programación de Cierre de Encuestas
+  selectedSurveyForSchedule: Survey | null = null;
+  scheduleModalAutoClose = false;
+  scheduleModalDate = '';
+  scheduleModalHour12 = '12';
+  scheduleModalMinute = '00';
+  scheduleModalAmPm: 'AM' | 'PM' = 'PM';
+  scheduleModalMinDate = '';
+  scheduleModalTimeError = '';
+  scheduleModalPreviewText = '';
+  isSavingSurveySchedule = false;
+
+  readonly scheduleHours12List: string[] = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+  readonly scheduleMinutesList: string[] = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+  readonly filteredSurveys = computed(() => {
+    const query = this.surveySearchQuery().toLowerCase().trim();
+    const list = this.surveys();
+    if (!query) {
+      return list;
+    }
+    return list.filter((s) => (s.title || '').toLowerCase().includes(query));
+  });
+
   readonly totalSurveyPages = computed(() => {
-    return Math.max(1, Math.ceil(this.surveys().length / this.surveysPerPage));
+    return Math.max(1, Math.ceil(this.filteredSurveys().length / this.surveysPerPage));
   });
 
   readonly paginatedSurveys = computed(() => {
     const startIndex = (this.currentSurveyPage() - 1) * this.surveysPerPage;
-    return this.surveys().slice(startIndex, startIndex + this.surveysPerPage);
+    return this.filteredSurveys().slice(startIndex, startIndex + this.surveysPerPage);
   });
 
   readonly surveyPageNumbers = computed(() => {
     return Array.from({ length: this.totalSurveyPages() }, (_, i) => i + 1);
+  });
+
+  // --- GESTIÓN DE PQRS (Peticiones, Quejas, Reclamos y Sugerencias) ---
+  readonly pqrs = signal<Pqr[]>([]);
+  readonly pqrsLoading = signal<boolean>(false);
+  readonly pqrFilterType = signal<PqrType | ''>('');
+  readonly pqrFilterStatus = signal<PqrStatus | ''>('');
+  readonly pqrSearchQuery = signal<string>('');
+  readonly expandedPqrUuid = signal<string | null>(null);
+  readonly pqrStatusDraft = signal<PqrStatus>('pendiente');
+  readonly pqrResponseDraft = signal<string>('');
+  readonly pqrUpdating = signal<boolean>(false);
+  readonly pqrUpdateError = signal<string | null>(null);
+  readonly pqrUpdateSuccess = signal<string | null>(null);
+
+  readonly pqrTypeOptions: { value: PqrType; label: string; icon: string }[] = [
+    { value: 'peticion', label: 'Petición', icon: '' },
+    { value: 'queja', label: 'Queja', icon: '' },
+    { value: 'reclamo', label: 'Reclamo', icon: '' },
+    { value: 'sugerencia', label: 'Sugerencia', icon: '' },
+  ];
+
+  readonly pqrStatusLabels: Record<PqrStatus, string> = {
+    pendiente: 'Pendiente',
+    en_revision: 'En revisión',
+    resuelto: 'Resuelto',
+    rechazado: 'Rechazado',
+  };
+
+  readonly pendingPqrsCount = computed(() =>
+    this.pqrs().filter((p) => p.status === 'pendiente').length
+  );
+  readonly inReviewPqrsCount = computed(() =>
+    this.pqrs().filter((p) => p.status === 'en_revision').length
+  );
+  readonly resolvedPqrsCount = computed(() =>
+    this.pqrs().filter((p) => p.status === 'resuelto').length
+  );
+  readonly rejectedPqrsCount = computed(() =>
+    this.pqrs().filter((p) => p.status === 'rechazado').length
+  );
+
+  readonly filteredPqrs = computed<Pqr[]>(() => {
+    const list = this.pqrs();
+    const query = this.pqrSearchQuery().trim().toLowerCase();
+    const type = this.pqrFilterType();
+    const status = this.pqrFilterStatus();
+
+    return list.filter((p) => {
+      const matchType = !type || p.type === type;
+      const matchStatus = !status || p.status === status;
+      const matchQuery =
+        !query ||
+        p.subject?.toLowerCase().includes(query) ||
+        p.fullName?.toLowerCase().includes(query) ||
+        p.email?.toLowerCase().includes(query) ||
+        p.message?.toLowerCase().includes(query) ||
+        (p.phone && p.phone.toLowerCase().includes(query));
+      return matchType && matchStatus && matchQuery;
+    });
   });
 
   // --- MÉTRICAS Y ANALÍTICAS COMPUTADAS ---
@@ -408,7 +488,8 @@ export class AdminComponent implements OnInit {
       this.totalEventsCount() +
       this.publications().length +
       this.surveys().length +
-      this.users().length
+      this.users().length +
+      this.pqrs().length
     );
   });
 
@@ -559,10 +640,38 @@ export class AdminComponent implements OnInit {
   }
 
   toggleCustomTimeInput(): void {
-    this.showCustomTimeInput.update((v) => !v);
+    const nextState = !this.showCustomTimeInput();
+    this.showCustomTimeInput.set(nextState);
+
+    if (nextState) {
+      this.eventForm.controls.startTime.disable();
+      this.eventForm.controls.endTime.disable();
+      if (!this.eventForm.controls.time.value?.trim()) {
+        this.recomputeTimeFromPickers();
+      }
+    } else {
+      this.eventForm.controls.startTime.enable();
+      this.eventForm.controls.endTime.enable();
+      this.recomputeTimeFromPickers();
+    }
+    this.formValueSignal.set(this.eventForm.getRawValue());
+  }
+
+  recomputeTimeFromPickers(): void {
+    const start = this.eventForm.controls.startTime.value?.trim();
+    const end = this.eventForm.controls.endTime.value?.trim();
+    if (start && end) {
+      this.eventForm.controls.time.setValue(`${start} - ${end} HRS`);
+    } else if (start) {
+      this.eventForm.controls.time.setValue(`${start} HRS`);
+    } else {
+      this.eventForm.controls.time.setValue('20:00 - 23:00 HRS');
+    }
+    this.formValueSignal.set(this.eventForm.getRawValue());
   }
 
   setTimePreset(start: string, end: string): void {
+    if (this.showCustomTimeInput()) return;
     this.eventForm.patchValue({
       startTime: start,
       endTime: end,
@@ -571,14 +680,17 @@ export class AdminComponent implements OnInit {
     this.formValueSignal.set(this.eventForm.getRawValue());
   }
 
-  onTimeChange(): void {
-    const start = this.eventForm.controls.startTime.value?.trim();
-    const end = this.eventForm.controls.endTime.value?.trim();
-    if (start && end) {
-      this.eventForm.controls.time.setValue(`${start} - ${end} HRS`);
-    } else if (start) {
-      this.eventForm.controls.time.setValue(`${start} HRS`);
+  onTimePickerChange(): void {
+    if (!this.showCustomTimeInput()) {
+      this.recomputeTimeFromPickers();
     }
+  }
+
+  onTimeChange(): void {
+    this.onTimePickerChange();
+  }
+
+  onCustomTimeInput(): void {
     this.formValueSignal.set(this.eventForm.getRawValue());
   }
 
@@ -680,7 +792,7 @@ export class AdminComponent implements OnInit {
 
     // 2. Si es el mismo día, validar que la hora no sea una hora pasada
     const isToday = chosenDate.getTime() === todayZero.getTime();
-    if (isToday && formVal.startTime) {
+    if (!this.showCustomTimeInput() && isToday && formVal.startTime) {
       const [sh, sm] = formVal.startTime.split(':').map((p: string) => parseInt(p, 10));
       if (!isNaN(sh) && !isNaN(sm)) {
         const startTotalMinutes = sh * 60 + sm;
@@ -699,7 +811,7 @@ export class AdminComponent implements OnInit {
     }
 
     // 3. Validar que la hora de fin sea posterior a la de inicio
-    if (formVal.startTime && formVal.endTime) {
+    if (!this.showCustomTimeInput() && formVal.startTime && formVal.endTime) {
       const [sh, sm] = formVal.startTime.split(':').map((p: string) => parseInt(p, 10));
       const [eh, em] = formVal.endTime.split(':').map((p: string) => parseInt(p, 10));
       if (!isNaN(sh) && !isNaN(sm) && !isNaN(eh) && !isNaN(em)) {
@@ -726,7 +838,16 @@ export class AdminComponent implements OnInit {
 
   onCalendarDateChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (!input?.value) return;
+    if (!input?.value) {
+      this.calendarDateValue.set('');
+      this.eventForm.patchValue({
+        dateDay: '',
+        dateMonth: '',
+      });
+      this.eventForm.controls.dateDay.markAsTouched();
+      this.formValueSignal.set(this.eventForm.getRawValue());
+      return;
+    }
     const parts = input.value.split('-');
     if (parts.length === 3) {
       const day = parts[2];
@@ -752,6 +873,8 @@ export class AdminComponent implements OnInit {
         dateDay: day,
         dateMonth: monthCode,
       });
+      this.eventForm.controls.dateDay.markAsTouched();
+      this.eventForm.controls.dateDay.markAsDirty();
       this.formValueSignal.set(this.eventForm.getRawValue());
     }
   }
@@ -795,22 +918,22 @@ export class AdminComponent implements OnInit {
         : '20:00 - 23:00 HRS');
     return {
       uuid: 'preview-uuid-temp',
-      title: val.title?.trim() || 'TÍTULO DEL EVENTO EN VIVO',
+      title: val.title?.trim() || 'Título del evento',
       subtitle:
-        val.subtitle?.trim() || 'Subtítulo descriptivo o temática del evento para la comunidad',
+        val.subtitle?.trim() || 'Subtítulo del evento',
       dateDay: val.dateDay?.trim() || '28',
       dateMonth: val.dateMonth?.trim() || 'OCT',
       time: timeDisplay,
       startTime: val.startTime || '20:00',
       endTime: val.endTime || '23:00',
-      location: val.location?.trim() || 'Gran Teatro Metropolitano',
-      city: val.city?.trim() || 'Sala Principal',
+      location: val.location?.trim() || 'Lugar o recinto',
+      city: val.city?.trim() || 'Ciudad o sala',
       description:
         val.description?.trim() ||
-        'Disfruta de una experiencia única. Un encuentro exclusivo donde la música, el arte y la cultura se fusionan en un espacio diseñado para inspirar...',
+        'Descripción del evento...',
       imageUrl:
         val.imageUrl?.trim() ||
-        'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
+        '/logo.png',
       status: 'active',
       isSubscribed: false,
     };
@@ -877,6 +1000,43 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  isFallbackLogo(url: string | null | undefined): boolean {
+    if (!url) return true;
+    const trimmed = url.trim();
+    return trimmed === '' || trimmed === '/logo.png' || trimmed === 'logo.png';
+  }
+
+  onEventImageError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    if (target && !target.src.endsWith('/logo.png')) {
+      target.src = '/logo.png';
+      target.classList.add('fallback-logo');
+      const parent =
+        target.closest<HTMLElement>(
+          '.mock-image-wrapper, .mock-modal-img-box, .event-image-side, .modal-hero-img-box',
+        ) || target.parentElement;
+      if (parent) {
+        parent.classList.add('is-fallback-logo');
+        parent.classList.add('white-bg');
+      }
+    }
+  }
+
+  onEventImageLoad(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    if (target && !target.src.endsWith('/logo.png')) {
+      target.classList.remove('fallback-logo');
+      const parent =
+        target.closest<HTMLElement>(
+          '.mock-image-wrapper, .mock-modal-img-box, .event-image-side, .modal-hero-img-box',
+        ) || target.parentElement;
+      if (parent) {
+        parent.classList.remove('is-fallback-logo');
+        parent.classList.remove('white-bg');
+      }
+    }
+  }
+
   ngOnInit(): void {
     if (!this.authService.isAdmin()) {
       void this.router.navigate(['/']);
@@ -923,7 +1083,9 @@ export class AdminComponent implements OnInit {
   private applyTab(tab: AdminTab): void {
     this.activeTab.set(tab);
     this.clearAlerts();
-    if (tab === 'users') {
+    if (tab === 'pqrs') {
+      this.loadPqrs();
+    } else if (tab === 'users') {
       this.loadUsers();
       this.loadTags();
     } else if (tab === 'polls') {
@@ -940,8 +1102,70 @@ export class AdminComponent implements OnInit {
       this.loadUsers();
       this.loadTags();
       this.loadSurveys();
+      this.loadPqrs();
       this.loadVisitStats();
     }
+  }
+
+  loadPqrs(): void {
+    this.pqrsLoading.set(true);
+    this.pqrService
+      .findAll(1, 500)
+      .subscribe({
+        next: (res) => {
+          this.pqrs.set(res.data || []);
+          this.pqrsLoading.set(false);
+        },
+        error: () => {
+          this.pqrsLoading.set(false);
+        },
+      });
+  }
+
+  applyPqrFilters(): void {
+    // Filtrado reactivo en computed filteredPqrs
+  }
+
+  resetPqrFilters(): void {
+    this.pqrSearchQuery.set('');
+    this.pqrFilterType.set('');
+    this.pqrFilterStatus.set('');
+  }
+
+  toggleExpandPqr(pqr: Pqr): void {
+    if (this.expandedPqrUuid() === pqr.uuid) {
+      this.expandedPqrUuid.set(null);
+      return;
+    }
+    this.expandedPqrUuid.set(pqr.uuid);
+    this.pqrStatusDraft.set(pqr.status);
+    this.pqrResponseDraft.set(pqr.response ?? '');
+    this.pqrUpdateError.set(null);
+    this.pqrUpdateSuccess.set(null);
+  }
+
+  submitPqrStatusUpdate(pqr: Pqr): void {
+    this.pqrUpdating.set(true);
+    this.pqrUpdateError.set(null);
+    this.pqrUpdateSuccess.set(null);
+
+    const responseText = this.pqrResponseDraft().trim() || undefined;
+
+    this.pqrService.updateStatus(pqr.uuid, this.pqrStatusDraft(), responseText).subscribe({
+      next: (updated) => {
+        this.pqrs.update((list) => list.map((item) => (item.uuid === updated.uuid ? updated : item)));
+        this.pqrUpdating.set(false);
+        this.pqrUpdateSuccess.set('Estado y respuesta guardados exitosamente.');
+        setTimeout(() => {
+          this.pqrUpdateSuccess.set(null);
+          this.expandedPqrUuid.set(null);
+        }, 1200);
+      },
+      error: (err) => {
+        this.pqrUpdating.set(false);
+        this.pqrUpdateError.set(err?.error?.message ?? 'No se pudo actualizar la PQR.');
+      },
+    });
   }
 
   loadVisitStats(): void {
@@ -987,6 +1211,11 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  onSurveySearch(query: string): void {
+    this.surveySearchQuery.set(query);
+    this.currentSurveyPage.set(1);
+  }
+
   toggleSurveyResults(id: number): void {
     if (this.selectedSurveyResultsId() === id) {
       this.selectedSurveyResultsId.set(null);
@@ -995,25 +1224,171 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  toggleSurveyStatus(survey: Survey): void {
+  toggleSurveyDraft(survey: Survey, isDraft: boolean): void {
     this.clearAlerts();
-    const isCurrentlyPublished = survey.status === 'PUBLISHED';
-    const newStatus = isCurrentlyPublished ? SurveyStatusEnum.CLOSED : SurveyStatusEnum.PUBLISHED;
+    const newStatus = isDraft ? SurveyStatusEnum.DRAFT : SurveyStatusEnum.PUBLISHED;
     const payload: any = { status: newStatus };
-    if (newStatus === SurveyStatusEnum.CLOSED) {
-      payload.endDate = new Date().toISOString();
-    }
 
     this.surveyService.updateSurvey(survey.index, payload).subscribe({
       next: () => {
-        this.message = isCurrentlyPublished
-          ? 'Encuesta deshabilitada correctamente. Ya no estará visible para los votantes.'
-          : 'Encuesta habilitada y publicada nuevamente.';
+        this.message = isDraft
+          ? `Encuesta "${survey.title}" cambiada a Borrador.`
+          : `Encuesta "${survey.title}" publicada exitosamente.`;
         this.loadSurveys();
         this.clearAlertsSoon();
       },
       error: () => {
-        this.error = 'No fue posible cambiar el estado de la encuesta.';
+        this.error = 'No fue posible actualizar el estado de la encuesta.';
+      },
+    });
+  }
+
+  openSurveyScheduleModal(survey: Survey): void {
+    this.selectedSurveyForSchedule = survey;
+    this.scheduleModalTimeError = '';
+
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    this.scheduleModalMinDate = `${y}-${m}-${d}`;
+
+    if (survey.endDate && new Date(survey.endDate).getTime() > Date.now()) {
+      this.scheduleModalAutoClose = true;
+      const endDateObj = new Date(survey.endDate);
+      const ey = endDateObj.getFullYear();
+      const em = String(endDateObj.getMonth() + 1).padStart(2, '0');
+      const ed = String(endDateObj.getDate()).padStart(2, '0');
+      this.scheduleModalDate = `${ey}-${em}-${ed}`;
+
+      let h = endDateObj.getHours();
+      this.scheduleModalAmPm = h >= 12 ? 'PM' : 'AM';
+      let h12 = h % 12;
+      if (h12 === 0) h12 = 12;
+      this.scheduleModalHour12 = String(h12).padStart(2, '0');
+      this.scheduleModalMinute = String(endDateObj.getMinutes()).padStart(2, '0');
+    } else {
+      this.scheduleModalAutoClose = false;
+      this.scheduleModalDate = this.scheduleModalMinDate;
+      const defaultTime = new Date();
+      defaultTime.setHours(defaultTime.getHours() + 1);
+      defaultTime.setMinutes(0);
+      let h = defaultTime.getHours();
+      this.scheduleModalAmPm = h >= 12 ? 'PM' : 'AM';
+      let h12 = h % 12;
+      if (h12 === 0) h12 = 12;
+      this.scheduleModalHour12 = String(h12).padStart(2, '0');
+      this.scheduleModalMinute = String(defaultTime.getMinutes()).padStart(2, '0');
+    }
+
+    this.validateScheduleModalDateTime();
+  }
+
+  closeSurveyScheduleModal(): void {
+    this.selectedSurveyForSchedule = null;
+    this.scheduleModalTimeError = '';
+    this.scheduleModalPreviewText = '';
+  }
+
+  toggleScheduleModalAutoClose(enabled: boolean): void {
+    this.scheduleModalAutoClose = enabled;
+    if (enabled) {
+      if (!this.scheduleModalDate || this.scheduleModalDate < this.scheduleModalMinDate) {
+        this.scheduleModalDate = this.scheduleModalMinDate;
+      }
+      this.validateScheduleModalDateTime();
+    } else {
+      this.scheduleModalTimeError = '';
+      this.scheduleModalPreviewText = '';
+    }
+  }
+
+  setScheduleModalAmPm(ampm: 'AM' | 'PM'): void {
+    this.scheduleModalAmPm = ampm;
+    this.validateScheduleModalDateTime();
+  }
+
+  validateScheduleModalDateTime(): boolean {
+    if (!this.scheduleModalAutoClose) {
+      this.scheduleModalTimeError = '';
+      this.scheduleModalPreviewText = '';
+      return true;
+    }
+
+    if (!this.scheduleModalDate) {
+      this.scheduleModalTimeError = 'Por favor selecciona una fecha de cierre en el calendario.';
+      this.scheduleModalPreviewText = '';
+      return false;
+    }
+
+    if (this.scheduleModalDate < this.scheduleModalMinDate) {
+      this.scheduleModalTimeError = 'No puedes seleccionar una fecha pasada.';
+      this.scheduleModalPreviewText = '';
+      return false;
+    }
+
+    let h24 = parseInt(this.scheduleModalHour12, 10);
+    if (this.scheduleModalAmPm === 'PM' && h24 < 12) h24 += 12;
+    if (this.scheduleModalAmPm === 'AM' && h24 === 12) h24 = 0;
+    const minVal = parseInt(this.scheduleModalMinute, 10);
+
+    const [year, month, day] = this.scheduleModalDate.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, day, h24, minVal, 0, 0);
+    const now = new Date();
+
+    if (selectedDate.getTime() <= now.getTime()) {
+      this.scheduleModalTimeError = 'No se pueden seleccionar horas o fechas pasadas. Elige una hora futura.';
+      this.scheduleModalPreviewText = '';
+      return false;
+    }
+
+    this.scheduleModalTimeError = '';
+    const dateFormatted = selectedDate.toLocaleDateString('es-CO', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    this.scheduleModalPreviewText = `${dateFormatted} a las ${this.scheduleModalHour12}:${this.scheduleModalMinute} ${this.scheduleModalAmPm}`;
+    return true;
+  }
+
+  saveSurveySchedule(): void {
+    if (!this.selectedSurveyForSchedule) return;
+    if (this.scheduleModalAutoClose && !this.validateScheduleModalDateTime()) {
+      return;
+    }
+
+    this.isSavingSurveySchedule = true;
+    let endDateISO: string | null = null;
+    if (this.scheduleModalAutoClose) {
+      let h24 = parseInt(this.scheduleModalHour12, 10);
+      if (this.scheduleModalAmPm === 'PM' && h24 < 12) h24 += 12;
+      if (this.scheduleModalAmPm === 'AM' && h24 === 12) h24 = 0;
+      const minVal = parseInt(this.scheduleModalMinute, 10);
+      const [year, month, day] = this.scheduleModalDate.split('-').map(Number);
+      const targetDate = new Date(year, month - 1, day, h24, minVal, 0, 0);
+      endDateISO = targetDate.toISOString();
+    }
+
+    const payload: any = {
+      endDate: endDateISO,
+    };
+
+    const surveyTitle = this.selectedSurveyForSchedule.title;
+    this.surveyService.updateSurvey(this.selectedSurveyForSchedule.index, payload).subscribe({
+      next: () => {
+        this.isSavingSurveySchedule = false;
+        this.message = this.scheduleModalAutoClose
+          ? `Cierre automático programado para "${surveyTitle}".`
+          : `Cierre automático desactivado para "${surveyTitle}".`;
+        this.closeSurveyScheduleModal();
+        this.loadSurveys();
+        this.clearAlertsSoon();
+      },
+      error: (err) => {
+        this.isSavingSurveySchedule = false;
+        this.error = err?.error?.message || 'No fue posible actualizar la fecha de cierre de la encuesta.';
       },
     });
   }
@@ -1371,9 +1746,13 @@ export class AdminComponent implements OnInit {
       const missing: string[] = [];
       if (this.eventForm.controls.title.invalid) missing.push('Título (mínimo 3 letras)');
       if (this.eventForm.controls.subtitle.invalid) missing.push('Subtítulo');
-      if (this.eventForm.controls.dateDay.invalid) missing.push('Día (ej. 28)');
-      if (this.eventForm.controls.startTime.invalid) missing.push('Hora de inicio');
-      if (this.eventForm.controls.endTime.invalid) missing.push('Hora de fin');
+      if (this.eventForm.controls.dateDay.invalid) missing.push('Fecha del evento en el calendario');
+      if (!this.showCustomTimeInput()) {
+        if (this.eventForm.controls.startTime.invalid) missing.push('Hora de inicio');
+        if (this.eventForm.controls.endTime.invalid) missing.push('Hora de fin');
+      } else {
+        if (!this.eventForm.controls.time.value?.trim()) missing.push('Horario personalizado');
+      }
       if (this.eventForm.controls.location.invalid) missing.push('Lugar / Recinto');
       if (this.eventForm.controls.description.invalid)
         missing.push('Descripción (mínimo 10 letras)');
@@ -1463,7 +1842,7 @@ export class AdminComponent implements OnInit {
       description: formVal.description.trim(),
       imageUrl:
         formVal.imageUrl.trim() ||
-        'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80',
+        '/logo.png',
       status: 'active',
       startDate: eventStart.toISOString(),
       endDate: eventEnd.toISOString(),
@@ -1743,7 +2122,7 @@ export class AdminComponent implements OnInit {
     this.editingCategoryUuid.set(null);
     this.categoryFormName.set('');
     this.categoryFormColor.set('#D84E18');
-    this.categoryFormIcon.set('📢');
+    this.categoryFormIcon.set('megaphone');
     this.categoryError.set(null);
     this.categoryDeleteUuid.set(null);
     this.isCategoryModalOpen.set(true);
@@ -1758,7 +2137,7 @@ export class AdminComponent implements OnInit {
     this.editingCategoryUuid.set(cat.uuid);
     this.categoryFormName.set(cat.name);
     this.categoryFormColor.set(cat.color || '#D84E18');
-    this.categoryFormIcon.set(cat.icon || '📢');
+    this.categoryFormIcon.set(cat.icon || 'megaphone');
     this.categoryError.set(null);
   }
 
@@ -1766,7 +2145,7 @@ export class AdminComponent implements OnInit {
     this.editingCategoryUuid.set(null);
     this.categoryFormName.set('');
     this.categoryFormColor.set('#D84E18');
-    this.categoryFormIcon.set('📢');
+    this.categoryFormIcon.set('megaphone');
     this.categoryError.set(null);
   }
 

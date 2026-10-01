@@ -131,10 +131,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // ─── Estadísticas ──────────────────────────────────────────────────────────
   stats = [
-    { value: '1.300', label: 'Mt de Recursos Minerales', icon: '⛏️' },
-    { value: '0.49%', label: 'Ley Equivalente de Cobre', icon: '🔩' },
-    { value: '30+', label: 'Años de Exploración', icon: '📅' },
-    { value: '100%', label: 'Compromiso Ambiental', icon: '🌿' },
+    { type: 'mineral', value: '1.300', label: 'Mt de Recursos Minerales' },
+    { type: 'copper', value: '0.49%', label: 'Ley Equivalente de Cobre' },
+    { type: 'years', value: '30+', label: 'Años de Exploración' },
+    { type: 'eco', value: '100%', label: 'Compromiso Ambiental' },
   ];
 
   // ─── Huellitas Verdes ──────────────────────────────────────────────────────
@@ -299,28 +299,28 @@ export class HomeComponent implements OnInit, OnDestroy {
       },
       {
         id: 'fb-2',
-        message: 'A través de nuestra iniciativa "Huellitas Verdes", fortalecemos los programas de reforestación activa con especies nativas y monitoreo hídrico en las cuencas del municipio de Mocoa. 🌿💧',
+        message: 'A través de nuestra iniciativa "Huellitas Verdes", fortalecemos los programas de reforestación activa con especies nativas y monitoreo hídrico en las cuencas del municipio de Mocoa.',
         full_picture: 'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1000&auto=format&fit=crop',
         created_time: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         permalink_url: 'https://www.facebook.com/LiberoCobreCol',
       },
       {
         id: 'fb-3',
-        message: 'El cobre es el metal esencial para la transición energética global. El depósito de Mocoa posiciona a Colombia como un actor clave en la infraestructura limpia y renovable del futuro. ⚡⛏️',
+        message: 'El cobre es el metal esencial para la transición energética global. El depósito de Mocoa posiciona a Colombia como un actor clave en la infraestructura limpia y renovable del futuro.',
         full_picture: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?q=80&w=1000&auto=format&fit=crop',
         created_time: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
         permalink_url: 'https://www.facebook.com/LiberoCobreCol',
       },
       {
         id: 'fb-4',
-        message: 'Junto a las comunidades locales de Mocoa, promovemos talleres de educación ambiental y desarrollo comunitario para construir un futuro compartido en la Amazonia. 🤝🌳',
+        message: 'Junto a las comunidades locales de Mocoa, promovemos talleres de educación ambiental y desarrollo comunitario para construir un futuro compartido en la Amazonia.',
         full_picture: 'https://images.unsplash.com/photo-1511497584788-876761c119ef?q=80&w=1000&auto=format&fit=crop',
         created_time: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
         permalink_url: 'https://www.facebook.com/LiberoCobreCol',
       },
       {
         id: 'fb-5',
-        message: 'Implementamos estándares internacionales de exploración geológica limpia y transparente, protegiendo los suelos y recursos hídricos de la región. 💧🛡️',
+        message: 'Implementamos estándares internacionales de exploración geológica limpia y transparente, protegiendo los suelos y recursos hídricos de la región.',
         full_picture: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1000&auto=format&fit=crop',
         created_time: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
         permalink_url: 'https://www.facebook.com/LiberoCobreCol',

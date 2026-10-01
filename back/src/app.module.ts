@@ -25,6 +25,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { PqrModule } from './modules/pqr/pqr.module';
 
 
+import { NotificationModule } from './modules/notification/notification.module';
+
 @Module({
   imports: [
 
@@ -46,7 +48,7 @@ import { PqrModule } from './modules/pqr/pqr.module';
     TagModule, RolModule,
     UserModule, PublicationModule, ReactionModule, PqrModule,
     EventModule, AuthModule, CommentModule, SurveyModule,
-    VisitModule, FacebookModule, CategoryModule
+    VisitModule, FacebookModule, CategoryModule, NotificationModule
   ],
   controllers: [AppController],
   providers: [

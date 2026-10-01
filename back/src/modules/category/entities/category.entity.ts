@@ -14,8 +14,8 @@ export class CategoryEntity extends BaseEntity {
   @Column({ default: '#71717a' })
   color: string;
 
-  @ApiPropertyOptional({ description: 'Emoji representativo de la categoría', example: '👥' })
-  @Column({ default: '📁' })
+  @ApiPropertyOptional({ description: 'Identificador del icono SVG de la categoría', example: 'folder' })
+  @Column({ default: 'folder' })
   icon: string;
 
   @ApiHideProperty()

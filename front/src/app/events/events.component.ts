@@ -52,19 +52,38 @@ export class EventsComponent implements OnInit {
   constructor() {
     effect(() => {
       const user = this.authService.currentUser();
-      this.syncSubscriptionsFromStorage(user);
       if (user) {
         this.loadUserSubscriptions();
+      } else {
+        // Si no hay usuario autenticado, ningún evento debe figurar suscrito
+        this.events.update(list =>
+          list.map(item => ({ ...item, isSubscribed: false }))
+        );
+        const curModal = this.selectedEventForModal();
+        if (curModal && curModal.isSubscribed) {
+          this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: false } : null);
+        }
       }
     }, { allowSignalWrites: true });
   }
 
   ngOnInit(): void {
-    try {
-      localStorage.removeItem('libero_events_subscribed_active_user');
-      localStorage.removeItem('libero_events_subscribed_backup');
-    } catch {}
+    // Limpiar cualquier residuo previo de suscripciones en localStorage
+    this.cleanLegacyLocalStorage();
     this.loadEvents();
+  }
+
+  private cleanLegacyLocalStorage(): void {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('libero_events_subscribed')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+    } catch {}
   }
 
   loadEvents(): void {
@@ -76,8 +95,9 @@ export class EventsComponent implements OnInit {
           // Filtrar los que están activos en la cartelera
           const activeList = data.filter(e => e.status !== 'past');
           this.events.set(activeList);
-          this.syncSubscriptionsFromStorage(this.authService.currentUser());
-          this.loadUserSubscriptions();
+          if (this.authService.isLoggedIn()) {
+            this.loadUserSubscriptions();
+          }
         }
       },
       error: () => {
@@ -89,32 +109,26 @@ export class EventsComponent implements OnInit {
   loadUserSubscriptions(): void {
     if (!this.authService.isLoggedIn()) return;
     const token = this.authService.getToken();
-    const user = this.authService.currentUser();
-    if (!token || !user) return;
-
-    const userKey = this.getStorageKey(user);
-    if (!userKey) return;
+    if (!token) return;
 
     this.http.get<string[]>(`${this.apiUrl}/user/subscriptions`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (uuids) => {
         if (Array.isArray(uuids)) {
-          try {
-            localStorage.setItem(userKey, JSON.stringify(uuids));
-          } catch {}
+          const subSet = new Set(uuids.map(u => String(u)));
 
           this.events.update(list =>
             list.map(item => ({
               ...item,
-              isSubscribed: uuids.includes(String(item.uuid)),
+              isSubscribed: subSet.has(String(item.uuid)),
             }))
           );
 
           const curModal = this.selectedEventForModal();
           if (curModal) {
             this.selectedEventForModal.update(ev =>
-              ev ? { ...ev, isSubscribed: uuids.includes(String(ev.uuid)) } : null
+              ev ? { ...ev, isSubscribed: subSet.has(String(ev.uuid)) } : null
             );
           }
         }
@@ -134,60 +148,6 @@ export class EventsComponent implements OnInit {
         (event.description && event.description.toLowerCase().includes(term));
     });
   });
-
-  private getStorageKey(user: UserSession | null): string | null {
-    if (!user || !user.email) return null;
-    return `libero_events_subscribed_${user.email.toLowerCase().trim()}`;
-  }
-
-  private syncSubscriptionsFromStorage(user: UserSession | null): void {
-    const userKey = this.getStorageKey(user);
-    if (!userKey) {
-      // Si el usuario no ha iniciado sesión o no tiene email, ningún evento debe figurar suscrito
-      this.events.update(list =>
-        list.map(item => ({ ...item, isSubscribed: false }))
-      );
-      const currentModal = this.selectedEventForModal();
-      if (currentModal && currentModal.isSubscribed) {
-        this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: false } : null);
-      }
-      return;
-    }
-
-    const idSet = new Set<string>();
-    try {
-      const raw = localStorage.getItem(userKey);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          parsed.forEach((id: any) => {
-            if (id !== undefined && id !== null) idSet.add(String(id));
-          });
-        }
-      }
-    } catch {}
-
-    const subscribedIds = Array.from(idSet);
-
-    this.events.update(list =>
-      list.map(item => {
-        const identifier = String(item.uuid);
-        return {
-          ...item,
-          isSubscribed: subscribedIds.includes(identifier),
-        };
-      })
-    );
-
-    const currentModal = this.selectedEventForModal();
-    if (currentModal) {
-      const modalId = String(currentModal.uuid);
-      const isSub = subscribedIds.includes(modalId);
-      if (currentModal.isSubscribed !== isSub) {
-        this.selectedEventForModal.update(ev => ev ? { ...ev, isSubscribed: isSub } : null);
-      }
-    }
-  }
 
   openModal(event: EventItem) {
     this.selectedEventForModal.set(event);
@@ -223,20 +183,9 @@ export class EventsComponent implements OnInit {
       return;
     }
 
-    const userKey = this.getStorageKey(currentUser);
     const currentIdentifier = String(current.uuid);
 
-    if (userKey) {
-      try {
-        const raw = localStorage.getItem(userKey);
-        const ids: string[] = raw ? JSON.parse(raw).map((i: any) => String(i)) : [];
-        if (!ids.includes(currentIdentifier)) {
-          ids.push(currentIdentifier);
-          localStorage.setItem(userKey, JSON.stringify(ids));
-        }
-      } catch {}
-    }
-
+    // Actualización optimista en memoria
     this.events.update(list =>
       list.map(item => {
         const itemId = String(item.uuid);
@@ -266,15 +215,7 @@ export class EventsComponent implements OnInit {
         const errorText = Array.isArray(msg) ? msg.join(', ') : (msg || 'Error al registrar el recordatorio.');
         this.notificationError.set(errorText);
 
-        // Revertir en caso de fallo
-        if (userKey) {
-          try {
-            const raw = localStorage.getItem(userKey);
-            let ids: string[] = raw ? JSON.parse(raw).map((i: any) => String(i)) : [];
-            ids = ids.filter(id => id !== currentIdentifier);
-            localStorage.setItem(userKey, JSON.stringify(ids));
-          } catch {}
-        }
+        // Revertir estado optimista en memoria en caso de error
         this.events.update(list =>
           list.map(item => String(item.uuid) === currentIdentifier ? { ...item, isSubscribed: false } : item)
         );
@@ -295,22 +236,10 @@ export class EventsComponent implements OnInit {
       return;
     }
 
-    const currentUser = this.authService.currentUser();
     const token = this.authService.getToken();
-    const userKey = this.getStorageKey(currentUser);
     const currentIdentifier = String(current.uuid);
 
-    if (userKey) {
-      try {
-        const stored = localStorage.getItem(userKey);
-        if (stored) {
-          let ids: string[] = JSON.parse(stored).map((i: any) => String(i));
-          ids = ids.filter(id => id !== currentIdentifier);
-          localStorage.setItem(userKey, JSON.stringify(ids));
-        }
-      } catch {}
-    }
-
+    // Actualización en memoria
     this.events.update(list =>
       list.map(item => {
         const itemId = String(item.uuid);
@@ -329,8 +258,46 @@ export class EventsComponent implements OnInit {
         headers: { Authorization: `Bearer ${token}` },
       }).subscribe({
         next: () => {},
-        error: () => {},
+        error: () => {
+          // Re-sincronizar con el backend si hubo algún fallo
+          this.loadUserSubscriptions();
+        },
       });
+    }
+  }
+
+  isFallbackLogo(url: string | null | undefined): boolean {
+    if (!url) return true;
+    const trimmed = url.trim();
+    return trimmed === '' || trimmed === '/logo.png' || trimmed === 'logo.png';
+  }
+
+  onImageError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    if (target && !target.src.endsWith('/logo.png')) {
+      target.src = '/logo.png';
+      target.classList.add('fallback-logo');
+      const parent =
+        target.closest<HTMLElement>('.card-image-wrapper, .modal-image-box') ||
+        target.parentElement;
+      if (parent) {
+        parent.classList.add('is-fallback-logo');
+        parent.classList.add('white-bg');
+      }
+    }
+  }
+
+  onImageLoad(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    if (target && !target.src.endsWith('/logo.png')) {
+      target.classList.remove('fallback-logo');
+      const parent =
+        target.closest<HTMLElement>('.card-image-wrapper, .modal-image-box') ||
+        target.parentElement;
+      if (parent) {
+        parent.classList.remove('is-fallback-logo');
+        parent.classList.remove('white-bg');
+      }
     }
   }
 }

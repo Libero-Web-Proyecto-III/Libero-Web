@@ -310,12 +310,48 @@
   transition: box-shadow 0.25s ease, transform 0.25s ease;
 
   &:hover {
-    box-shadow: 0 8px 24px rgba(0, 101, 129, 0.1);
-    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0, 101, 129, 0.12);
+    transform: translateY(-4px);
+
+    .highlights-stat-card__icon {
+      transform: scale(1.08);
+    }
   }
 
   &__icon {
-    font-size: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    margin-bottom: 0.35rem;
+    transition: transform 0.25s ease, background-color 0.25s ease;
+
+    svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    &.icon--mineral {
+      background: rgba(216, 78, 24, 0.1);
+      color: #D84E18;
+    }
+
+    &.icon--copper {
+      background: rgba(0, 101, 129, 0.1);
+      color: #006581;
+    }
+
+    &.icon--years {
+      background: rgba(2, 132, 199, 0.1);
+      color: #0284c7;
+    }
+
+    &.icon--eco {
+      background: rgba(22, 163, 74, 0.1);
+      color: #16a34a;
+    }
   }
 
   &__value {
@@ -541,7 +577,7 @@
 }
 
 .collage-section {
-  padding: 4.5rem 0;
+  padding: 3rem 0 1rem;
   background: white;
   width: 100%;
   box-sizing: border-box;
@@ -549,7 +585,7 @@
   &__header {
     width: 90%;
     max-width: 1320px;
-    margin: 0 auto 2rem;
+    margin: 0 auto 1.5rem;
     padding: 0;
     box-sizing: border-box;
 
@@ -566,8 +602,8 @@
   padding: 0;
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  grid-template-rows: repeat(3, clamp(130px, 14vw, 170px));
+  grid-template-columns: 1.8fr 1fr;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
   gap: clamp(10px, 1.2vw, 16px);
 
   @media (max-width: 900px) {
@@ -576,11 +612,11 @@
     grid-template-rows: auto;
 
     .collage-item {
-      min-height: 190px;
+      min-height: 180px;
     }
 
     .collage-item--video {
-      min-height: 420px;
+      min-height: auto;
     }
   }
 
@@ -591,20 +627,33 @@
 }
 
 .collage-item {
-  border-radius: 12px;
+  position: relative;
+  border-radius: 16px;
   overflow: hidden;
-  border: 2px dashed lightgray;
-  transition: border-color 0.25s ease;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 
   &:hover {
-    border-color: gray;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 101, 129, 0.12);
+    border-color: rgba(0, 101, 129, 0.25);
   }
 
   &--video {
     grid-row: 1 / 4;
+    aspect-ratio: 16 / 9;
+    background: #000;
+
+    &:hover {
+      transform: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
 
     @media (max-width: 900px) {
       grid-row: auto;
+      aspect-ratio: 16 / 9;
     }
   }
 
@@ -624,6 +673,8 @@
   }
 
   .collage-image-button {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
     height: 100%;
@@ -635,6 +686,14 @@
 
     &:hover img {
       transform: scale(1.04);
+    }
+  }
+
+  @media (max-width: 900px) {
+    min-height: 180px;
+
+    &--video {
+      min-height: auto;
     }
   }
 }
@@ -676,7 +735,10 @@
 
 .collage-video {
   position: relative;
-  background: #111;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
   overflow: hidden;
 
   iframe {
@@ -744,7 +806,7 @@
 }
 
 .facebook-section {
-  padding: 5.5rem 0;
+  padding: 1.5rem 0 4.5rem;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
   width: 100%;
   position: relative;
@@ -767,7 +829,7 @@
 
   &__header {
     max-width: 700px;
-    margin-bottom: 3.5rem;
+    margin-bottom: 2rem;
     text-align: center;
   }
 }

@@ -12,6 +12,8 @@ export interface AuthUser {
   email: string;
   role: string;
   avatar?: string;
+  tag?: string;
+  tagColor?: string;
 }
 
 export interface AuthResponse {
@@ -81,7 +83,7 @@ export class AuthService {
             uuid: profile.uuid,
           });
         },
-        error: () => {},
+        error: () => { },
       });
     }
   }
@@ -231,7 +233,7 @@ export class AuthService {
     // Matriz de permisos orientada a módulos según TEC.md
     const permissionMap: Record<string, Record<string, string[]>> = {
       mod: {
-        admin: ['view'],
+        admin: [],
         publication: ['view', 'edit', 'delete'],
         event: ['view', 'edit'],
         comment: ['view', 'create', 'delete'],
@@ -277,9 +279,15 @@ export class AuthService {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('authUser');
     try {
-      localStorage.removeItem('libero_events_subscribed_active_user');
-      localStorage.removeItem('libero_events_subscribed_backup');
-    } catch {}
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('libero_events_subscribed')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+    } catch { }
   }
 
   // # Este bloque tiene como objetivo leer y parsear la información guardada del usuario

@@ -6,6 +6,7 @@ export interface Pqr {
   fullName: string;
   email: string;
   phone: string | null;
+  isAnonymous?: boolean;
   type: PqrType;
   subject: string;
   message: string;

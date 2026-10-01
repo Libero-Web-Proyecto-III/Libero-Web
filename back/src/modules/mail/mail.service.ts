@@ -102,9 +102,9 @@ export class MailService {
         tls: {
           rejectUnauthorized: false,
         },
-        connectionTimeout: 6000,
-        greetingTimeout: 6000,
-        socketTimeout: 8000,
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 6000,
       } as any);
     }
 
@@ -117,9 +117,9 @@ export class MailService {
       tls: {
         rejectUnauthorized: false,
       },
-      connectionTimeout: 6000,
-      greetingTimeout: 6000,
-      socketTimeout: 8000,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 6000,
     } as any);
   }
 
@@ -133,12 +133,33 @@ export class MailService {
     resetUrl: string,
   ): Promise<{ success: boolean; message: string; messageId?: string }> {
     const user = this.configService.get<string>('SMTP_USER') || this.configService.get<string>('MAIL_USER') || '';
-    const fromAddress = this.configService.get<string>('SMTP_FROM') || (user ? `"Líbero Cobre" <${user.trim()}>` : '"Líbero Cobre" <no-reply@liberocobre.online>');
-    const template = readFileSync(join(__dirname, 'templates', 'password-reset.html'), 'utf8');
-    const htmlContent = template
-      .replaceAll('{{USER_NAME}}', this.escapeHtml(userName))
-      .replaceAll('{{RESET_URL}}', this.escapeHtml(resetUrl));
+    const cleanUser = user.trim();
+    const isGmail = cleanUser.toLowerCase().endsWith('@gmail.com');
+    // Para Gmail, el 'from' debe coincidir con la cuenta autenticada para evitar rechazos por DMARC/SPF
+    const fromAddress = isGmail && cleanUser
+      ? `"Líbero Cobre" <${cleanUser}>`
+      : (this.configService.get<string>('SMTP_FROM') || (cleanUser ? `"Líbero Cobre" <${cleanUser}>` : '"Líbero Cobre" <no-reply@liberocobre.online>'));
+
+    let htmlContent = '';
+    try {
+      const template = readFileSync(join(__dirname, 'templates', 'password-reset.html'), 'utf8');
+      htmlContent = template
+        .replaceAll('{{USER_NAME}}', this.escapeHtml(userName))
+        .replaceAll('{{RESET_URL}}', this.escapeHtml(resetUrl));
+    } catch {
+      htmlContent = `
+        <div style="font-family:sans-serif;padding:24px;background:#f8fafc;">
+          <h2>Recuperación de Contraseña - Líbero Cobre</h2>
+          <p>Hola, <strong>${this.escapeHtml(userName)}</strong>.</p>
+          <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+          <p><a href="${this.escapeHtml(resetUrl)}" style="background:#D86E00;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;display:inline-block;">Restablecer Contraseña</a></p>
+          <p style="font-size:12px;color:#64748b;">Este enlace expira en 15 minutos.</p>
+        </div>
+      `;
+    }
     this.lastGeneratedEmailHtml = htmlContent;
+
+    this.logger.log(`\n========================================================================\n📧 [SOLICITUD DE RECUPERACIÓN DE CONTRASEÑA]\nDestinatario: ${toEmail} (${userName})\nEnlace Directo: ${resetUrl}\n========================================================================\n`);
 
     const transporter = this.createTransporter();
 
@@ -156,12 +177,15 @@ export class MailService {
           html: htmlContent,
         }),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('SMTP timeout')), 10000),
+          setTimeout(() => reject(new Error('SMTP timeout de conexión (red o proveedor bloqueó el puerto SMTP)')), 6000),
         ),
       ]);
+      this.logger.log(`Correo de recuperación enviado exitosamente a ${toEmail}. MessageId: ${info.messageId}`);
       return { success: true, message: 'Correo de recuperación enviado.', messageId: info.messageId };
     } catch (error: any) {
-      this.logger.warn(`No se pudo enviar el correo de recuperación: ${error?.message || error}`);
+      this.logger.warn(
+        `Aviso de Red/SMTP: No se pudo despachar el correo a ${toEmail} (${error?.message || error}). Enlace directo disponible en consola: ${resetUrl}`,
+      );
       return { success: true, message: 'Solicitud de recuperación registrada.' };
     }
   }
@@ -186,9 +210,11 @@ export class MailService {
     options?: { mode?: EventNotificationMode; isReminder24h?: boolean },
   ): Promise<{ success: boolean; message: string; messageId?: string }> {
     const user = this.configService.get<string>('SMTP_USER') || this.configService.get<string>('MAIL_USER') || '';
-    const fromAddress =
-      this.configService.get<string>('SMTP_FROM') ||
-      (user ? `"Líbero Cobre" <${user.trim()}>` : '"Líbero Cobre" <notificaciones@liberocobre.online>');
+    const cleanUser = user.trim();
+    const isGmail = cleanUser.toLowerCase().endsWith('@gmail.com');
+    const fromAddress = isGmail && cleanUser
+      ? `"Líbero Cobre" <${cleanUser}>`
+      : (this.configService.get<string>('SMTP_FROM') || (cleanUser ? `"Líbero Cobre" <${cleanUser}>` : '"Líbero Cobre" <notificaciones@liberocobre.online>'));
 
     let mode: EventNotificationMode = options?.mode || (options?.isReminder24h ? 'reminder24h' : 'confirmation');
 
@@ -203,6 +229,8 @@ export class MailService {
 
     const htmlContent = this.buildEventEmailTemplate(userName, event, mode);
     this.lastGeneratedEmailHtml = htmlContent;
+
+    this.logger.log(`\n========================================================================\n📧 [NOTIFICACIÓN DE EVENTO - ${mode.toUpperCase()}]\nDestinatario: ${toEmail} (${userName})\nEvento: ${event.title}\nFecha/Hora: ${event.date} - ${event.time}\nLugar: ${event.location}\n========================================================================\n`);
 
     const logEntry: SentEmailLog = {
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -338,46 +366,47 @@ export class MailService {
   }
 
   /**
-   * Genera el contenido HTML con diseño corporativo oscuro y dorado (Libero Cobre)
+   * Genera el contenido HTML con diseño corporativo en colores naranja y blanco (Líbero Cobre)
    */
   private buildEventEmailTemplate(userName: string, event: EventEmailData, mode: EventNotificationMode = 'confirmation'): string {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
-    const safeName = userName || 'Usuario de Libero Web';
+    const rawFrontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
+    const frontendUrl = rawFrontendUrl.trim().replace(/\/+$/, '');
+    const safeName = userName || 'Usuario de Líbero Cobre';
 
     let badgeText = 'Notificación Activa';
-    let badgeStyle = 'background: rgba(215, 166, 90, 0.15); border: 1px solid #d7a65a; color: #d7a65a;';
+    let badgeStyle = 'background: rgba(216, 110, 0, 0.08); border: 1px solid rgba(216, 110, 0, 0.25); color: #D86E00;';
     let introText = 'Has activado con éxito las notificaciones para este evento. A continuación te presentamos todos los detalles confirmados para que no te pierdas de nada:';
     let alertBanner = '';
 
     if (mode === 'reminder24h') {
       badgeText = '⏰ Inicia en 24 Horas';
-      badgeStyle = 'background: rgba(215, 166, 90, 0.25); border: 1px solid #d7a65a; color: #d7a65a;';
+      badgeStyle = 'background: rgba(216, 110, 0, 0.12); border: 1px solid #D86E00; color: #D86E00; font-weight: 800;';
       introText = '¡Tu evento está muy cerca! Te recordamos que faltan <strong>aproximadamente 24 horas</strong> para el inicio de esta actividad. A continuación tienes todos los detalles para que prepares tu llegada:';
     } else if (mode === 'cancellation') {
       badgeText = '⚠️ Evento Cancelado';
-      badgeStyle = 'background: rgba(239, 68, 68, 0.18); border: 1px solid #ef4444; color: #f87171;';
-      introText = 'Lamentamos informarte que el evento <strong>' + event.title + '</strong>, para el cual tenías una notificación activa, ha sido <strong>cancelado y no se llevará a cabo</strong>. Sentimos cualquier inconveniente que esto pueda ocasionarte.';
+      badgeStyle = 'background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626;';
+      introText = 'Lamentamos informarte que el evento <strong>' + this.escapeHtml(event.title) + '</strong>, para el cual tenías una notificación activa, ha sido <strong>cancelado y no se llevará a cabo</strong>. Sentimos cualquier inconveniente que esto pueda ocasionarte.';
       alertBanner = `
-        <div style="background: rgba(239, 68, 68, 0.12); border-left: 4px solid #ef4444; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; color: #fca5a5; font-size: 13.5px; line-height: 1.5;">
+        <div style="background: #fff1f2; border-left: 4px solid #ef4444; border: 1px solid #fecdd3; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; color: #9f1239; font-size: 13.5px; line-height: 1.5;">
           <strong>AVISO DE CANCELACIÓN:</strong> Este evento ha sido suspendido definitivamente. Tu recordatorio ha sido desactivado automáticamente.
         </div>
       `;
     } else if (mode === 'ended') {
       badgeText = '🏁 Evento Concluido';
-      badgeStyle = 'background: rgba(161, 161, 170, 0.15); border: 1px solid #a1a1aa; color: #d4d4d8;';
-      introText = 'Te informamos que el evento <strong>' + event.title + '</strong> ha finalizado oficialmente. Esperamos que hayas disfrutado de la experiencia. ¡Muchas gracias por formar parte de la comunidad de Líbero Cobre!';
+      badgeStyle = 'background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569;';
+      introText = 'Te informamos que el evento <strong>' + this.escapeHtml(event.title) + '</strong> ha finalizado oficialmente. Esperamos que hayas disfrutado de la experiencia. ¡Muchas gracias por formar parte de la comunidad de Líbero Cobre!';
       alertBanner = `
-        <div style="background: rgba(215, 166, 90, 0.1); border-left: 4px solid #d7a65a; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; color: #e4e4e7; font-size: 13.5px; line-height: 1.5;">
+        <div style="background: #f8fafc; border-left: 4px solid #006581; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; color: #334155; font-size: 13.5px; line-height: 1.5;">
           ✨ <strong>EVENTO CONCLUIDO:</strong> Esperamos que hayas disfrutado este evento. Mantente atento a la cartelera para futuras fechas y convocatorias.
         </div>
       `;
     }
     const subtitleHtml = event.subtitle
-      ? `<p style="margin: 4px 0 0 0; color: #a1a1aa; font-size: 14px; font-style: italic;">${event.subtitle}</p>`
+      ? `<p style="margin: 4px 0 0 0; color: #64748b; font-size: 14px; font-style: italic;">${this.escapeHtml(event.subtitle)}</p>`
       : '';
     const imageHtml = event.imageUrl
-      ? `<div style="margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid rgba(215, 166, 90, 0.25);">
-           <img src="${event.imageUrl}" alt="${event.title}" style="width: 100%; max-height: 240px; object-fit: cover; display: block;" />
+      ? `<div style="margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+           <img src="${event.imageUrl}" alt="${this.escapeHtml(event.title)}" style="width: 100%; max-height: 240px; object-fit: cover; display: block;" />
          </div>`
       : '';
 
@@ -387,26 +416,26 @@ export class MailService {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Notificación de Evento</title>
+        <title>Notificación de Evento - Líbero Cobre</title>
       </head>
-      <body style="margin: 0; padding: 0; background-color: #0b0c10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e4e4e7;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0b0c10; padding: 30px 15px;">
+      <body style="margin: 0; padding: 0; background-color: #F5FDFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #F5FDFF; padding: 36px 15px;">
           <tr>
             <td align="center">
-              <table role="presentation" width="100%" style="max-width: 600px; background: #121318; border-radius: 16px; border: 1px solid rgba(215, 166, 90, 0.25); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6);" cellspacing="0" cellpadding="0">
+              <table role="presentation" width="100%" style="max-width: 600px; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; border-top: 5px solid #D86E00; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);" cellspacing="0" cellpadding="0">
                 
                 <!-- Encabezado con identidad de marca -->
                 <tr>
-                  <td style="padding: 28px 32px; background: linear-gradient(135deg, #181920 0%, #0d0e12 100%); border-bottom: 1px solid rgba(215, 166, 90, 0.2);">
+                  <td style="padding: 26px 32px; background: #ffffff; border-bottom: 1px solid #f1f5f9;">
                     <table width="100%" cellspacing="0" cellpadding="0">
                       <tr>
                         <td>
-                          <span style="display: inline-block; font-size: 20px; font-weight: 800; letter-spacing: 2px; color: #ffffff; text-transform: uppercase;">
-                            LÍBERO <span style="color: #d7a65a;">COBRE</span>
+                          <span style="display: inline-block; font-size: 20px; font-weight: 800; letter-spacing: 1.5px; color: #0f172a; text-transform: uppercase;">
+                            LÍBERO <span style="color: #D86E00;">COBRE</span>
                           </span>
                         </td>
                         <td align="right">
-                          <span style="display: inline-block; padding: 6px 12px; ${badgeStyle} border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                          <span style="display: inline-block; padding: 5px 12px; ${badgeStyle} border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">
                             ${badgeText}
                           </span>
                         </td>
@@ -420,54 +449,54 @@ export class MailService {
                   <td style="padding: 32px;">
                     ${alertBanner}
 
-                    <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #ffffff; font-weight: 700;">
-                      ¡Hola, <span style="color: #d7a65a;">${safeName}</span>!
+                    <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #0f172a; font-weight: 800;">
+                      ¡Hola, <span style="color: #D86E00;">${this.escapeHtml(safeName)}</span>!
                     </h2>
-                    <p style="margin: 0 0 20px 0; color: #a1a1aa; font-size: 14px; line-height: 1.6;">
+                    <p style="margin: 0 0 20px 0; color: #475569; font-size: 14.5px; line-height: 1.6;">
                       ${introText}
                     </p>
 
                     ${imageHtml}
 
                     <!-- Tarjeta del Evento -->
-                    <div style="background: #171821; border-left: 4px solid #d7a65a; border-radius: 8px; padding: 20px; margin-bottom: 24px; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <h3 style="margin: 0 0 4px 0; color: #ffffff; font-size: 17px; font-weight: 700; letter-spacing: 0.5px;">
-                        ${event.title}
+                    <div style="background: #f8fafc; border-left: 4px solid #D86E00; border-radius: 10px; padding: 22px; margin-bottom: 24px; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                      <h3 style="margin: 0 0 4px 0; color: #0f172a; font-size: 18px; font-weight: 800; letter-spacing: -0.3px;">
+                        ${this.escapeHtml(event.title)}
                       </h3>
                       ${subtitleHtml}
 
-                      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 16px 0;" />
+                      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
 
                       <table width="100%" cellspacing="0" cellpadding="6" style="font-size: 13.5px;">
                         <tr>
-                          <td width="30%" style="color: #d7a65a; font-weight: 600;">📅 Fecha:</td>
-                          <td style="color: #e4e4e7;">${event.date}</td>
+                          <td width="28%" style="color: #D86E00; font-weight: 700;">📅 Fecha:</td>
+                          <td style="color: #1e293b; font-weight: 500;">${this.escapeHtml(event.date)}</td>
                         </tr>
                         <tr>
-                          <td style="color: #d7a65a; font-weight: 600;">⏰ Horario:</td>
-                          <td style="color: #e4e4e7;">${event.time}</td>
+                          <td style="color: #D86E00; font-weight: 700;">⏰ Horario:</td>
+                          <td style="color: #1e293b; font-weight: 500;">${this.escapeHtml(event.time)}</td>
                         </tr>
                         <tr>
-                          <td style="color: #d7a65a; font-weight: 600;">📍 Lugar:</td>
-                          <td style="color: #e4e4e7;">${event.location}</td>
+                          <td style="color: #D86E00; font-weight: 700;">📍 Lugar:</td>
+                          <td style="color: #1e293b; font-weight: 500;">${this.escapeHtml(event.location)}</td>
                         </tr>
                       </table>
 
-                      <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 13px; color: #d4d4d8; line-height: 1.5;">
-                        ${event.description}
+                      <div style="margin-top: 14px; padding: 12px 14px; background: #ffffff; border: 1px solid #edf2f7; border-radius: 8px; font-size: 13px; color: #475569; line-height: 1.55;">
+                        ${this.escapeHtml(event.description)}
                       </div>
                     </div>
 
                     <!-- Mensaje de aviso -->
-                    <p style="margin: 0 0 24px 0; color: #71717a; font-size: 13px; line-height: 1.5;">
-                      🔔 Te avisaremos con anticipación ante cualquier actualización o recordatorio previo a la fecha del evento.
+                    <p style="margin: 0 0 24px 0; color: #64748b; font-size: 13px; line-height: 1.5;">
+                      🔔 Te avisaremos oportunamente ante cualquier actualización o recordatorio previo a la fecha del evento.
                     </p>
 
                     <!-- Botón de acción -->
                     <table width="100%" cellspacing="0" cellpadding="0">
                       <tr>
                         <td align="center">
-                          <a href="${frontendUrl}/eventos" style="display: inline-block; background: linear-gradient(135deg, #d7a65a 0%, #b88636 100%); color: #000000; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase;">
+                          <a href="${frontendUrl}/eventos" style="display: inline-block; background: linear-gradient(135deg, #D86E00 0%, #D84E18 100%); color: #ffffff; text-decoration: none; padding: 13px 30px; border-radius: 8px; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 14px rgba(216, 110, 0, 0.25);">
                             Ver Más Eventos en Líbero
                           </a>
                         </td>
@@ -479,12 +508,12 @@ export class MailService {
 
                 <!-- Pie de página -->
                 <tr>
-                  <td style="padding: 24px 32px; background: #0c0d11; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
-                    <p style="margin: 0 0 6px 0; color: #71717a; font-size: 12px;">
+                  <td style="padding: 24px 32px; background: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+                    <p style="margin: 0 0 6px 0; color: #64748b; font-size: 12px;">
                       Este es un correo automático generado por <strong>Líbero Cobre Web</strong>.
                     </p>
-                    <p style="margin: 0; color: #52525b; font-size: 11px;">
-                      Recibiste esta notificación porque tu cuenta solicitó recordatorios de eventos.
+                    <p style="margin: 0; color: #94a3b8; font-size: 11px;">
+                      Recibiste esta notificación porque solicitaste recordatorios para este evento.
                     </p>
                   </td>
                 </tr>

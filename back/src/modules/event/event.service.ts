@@ -113,6 +113,22 @@ export class EventService {
         imageUrl: event.imageUrl,
       });
       notifiedImmediately = true;
+    } else {
+      // Si falta más de 24 horas, enviar correo de confirmación de suscripción
+      await this.mailService.sendEventNotification(
+        targetEmail,
+        user.name || user.username,
+        {
+          title: event.title,
+          subtitle: event.subtitle,
+          date: `${event.dateDay || ''} de ${event.dateMonth || ''} ${eventStart.getFullYear()}`,
+          time: event.time,
+          location: `${event.location || ''}${event.city ? ' · ' + event.city : ''}`,
+          description: event.description,
+          imageUrl: event.imageUrl,
+        },
+        { mode: 'confirmation' },
+      );
     }
 
     subscription = this.subscriptionRepo.create({
@@ -131,7 +147,7 @@ export class EventService {
       notifiedImmediately,
       message: notifiedImmediately
         ? '¡El evento inicia en menos de 24 horas! Te hemos notificado de golpe a tu correo electrónico.'
-        : 'Recordatorio programado con éxito. Te enviaremos un correo con todos los detalles 24 horas antes de que inicie el evento.',
+        : '¡Notificación activada! Te hemos enviado un correo de confirmación y te recordaremos 24 horas antes del evento.',
     };
   }
 
@@ -215,22 +231,6 @@ export class EventService {
    */
   async triggerReminderCron(): Promise<any> {
     return this.schedulerService.runFullEventCycleCheck();
-  }
-
-  getLastEmailHtml(): string {
-    return this.mailService.getLastEmailHtml();
-  }
-
-  getEmailLogs() {
-    return this.mailService.getEmailLogs();
-  }
-
-  getEmailLogById(id: string) {
-    return this.mailService.getEmailLogById(id);
-  }
-
-  getSampleEmailHtml(mode: any): string {
-    return this.mailService.generateSampleEmail(mode);
   }
 
   async create(createEventDto: CreateEventDto, organizer?: any): Promise<EventEntity> {
@@ -429,40 +429,5 @@ export class EventService {
       totalSubscribers: subscribers.length,
       subscribers,
     };
-  }
-
-  /**
-   * Obtiene todos los eventos con su lista y conteo de suscriptores para auditoría
-   */
-  async getAllEventsWithSubscribersSummary(): Promise<any[]> {
-    const events = await this.EventRepository.find({
-      order: { index: 'DESC' },
-    });
-
-    const result: any[] = [];
-    for (const event of events) {
-      const subscriptions = await this.subscriptionRepo.find({
-        where: { event: { index: event.index } },
-        relations: { user: true },
-      });
-
-      result.push({
-        uuid: event.uuid,
-        title: event.title,
-        status: event.status,
-        date: `${event.dateDay || ''} de ${event.dateMonth || ''}`,
-        time: event.time,
-        subscriberCount: subscriptions.length,
-        subscribers: subscriptions.map((s) => ({
-          name: s.user?.name || 'Usuario',
-          email: s.user?.email,
-          notified24h: s.notified24h,
-          notifiedEnded: s.notifiedEnded,
-          subscribedAt: s.createdAt,
-        })),
-      });
-    }
-
-    return result;
   }
 }

@@ -9,28 +9,60 @@
 
   <!-- # Este bloque tiene como objetivo notificar a usuarios visitantes o no autenticados que deben registrarse obligatoriamente para votar -->
   <div *ngIf="!isLoggedIn" class="auth-required-state">
-    <div class="lock-icon">🔒</div>
+    <div class="lock-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+    </div>
     <h3>Regístrate para participar</h3>
     <p>Para garantizar la transparencia e integridad de la Consulta Pública en Libero Web, debes estar registrado e iniciar sesión para enviar tus respuestas.</p>
     <button type="button" class="btn btn-auth" (click)="goToAuth()">
-      🔑 Iniciar sesión / Registrarse
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6"></path><path d="m15.5 7.5 3 3L22 7l-3-3"></path></svg>
+      Iniciar sesión / Registrarse
     </button>
   </div>
 
   <!-- # Este bloque tiene como objetivo bloquear envíos duplicados informando que el usuario ya ha participado (1 respuesta por usuario) -->
   <div *ngIf="isLoggedIn && hasAlreadyResponded && !isSubmitted" class="already-responded-state">
-    <div class="check-icon">✅</div>
+    <div class="check-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+    </div>
     <h3>Ya has participado en esta encuesta</h3>
     <p>Se permite únicamente 1 sola participación por usuario registrado para "{{ survey?.title }}". ¡Agradecemos tu activa participación en nuestra comunidad!</p>
   </div>
 
   <div *ngIf="isSubmitted" class="submitted-state">
-    <div class="success-icon">🎉</div>
+    <div class="success-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+    </div>
     <h3>¡Gracias por responder!</h3>
     <p>Tus respuestas para "{{ survey?.title }}" se han registrado exitosamente.</p>
   </div>
 
-  <div *ngIf="!isLoading && isLoggedIn && !hasAlreadyResponded && !isSubmitted && survey">
+  <!-- # Este bloque notifica cuando la encuesta ya fue cerrada o expiró su fecha de finalización -->
+  <div *ngIf="isLoggedIn && !hasAlreadyResponded && !isSubmitted && survey && isSurveyClosed()" class="already-responded-state">
+    <div class="lock-icon" style="color: #64748b; margin-bottom: 1rem;">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </div>
+    <h3>Esta encuesta ha finalizado</h3>
+    <p>El plazo de votación para "{{ survey.title }}" ha concluido y ya no recibe nuevas respuestas. ¡Gracias por tu interés!</p>
+  </div>
+
+  <!-- # Este bloque notifica cuando la encuesta se encuentra en modo borrador -->
+  <div *ngIf="isLoggedIn && !hasAlreadyResponded && !isSubmitted && survey && isSurveyDraft() && !isSurveyClosed()" class="already-responded-state">
+    <div class="lock-icon" style="color: #d97706; margin-bottom: 1rem;">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+    <h3>Encuesta en preparación (Borrador)</h3>
+    <p>Esta encuesta está guardada como borrador y todavía no ha sido publicada por la administración.</p>
+  </div>
+
+  <div *ngIf="!isLoading && isLoggedIn && !hasAlreadyResponded && !isSubmitted && survey && !isSurveyClosed() && !isSurveyDraft()">
     <header class="viewer-header">
       <span class="badge">Encuesta {{ survey.isPublic ? 'Pública' : 'Privada' }}</span>
       <h2>{{ survey.title }}</h2>
@@ -104,7 +136,10 @@
                 [value]="score.toString()"
                 [(ngModel)]="answersMap[question.index].textValue"
               />
-              <span>⭐ {{ score }}</span>
+              <span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align: -2px; margin-right: 3px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                {{ score }}
+              </span>
             </label>
           </div>
         </div>

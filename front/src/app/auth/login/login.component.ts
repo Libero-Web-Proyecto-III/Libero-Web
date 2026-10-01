@@ -4,11 +4,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { TermsModalComponent } from '../../common/terms-modal/terms-modal.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, TermsModalComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
@@ -19,6 +20,10 @@ export class LoginComponent {
   public ShowPassword: boolean = false;
   public ErrorMessage: string | null = null;
   public SuccessMessage: string | null = null;
+
+  // Estado del modal de Términos y Condiciones
+  public IsTermsModalOpen: boolean = false;
+  public TermsModalTab: 'terms' | 'privacy' = 'terms';
 
   // Constructor: Inyección de servicios e inicialización de validaciones
   constructor(
@@ -38,6 +43,18 @@ export class LoginComponent {
   // Alternar la visibilidad del campo de contraseña (Mostrar/Ocultar)
   public TogglePasswordVisibility(): void {
     this.ShowPassword = !this.ShowPassword;
+  }
+
+  // Apertura y control del modal de Términos y Condiciones
+  public OpenTermsModal(tab: 'terms' | 'privacy' = 'terms'): void {
+    this.TermsModalTab = tab;
+    this.IsTermsModalOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  public CloseTermsModal(): void {
+    this.IsTermsModalOpen = false;
+    this.cdr.detectChanges();
   }
 
   // Procesamiento y envío del formulario de inicio de sesión

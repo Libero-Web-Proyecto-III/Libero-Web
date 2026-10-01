@@ -9,6 +9,7 @@ import { AllResponse } from 'src/common/interface/res-all.dto';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { PublicationEntity } from 'src/modules/publication/entities/publication.entity';
 import { enumRol } from 'src/common/enums/rol.enum';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class CommentService {
@@ -17,6 +18,7 @@ export class CommentService {
     private readonly commentRepository: Repository<CommentEntity>,
     @InjectRepository(PublicationEntity)
     private readonly publicationRepository: Repository<PublicationEntity>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   // Un mismo usuario puede llamar esto varias veces sobre la misma
@@ -44,7 +46,7 @@ export class CommentService {
 
     const reloaded = await this.commentRepository.findOne({
       where: { index: saved.index },
-      relations: { author: true, publication: true },
+      relations: { author: { rol: true, tag: true, tags: true }, publication: true },
     });
 
     return reloaded ?? saved;
@@ -56,7 +58,7 @@ export class CommentService {
 
     const [data, total] = await this.commentRepository.findAndCount({
       where: publicationUuid ? { publication: { uuid: publicationUuid } } : {},
-      relations: { author: true, publication: true },
+      relations: { author: { rol: true, tag: true, tags: true }, publication: true },
       skip,
       take: limit ?? 10,
       order: { createdAt: 'DESC' },
@@ -78,7 +80,7 @@ export class CommentService {
     uuid: async (uuid: string): Promise<CommentEntity> => {
       const comment = await this.commentRepository.findOne({
         where: { uuid },
-        relations: { author: true, publication: true },
+        relations: { author: { rol: true, tag: true, tags: true }, publication: true },
       });
       if (!comment) throw new NotFoundException('No se encontró este comentario');
       return comment;
@@ -87,22 +89,57 @@ export class CommentService {
 
   async update(uuid: string, dto: UpdateCommentDto, requester: UserEntity & { id?: number; role?: string }): Promise<CommentEntity> {
     const comment = await this.findOneBy.uuid(uuid);
-    const requesterId = requester.index ?? requester.id;
-    if (requester.role !== enumRol.ADMIN && comment.author?.index !== requesterId) {
+    const requesterId = Number(requester.index ?? requester.id);
+    const roleNormalized = (requester.role || '').toLowerCase().trim();
+    if (roleNormalized !== enumRol.ADMIN && comment.author?.index !== requesterId) {
       throw new ForbiddenException('Solo un administrador o el autor puede editar comentarios');
     }
     return this.commentRepository.save({ index: comment.index, ...dto });
   }
 
-  async remove(uuid: string, requester: UserEntity & { id?: number; role?: string }) {
+  async remove(
+    uuid: string,
+    requester: UserEntity & { id?: number; role?: string },
+    reason?: string,
+  ) {
     const comment = await this.findOneBy.uuid(uuid);
-    const requesterId = requester.index ?? requester.id;
-    if (requester.role !== enumRol.ADMIN && requester.role !== enumRol.MOD && comment.author?.index !== requesterId) {
+    const requesterId = Number(requester.index ?? requester.id);
+    const requesterRole = String(requester.role || '').toLowerCase().trim();
+    const isModeratorOrAdmin =
+      requesterRole === enumRol.ADMIN ||
+      requesterRole === enumRol.MOD ||
+      requesterRole === 'administrador' ||
+      requesterRole === 'moderador';
+
+    const authorIndex = Number(comment.author?.index);
+
+    if (!isModeratorOrAdmin && authorIndex !== requesterId) {
       throw new ForbiddenException('No puedes eliminar un comentario que no es tuyo');
     }
+
+    // Si la eliminación la hace un moderador o admin sobre el comentario de OTRO usuario,
+    // se genera la notificación con el motivo indicado.
+    // Si el usuario elimina su propio comentario (authorIndex === requesterId), no se genera notificación.
+    if (isModeratorOrAdmin && authorIndex && authorIndex !== requesterId) {
+      const finalReason = reason?.trim() || 'Incumplimiento de las normas comunitarias';
+      try {
+        await this.notificationService.createCommentModerationNotification({
+          userIndex: authorIndex,
+          moderatorIndex: requesterId,
+          commentContent: comment.content,
+          moderationReason: finalReason,
+          publicationTitle: comment.publication?.title,
+          publicationUuid: comment.publication?.uuid,
+        });
+      } catch (err) {
+        console.error('Error al generar notificación de moderación:', err);
+      }
+    }
+
     return {
       message: 'Comentario ELIMINADO',
       comment: await this.commentRepository.softRemove(comment),
     };
   }
 }
+

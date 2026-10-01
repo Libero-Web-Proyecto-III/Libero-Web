@@ -34,6 +34,16 @@ export class SurveyService {
     const userId = user?.index || user?.id;
     const userRelation = userId ? ({ index: userId } as UserEntity) : undefined;
 
+    if (dto.endDate) {
+      const end = new Date(dto.endDate);
+      if (isNaN(end.getTime())) {
+        throw new BadRequestException('La fecha de cierre programada no es válida.');
+      }
+      if (end.getTime() <= Date.now()) {
+        throw new BadRequestException('La fecha y hora de cierre automático no puede ser una fecha u hora pasada.');
+      }
+    }
+
     const survey = this.surveyRepository.create({
       title: dto.title,
       description: dto.description,
@@ -63,6 +73,22 @@ export class SurveyService {
 
   // # Este bloque tiene como objetivo obtener el listado de encuestas ordenadas descendentemente por fecha de creación y filtradas por estado o visibilidad
   async findAll(status?: SurveyStatusEnum, isPublic?: boolean): Promise<SurveyEntity[]> {
+    // Cerrar automáticamente encuestas publicadas cuya fecha límite ya haya expirado
+    try {
+      const now = new Date();
+      await this.surveyRepository
+        .createQueryBuilder()
+        .update(SurveyEntity)
+        .set({ status: SurveyStatusEnum.CLOSED })
+        .where('status = :status AND endDate IS NOT NULL AND endDate <= :now', {
+          status: SurveyStatusEnum.PUBLISHED,
+          now,
+        })
+        .execute();
+    } catch {
+      // Continuar en caso de fallo no crítico de actualización
+    }
+
     const query = this.surveyRepository.createQueryBuilder('survey')
       .leftJoinAndSelect('survey.createdBy', 'createdBy')
       .leftJoinAndSelect('survey.questions', 'questions')
@@ -109,6 +135,12 @@ export class SurveyService {
       throw new NotFoundException(`La encuesta con ID ${id} no fue encontrada.`);
     }
 
+    // Auto-cierre si ya venció el tiempo programado
+    if (survey.status === SurveyStatusEnum.PUBLISHED && survey.endDate && new Date(survey.endDate).getTime() <= Date.now()) {
+      survey.status = SurveyStatusEnum.CLOSED;
+      await this.surveyRepository.save(survey);
+    }
+
     return survey;
   }
 
@@ -126,7 +158,20 @@ export class SurveyService {
       }
     }
     if (dto.startDate !== undefined) survey.startDate = dto.startDate;
-    if (dto.endDate !== undefined) survey.endDate = dto.endDate;
+    if (dto.endDate !== undefined) {
+      if (dto.endDate) {
+        const end = new Date(dto.endDate);
+        if (isNaN(end.getTime())) {
+          throw new BadRequestException('La fecha de cierre programada no es válida.');
+        }
+        if (end.getTime() <= Date.now()) {
+          throw new BadRequestException('La fecha y hora de cierre automático no puede ser una fecha u hora pasada.');
+        }
+        survey.endDate = end;
+      } else {
+        survey.endDate = null as any;
+      }
+    }
 
     if (dto.questions) {
       await this.questionRepository.delete({ survey: { index: id } });

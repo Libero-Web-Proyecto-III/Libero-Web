@@ -52,6 +52,9 @@ export class AuthService {
       );
     }
 
+    const userTag = user.tag?.name || (user.tags && user.tags.length > 0 ? user.tags[0].name : '');
+    const userTagColor = user.tag?.color || (user.tags && user.tags.length > 0 ? user.tags[0].color : '');
+
     const authUser: AuthUser = {
       id: user.index,
       uuid: user.uuid,
@@ -59,6 +62,8 @@ export class AuthService {
       email: user.email,
       role: user.rol?.name || 'user',
       avatar: user.avatar || '',
+      tag: userTag,
+      tagColor: userTagColor,
     };
 
     const token = this.generateToken({
@@ -105,6 +110,9 @@ export class AuthService {
       return null;
     }
 
+    const userTag = user.tag?.name || (user.tags && user.tags.length > 0 ? user.tags[0].name : '');
+    const userTagColor = user.tag?.color || (user.tags && user.tags.length > 0 ? user.tags[0].color : '');
+
     return {
       id: user.index,
       uuid: user.uuid,
@@ -112,6 +120,8 @@ export class AuthService {
       email: user.email,
       role: user.rol?.name || 'user',
       avatar: user.avatar || '',
+      tag: userTag,
+      tagColor: userTagColor,
     };
   }
 
@@ -168,7 +178,8 @@ export class AuthService {
         this.passwordResetTokenRepository.create({ user, tokenHash, expiresAt }),
       );
 
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
+      const rawFrontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
+      const frontendUrl = rawFrontendUrl.trim().replace(/\/+$/, '');
       await this.mailService.sendPasswordResetEmail(
         normalizedEmail,
         user.name,
@@ -216,6 +227,9 @@ export class AuthService {
 
   async getProfile(userId: number) {
     const user = await this.userService.findOneBy.id(userId);
+    const userTag = user.tag?.name || (user.tags && user.tags.length > 0 ? user.tags[0].name : '');
+    const userTagColor = user.tag?.color || (user.tags && user.tags.length > 0 ? user.tags[0].color : '');
+
     return {
       id: user.index,
       uuid: user.uuid,
@@ -223,6 +237,8 @@ export class AuthService {
       email: user.email,
       role: user.rol?.name || 'user',
       avatar: user.avatar || '',
+      tag: userTag,
+      tagColor: userTagColor,
     };
   }
 
@@ -242,6 +258,8 @@ export class AuthService {
     }
 
     const saved = await this.userService.save(user);
+    const userTag = saved.tag?.name || (saved.tags && saved.tags.length > 0 ? saved.tags[0].name : '');
+    const userTagColor = saved.tag?.color || (saved.tags && saved.tags.length > 0 ? saved.tags[0].color : '');
 
     return {
       success: true,
@@ -253,6 +271,8 @@ export class AuthService {
         email: saved.email,
         role: saved.rol?.name || 'user',
         avatar: saved.avatar || '',
+        tag: userTag,
+        tagColor: userTagColor,
       },
     };
   }

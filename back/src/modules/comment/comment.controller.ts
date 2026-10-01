@@ -193,12 +193,11 @@ export class CommentController {
 
   @PRIVATE()
   @Delete(':uuid')
-  @PRIVATE()
   @ApiOperation({
-    summary: 'Eliminar (soft delete) un comentario (solo el autor)',
+    summary: 'Eliminar (soft delete) un comentario (solo el autor o moderador/admin)',
     description:
       'Elimina lógicamente un comentario (soft delete, se conserva en base de datos con `deletedAt` establecido). ' +
-      'Solo el autor original del comentario puede eliminarlo.',
+      'Permitido para el autor original, o para moderadores y administradores especificando motivo.',
   })
   @ApiParam({
     name: 'uuid',
@@ -207,40 +206,19 @@ export class CommentController {
   })
   @ApiOkResponse({
     description: 'Comentario eliminado (soft delete) correctamente.',
-    schema: {
-      example: {
-        message: 'Comentario ELIMINADO',
-        comment: {
-          index: 10,
-          uuid: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
-          content: 'Muy buen post!',
-          deletedAt: '2026-08-08T10:20:00.000Z',
-        },
-      },
-    },
   })
-  @ApiNotFoundResponse({
-    description: 'No existe ningún comentario con el uuid indicado.',
-    schema: {
-      example: {
-        statusCode: 404,
-        message: 'No se encontró este comentario',
-        error: 'Not Found',
-      },
-    },
-  })
-  @ApiForbiddenResponse({
-    description: 'El usuario autenticado no es el autor del comentario.',
-    schema: {
-      example: {
-        statusCode: 403,
-        message: 'No puedes eliminar un comentario que no es tuyo',
-        error: 'Forbidden',
-      },
-    },
-  })
-  remove(@Param('uuid') uuid: string, @Req() req: any) {
+  remove(
+    @Param('uuid') uuid: string,
+    @Body() body: { reason?: string },
+    @Query('reason') queryReason: string,
+    @Req() req: any,
+  ) {
     const userIndex = req.user?.id ?? req.user?.index;
-    return this.commentService.remove(uuid, { index: userIndex, id: userIndex, role: req.user?.role } as any);
+    const reason = body?.reason || queryReason;
+    return this.commentService.remove(
+      uuid,
+      { index: userIndex, id: userIndex, role: req.user?.role } as any,
+      reason,
+    );
   }
 }

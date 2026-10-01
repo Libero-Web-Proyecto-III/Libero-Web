@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -13,16 +13,18 @@ import { CategoryService } from './services/category.service';
 import { AuthService } from '../auth/services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SafeUrlPipe } from './safe-url.pipe';
+import { CategoryIconComponent } from '../common/category-icon/category-icon.component';
 
 @Component({
   selector: 'app-notice',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, FooterComponent, SafeUrlPipe],
+  imports: [CommonModule, FormsModule, NavbarComponent, FooterComponent, SafeUrlPipe, CategoryIconComponent],
   templateUrl: './notice.component.html',
   styleUrl: './notice.component.scss'
 })
 export class NoticeComponent implements OnInit {
   selectedUuid = signal<string | null>(null);
+  openTagsCommentUuid = signal<string | null>(null);
   newCommentDraft = signal<string>('');
   news = signal<Publication[]>([]);
   loading = signal<boolean>(true);
@@ -245,6 +247,90 @@ export class NoticeComponent implements OnInit {
     this.router.navigate([], { relativeTo: this.route, queryParams: {} });
   }
 
+  readonly isModeratorOrAdmin = computed(() => {
+    const role = this.currentUser()?.role?.toLowerCase()?.trim();
+    return role === 'admin' || role === 'administrador' || role === 'mod' || role === 'moderador';
+  });
+
+  canDeleteComment(comment: Comment): boolean {
+    if (!this.isLoggedIn()) return false;
+    if (this.isModeratorOrAdmin()) return true;
+    const currentUsername = this.currentUser()?.username;
+    return !!currentUsername && comment.author === currentUsername;
+  }
+
+  moderationModalOpen = signal<boolean>(false);
+  selectedCommentToModerate = signal<{ publicationUuid: string; comment: Comment } | null>(null);
+  moderationReasonDraft = signal<string>('');
+  moderationError = signal<string | null>(null);
+  moderationDeleting = signal<boolean>(false);
+
+  readonly presetReasons = [
+    'Lenguaje inapropiado o falta de respeto',
+    'Spam o contenido no relacionado',
+    'Incumplimiento de normas comunitarias',
+    'Información falsa o engañosa',
+    'Acoso o mensajes ofensivos',
+  ];
+
+  selectPresetReason(reason: string): void {
+    this.moderationReasonDraft.set(reason);
+    this.moderationError.set(null);
+  }
+
+  openDeleteCommentDialog(publicationUuid: string, comment: Comment): void {
+    this.selectedCommentToModerate.set({ publicationUuid, comment });
+    this.moderationReasonDraft.set('');
+    this.moderationError.set(null);
+    this.moderationModalOpen.set(true);
+  }
+
+  closeModerationModal(): void {
+    this.moderationModalOpen.set(false);
+    this.selectedCommentToModerate.set(null);
+    this.moderationReasonDraft.set('');
+    this.moderationError.set(null);
+  }
+
+  confirmDeleteComment(): void {
+    const target = this.selectedCommentToModerate();
+    if (!target) return;
+
+    const currentUsername = this.currentUser()?.username;
+    const isAuthor = target.comment.author === currentUsername;
+    const isMod = this.isModeratorOrAdmin();
+
+    // Si no es el autor y es moderador/admin, la razón es obligatoria
+    if (!isAuthor && isMod && !this.moderationReasonDraft().trim()) {
+      this.moderationError.set('Por favor especifica el motivo o selecciona una razón para notificar al usuario.');
+      return;
+    }
+
+    const reason = (!isAuthor && isMod) ? this.moderationReasonDraft().trim() : undefined;
+    this.moderationDeleting.set(true);
+    this.moderationError.set(null);
+
+    this.commentService.delete(target.comment.uuid, reason).subscribe({
+      next: () => {
+        this.news.update(list =>
+          list.map(pub =>
+            pub.uuid === target.publicationUuid
+              ? { ...pub, comments: pub.comments.filter(c => c.uuid !== target.comment.uuid) }
+              : pub
+          )
+        );
+        this.moderationDeleting.set(false);
+        this.closeModerationModal();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.moderationDeleting.set(false);
+        this.moderationError.set(
+          err?.error?.message ?? 'No se pudo eliminar el comentario. Inténtalo de nuevo.'
+        );
+      },
+    });
+  }
+
   addComment(publicationUuid: string) {
     if (!this.isLoggedIn()) {
       this.reactionError.set('Debes iniciar sesión para comentar.');
@@ -314,5 +400,32 @@ export class NoticeComponent implements OnInit {
       likes: type === 'like' ? entity.likes + 1 : entity.likes - 1,
       dislikes: type === 'dislike' ? entity.dislikes + 1 : entity.dislikes - 1
     };
+  }
+
+  toggleTagsPopover(commentUuid: string, event?: Event): void {
+    event?.stopPropagation();
+    if (this.openTagsCommentUuid() === commentUuid) {
+      this.openTagsCommentUuid.set(null);
+    } else {
+      this.openTagsCommentUuid.set(commentUuid);
+    }
+  }
+
+  closeTagsPopover(): void {
+    this.openTagsCommentUuid.set(null);
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    if (this.openTagsCommentUuid()) {
+      this.closeTagsPopover();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.openTagsCommentUuid()) {
+      this.closeTagsPopover();
+    }
   }
 }

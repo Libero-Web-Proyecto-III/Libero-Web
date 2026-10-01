@@ -22,7 +22,9 @@ describe('Admin Subroutes and Tab Mapping', () => {
       expect(ADMIN_ROUTE_TAB_MAP['noticias']).toBe('news');
       expect(ADMIN_ROUTE_TAB_MAP['encuestas']).toBe('polls');
       expect(ADMIN_ROUTE_TAB_MAP['usuarios']).toBe('users');
-      expect(ADMIN_ROUTE_TAB_MAP['configuracion']).toBe('settings');
+      expect(ADMIN_ROUTE_TAB_MAP['pqrs']).toBe('pqrs');
+      expect(ADMIN_ROUTE_TAB_MAP['pqr']).toBe('pqrs');
+      expect(ADMIN_ROUTE_TAB_MAP['configuracion']).toBe('metrics');
     });
 
     it('should map English aliases to their corresponding admin tabs', () => {
@@ -31,7 +33,8 @@ describe('Admin Subroutes and Tab Mapping', () => {
       expect(ADMIN_ROUTE_TAB_MAP['news']).toBe('news');
       expect(ADMIN_ROUTE_TAB_MAP['polls']).toBe('polls');
       expect(ADMIN_ROUTE_TAB_MAP['users']).toBe('users');
-      expect(ADMIN_ROUTE_TAB_MAP['settings']).toBe('settings');
+      expect(ADMIN_ROUTE_TAB_MAP['pqrs']).toBe('pqrs');
+      expect(ADMIN_ROUTE_TAB_MAP['settings']).toBe('metrics');
     });
   });
 
@@ -43,7 +46,7 @@ describe('Admin Subroutes and Tab Mapping', () => {
       expect(ADMIN_TAB_TO_ROUTE['news']).toBe('noticias');
       expect(ADMIN_TAB_TO_ROUTE['polls']).toBe('encuestas');
       expect(ADMIN_TAB_TO_ROUTE['users']).toBe('usuarios');
-      expect(ADMIN_TAB_TO_ROUTE['settings']).toBe('configuracion');
+      expect(ADMIN_TAB_TO_ROUTE['pqrs']).toBe('pqrs');
     });
   });
 

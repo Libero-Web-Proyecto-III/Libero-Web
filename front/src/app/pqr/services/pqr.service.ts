@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { AuthService } from '../../auth/services/auth.service';
 import { Pqr, PqrStatus, PqrType } from '../pqr.model';
+import { environment } from '../../../environments/environment';
 
 interface PaginationMeta {
   totalItems: number;
@@ -22,6 +23,7 @@ interface RawPqr {
   fullName: string;
   email: string;
   phone: string | null;
+  isAnonymous?: boolean;
   type: PqrType;
   subject: string;
   message: string;
@@ -33,12 +35,20 @@ interface RawPqr {
 
 @Injectable({ providedIn: 'root' })
 export class PqrService {
-  private readonly apiUrl = 'http://localhost:3000/pqrs';
+  private readonly apiUrl = `${environment.apiUrl}/pqrs`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  create(payload: { fullName: string; email: string; phone?: string; type: PqrType; subject: string; message: string }): Observable<Pqr> {
-    return this.http.post<RawPqr>(this.apiUrl, payload).pipe(map(item => this.mapPqr(item)));
+  create(payload: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    isAnonymous?: boolean;
+    type: PqrType;
+    subject: string;
+    message: string;
+  }): Observable<Pqr> {
+    return this.http.post<RawPqr>(this.apiUrl, payload, { headers: this.authHeaders() }).pipe(map(item => this.mapPqr(item)));
   }
 
   findAll(page = 1, limit = 20, type?: PqrType, status?: PqrStatus): Observable<{ data: Pqr[]; meta: PaginationMeta }> {
@@ -68,6 +78,7 @@ export class PqrService {
       fullName: item.fullName,
       email: item.email,
       phone: item.phone,
+      isAnonymous: item.isAnonymous,
       type: item.type,
       subject: item.subject,
       message: item.message,

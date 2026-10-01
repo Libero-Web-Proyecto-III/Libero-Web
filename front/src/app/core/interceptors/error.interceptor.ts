@@ -12,7 +12,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error) => {
       const isAuthEndpoint = req.url.includes('/auth/login') || req.url.includes('/auth/register');
-      if (!isAuthEndpoint && (error.status === 401 || error.status === 403)) {
+      if (!isAuthEndpoint && error.status === 401) {
         authService.logout();
         router.navigate(['/auth/login'], {
           queryParams: { sessionExpired: 'true' },

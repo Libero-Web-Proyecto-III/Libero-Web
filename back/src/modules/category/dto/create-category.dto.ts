@@ -12,9 +12,9 @@ export class CreateCategoryDto {
   @IsHexColor()
   color?: string;
 
-  @ApiPropertyOptional({ description: 'Emoji representativo de la categoría', example: '👥' })
+  @ApiPropertyOptional({ description: 'Identificador del icono SVG representativo de la categoría', example: 'megaphone' })
   @IsOptional()
   @IsString()
-  @MaxLength(4)
+  @MaxLength(50)
   icon?: string;
 }

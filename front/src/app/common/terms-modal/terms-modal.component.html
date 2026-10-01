@@ -1,0 +1,323 @@
+@if (isOpen) {
+<div class="modal-backdrop" (click)="onBackdropClick($event)" role="dialog" aria-modal="true"
+  aria-labelledby="terms-modal-title">
+  <div class="modal-container">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="header-info">
+        <h2 id="terms-modal-title" class="modal-title">Términos y Condiciones</h2>
+      </div>
+
+      <!-- Botón X arriba para cerrar -->
+      <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar ventana">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Selector de Pestañas (Tabs) -->
+    <div class="modal-tabs">
+      <button type="button" class="tab-btn" [class.active]="currentTab === 'terms'" (click)="setTab('terms')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+        </svg>
+        <span>Términos de Uso</span>
+      </button>
+
+      <button type="button" class="tab-btn" [class.active]="currentTab === 'privacy'" (click)="setTab('privacy')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span>Política de Privacidad</span>
+      </button>
+    </div>
+
+    <!-- Modal Body (Contenido scrollable con todo el texto de TERMINOS&CONDICIONES.md) -->
+    <div class="modal-body">
+      @if (currentTab === 'terms') {
+      <div class="terms-content">
+        <div class="section-hero">
+          <h3 class="section-heading">Términos de Uso</h3>
+          <p class="section-subtext">Plataforma Libero Web · Actualizado para la comunidad</p>
+        </div>
+
+        <article class="clause-card">
+          <div class="clause-num">1</div>
+          <div class="clause-body">
+            <h4>Aceptación de los términos</h4>
+            <p>Al acceder y utilizar la plataforma Libero Web, el usuario acepta cumplir con estos Términos de Uso, así
+              como con todas las políticas y normas aplicables. Si no está de acuerdo con alguno de estos términos, debe
+              abstenerse de utilizar la plataforma.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">2</div>
+          <div class="clause-body">
+            <h4>Descripción del servicio</h4>
+            <p>La plataforma tiene como finalidad ofrecer información institucional, publicaciones, eventos, encuestas,
+              comentarios y contenidos de interés para la comunidad. El servicio puede incluir la gestión de usuarios,
+              permisos por roles, publicación de contenido y participación en actividades internas o institucionales.
+            </p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">3</div>
+          <div class="clause-body">
+            <h4>Registro y uso de la cuenta</h4>
+            <p>Para acceder a ciertas funcionalidades, el usuario deberá completar un registro con datos verificados y
+              mantenerlos actualizados. El usuario es responsable de la confidencialidad de su usuario y contraseña, así
+              como de todas las actividades realizadas con su cuenta.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">4</div>
+          <div class="clause-body">
+            <h4>Uso permitido</h4>
+            <p>El usuario se compromete a:</p>
+            <ul class="clause-list">
+              <li>Utilizar la plataforma únicamente con fines lícitos.</li>
+              <li>No publicar contenido ofensivo, discriminatorio, falso, dañino o que vulnere derechos de terceros.
+              </li>
+              <li>No intentar acceder a información, cuentas o sistemas no autorizados.</li>
+              <li>No interferir con el funcionamiento de la plataforma, sus servicios o sus sistemas.</li>
+              <li>Respetar la normativa vigente y la dignidad de otros usuarios.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">5</div>
+          <div class="clause-body">
+            <h4>Contenido generado por usuarios</h4>
+            <p>Los usuarios pueden publicar comentarios, reacciones, respuestas o contenidos relacionados con la
+              plataforma. El contenido publicado debe cumplir con estas normas y puede ser revisado, moderado, eliminado
+              o restringido por la administración si se considera que incumple las reglas.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">6</div>
+          <div class="clause-body">
+            <h4>Propiedad intelectual</h4>
+            <p>Todo el contenido, diseño, marcas, logotipos, textos, imágenes y materiales de la plataforma son
+              propiedad de sus respectivos titulares o de la organización responsable del servicio, salvo que se indique
+              lo contrario. Queda prohibida la reproducción, distribución o uso no autorizado del contenido sin previa
+              autorización.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">7</div>
+          <div class="clause-body">
+            <h4>Disponibilidad del servicio</h4>
+            <p>La plataforma se esfuerza por mantener su disponibilidad, pero no garantiza que el servicio esté libre de
+              interrupciones, errores o fallos técnicos. La organización no será responsable por daños derivados del uso
+              o la imposibilidad de uso de la plataforma.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">8</div>
+          <div class="clause-body">
+            <h4>Limitación de responsabilidad</h4>
+            <p>No se garantiza la exactitud, integridad o actualidad de la información publicada en la plataforma. La
+              organización no será responsable por pérdidas, daños o perjuicios derivados del uso del servicio, salvo
+              que exista responsabilidad legal imperativa.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">9</div>
+          <div class="clause-body">
+            <h4>Modificación de los términos</h4>
+            <p>La organización puede actualizar estos Términos de Uso en cualquier momento. Los cambios serán efectivos
+              desde su publicación en la plataforma. El uso continuo del servicio después de la publicación implica la
+              aceptación de los nuevos términos.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">10</div>
+          <div class="clause-body">
+            <h4>Ley aplicable</h4>
+            <p>Estos términos se rigen por las leyes vigentes en el territorio de la organización o del país
+              correspondiente, y cualquier controversia será resuelta en los tribunales competentes.</p>
+          </div>
+        </article>
+      </div>
+      } @else {
+      <div class="terms-content">
+        <div class="section-hero section-hero--privacy">
+          <h3 class="section-heading">Política de Privacidad</h3>
+          <p class="section-subtext">Compromiso de protección de datos personales · Plataforma Libero Web</p>
+        </div>
+
+        <article class="clause-card">
+          <div class="clause-num">1</div>
+          <div class="clause-body">
+            <h4>Información general</h4>
+            <p>La plataforma Libero Web respeta la privacidad de sus usuarios y se compromete a proteger la información
+              personal que se recopila durante el uso del servicio. Esta Política de Privacidad describe cómo se
+              recogen, usan, almacenan y protegen los datos personales.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">2</div>
+          <div class="clause-body">
+            <h4>Datos que se recopilan</h4>
+            <p>Podemos recopilar la siguiente información:</p>
+            <ul class="clause-list">
+              <li><strong>Datos de registro:</strong> nombre, correo electrónico, identificación o datos requeridos para
+                la autenticación.</li>
+              <li><strong>Datos de perfil:</strong> información necesaria para la gestión de usuarios y roles.</li>
+              <li><strong>Datos de uso:</strong> dirección IP, fecha y hora de acceso, páginas visitadas, navegador,
+                sistema operativo, historial de navegación dentro de la plataforma.</li>
+              <li><strong>Datos de interacción:</strong> comentarios, reacciones, encuestas, participación en eventos,
+                publicaciones o contenido generado por el usuario.</li>
+              <li><strong>Datos de contacto:</strong> información de comunicación usada para notificaciones, soporte o
+                administración del servicio.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">3</div>
+          <div class="clause-body">
+            <h4>Finalidad del tratamiento de datos</h4>
+            <p>Los datos personales se utilizan para:</p>
+            <ul class="clause-list">
+              <li>Brindar acceso y funcionamiento del servicio.</li>
+              <li>Gestionar la autenticación y autorización de usuarios.</li>
+              <li>Administrar roles, permisos y acceso a contenidos.</li>
+              <li>Personalizar y mejorar la experiencia del usuario.</li>
+              <li>Enviar notificaciones relevantes relacionadas con la plataforma.</li>
+              <li>Responder solicitudes, consultas o incidencias.</li>
+              <li>Mantener la seguridad, integridad y prevención del fraude.</li>
+              <li>Realizar análisis estadísticos y de uso del sistema.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">4</div>
+          <div class="clause-body">
+            <h4>Consentimiento</h4>
+            <p>Al registrarse y utilizar la plataforma, el usuario consiente el tratamiento de sus datos conforme a esta
+              Política de Privacidad. En caso de que se requiera un consentimiento específico para ciertos tratamientos,
+              se solicitará expresamente antes de realizarlo.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">5</div>
+          <div class="clause-body">
+            <h4>Protección de datos</h4>
+            <p>Se implementan medidas razonables de seguridad para proteger la información personal contra pérdida, uso
+              indebido, acceso no autorizado, divulgación o modificación. Sin embargo, ningún sistema es completamente
+              infalible, por lo que no se puede garantizar seguridad absoluta.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">6</div>
+          <div class="clause-body">
+            <h4>Compartición de información</h4>
+            <p>La información personal no será vendida ni comercializada a terceros. Puede compartirse solo cuando:</p>
+            <ul class="clause-list">
+              <li>Sea necesario para prestar el servicio.</li>
+              <li>Exista obligación legal o requerimiento de autoridades competentes.</li>
+              <li>Sea requerido para proteger derechos, seguridad o integridad de la plataforma o sus usuarios.</li>
+              <li>Se cuente con el consentimiento expreso del usuario.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">7</div>
+          <div class="clause-body">
+            <h4>Cookies y tecnologías de seguimiento</h4>
+            <p>La plataforma puede utilizar cookies o tecnologías similares para mejorar la experiencia del usuario,
+              identificar sesiones, mantener la autenticación y analizar el uso del sistema. El usuario puede configurar
+              su navegador para aceptar, rechazar o eliminar cookies, según corresponda.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">8</div>
+          <div class="clause-body">
+            <h4>Derechos del usuario</h4>
+            <p>El usuario puede ejercer, según la normativa aplicable, los siguientes derechos:</p>
+            <ul class="clause-list">
+              <li>Acceder a sus datos personales.</li>
+              <li>Solicitar corrección de información inexacta.</li>
+              <li>Solicitar eliminación o supresión de sus datos, cuando proceda.</li>
+              <li>Oponerse o limitar el tratamiento de sus datos.</li>
+              <li>Solicitar la portabilidad de la información.</li>
+              <li>Revocar el consentimiento, cuando el tratamiento dependa de este.</li>
+            </ul>
+            <p class="clause-note">Para ejercer estos derechos, el usuario podrá comunicarse con la administración o
+              equipo responsable de la plataforma a través de los canales oficiales indicados.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">9</div>
+          <div class="clause-body">
+            <h4>Conservación de datos</h4>
+            <p>Los datos personales se conservarán durante el tiempo necesario para cumplir con la finalidad para la que
+              fueron recabados, así como para atender obligaciones legales, contables o regulatorias aplicables.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">10</div>
+          <div class="clause-body">
+            <h4>Menores de edad</h4>
+            <p>La plataforma no está dirigida a menores de edad o, en su caso, su uso por parte de menores solo se
+              realizará bajo supervisión de sus padres o tutores legales. Si se detecta información personal de un menor
+              sin el debido consentimiento, se procederá a eliminarla.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">11</div>
+          <div class="clause-body">
+            <h4>Cambios en la política</h4>
+            <p>Esta Política de Privacidad puede actualizarse periódicamente. Cualquier cambio relevante será informado
+              en la plataforma y entrará en vigor desde su publicación. El uso continuo del servicio después de la
+              actualización implica la aceptación de la nueva política.</p>
+          </div>
+        </article>
+
+        <article class="clause-card">
+          <div class="clause-num">12</div>
+          <div class="clause-body">
+            <h4>Contacto</h4>
+            <p>Para consultas sobre esta Política de Privacidad o el tratamiento de sus datos, el usuario puede
+              comunicarse con el responsable de la plataforma a través de los medios disponibles en la misma.</p>
+          </div>
+        </article>
+      </div>
+      }
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <span class="footer-note">Al usar Libero Web aceptas nuestros términos legales.</span>
+      <button type="button" class="btn-confirm" (click)="closeModal()">
+        <span>Entendido</span>
+      </button>
+    </div>
+  </div>
+</div>
+}

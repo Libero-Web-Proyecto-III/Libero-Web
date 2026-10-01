@@ -49,6 +49,14 @@ $navbar-scrolled-shadow: 0 6px 26px rgba(0, 0, 0, 0.38);
     }
   }
 
+  /* Acciones de usuario */
+  &__user-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
   /* Marca / logo */
   &__brand {
     display: flex;

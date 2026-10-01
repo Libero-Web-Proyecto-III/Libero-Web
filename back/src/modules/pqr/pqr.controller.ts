@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PqrService } from './pqr.service';
 import { CreatePqrDto } from './dto/create-pqr.dto';
@@ -19,14 +19,15 @@ import { enumRol } from '../../common/enums/rol.enum';
 export class PqrController {
   constructor(private readonly pqrService: PqrService) {}
 
+  @PRIVATE()
   @Post()
   @ApiOperation({
     summary: 'Enviar una PQR',
-    description: 'Endpoint público: cualquier persona puede enviar una petición, queja, reclamo o sugerencia, sin necesidad de cuenta.',
+    description: 'Endpoint para enviar una petición, queja, reclamo o sugerencia.',
   })
   @ApiResponse({ status: 201, description: 'PQR registrada correctamente', type: PqrEntity })
-  create(@Body() dto: CreatePqrDto) {
-    return this.pqrService.create(dto);
+  create(@Body() dto: CreatePqrDto, @Req() req: any) {
+    return this.pqrService.create(dto, req.user);
   }
 
   @PRIVATE()
@@ -60,7 +61,7 @@ export class PqrController {
   })
   @ApiParam({ name: 'uuid', description: 'UUID de la PQR' })
   @ApiResponse({ status: 200, description: 'PQR actualizada', type: PqrEntity })
-  updateStatus(@Param('uuid') uuid: string, @Body() dto: UpdatePqrStatusDto) {
-    return this.pqrService.updateStatus(uuid, dto);
+  updateStatus(@Param('uuid') uuid: string, @Body() dto: UpdatePqrStatusDto, @Req() req: any) {
+    return this.pqrService.updateStatus(uuid, dto, req.user);
   }
 }

@@ -36,7 +36,12 @@ export class PublicationService {
 
     const [data, total] = await this.PublicationRepository.findAndCount({
       where: categoryUuid ? { category: { uuid: categoryUuid } } : {},
-      relations: { author: true, comments: { author: true }, reactions: true, category: true },
+      relations: {
+        author: { rol: true, tag: true, tags: true },
+        comments: { author: { rol: true, tag: true, tags: true } },
+        reactions: true,
+        category: true,
+      },
       skip,
       take: limit,
       order: { createdAt: 'DESC' },
@@ -58,7 +63,12 @@ export class PublicationService {
     uuid: async (uuid: string): Promise<PublicationEntity> => {
       const publication = await this.PublicationRepository.findOne({
         where: { uuid },
-        relations: { author: true, comments: { author: true }, reactions: true, category: true },
+        relations: {
+          author: { rol: true, tag: true, tags: true },
+          comments: { author: { rol: true, tag: true, tags: true } },
+          reactions: true,
+          category: true,
+        },
       });
 
       if (!publication) throw new NotFoundException('No se encontró esta publicación por UUID');

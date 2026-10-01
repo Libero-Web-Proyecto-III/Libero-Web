@@ -1,6 +1,7 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BaseEntity } from 'src/common/entities/base.entity';
+import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { enumPqrType } from '../../../common/enums/pqr-type.enum';
 import { enumPqrStatus } from '../../../common/enums/pqr-status.enum';
 
@@ -17,6 +18,15 @@ export class PqrEntity extends BaseEntity {
   @ApiPropertyOptional({ description: 'Teléfono de contacto', example: '3001234567' })
   @Column({ type: 'varchar', length: 20, nullable: true })
   phone: string | null;
+
+  @ApiProperty({ description: 'Indica si la PQR fue enviada en modo anónimo', default: false })
+  @Column({ type: 'boolean', default: false })
+  isAnonymous: boolean;
+
+  @ApiPropertyOptional({ description: 'Usuario que envió la PQR', type: () => UserEntity })
+  @ManyToOne(() => UserEntity, { nullable: true, onDelete: 'SET NULL', eager: true })
+  @JoinColumn({ name: 'user_id' })
+  user?: UserEntity | null;
 
   @ApiProperty({ description: 'Tipo de PQR', enum: enumPqrType, example: enumPqrType.PETICION })
   @Column({ type: 'enum', enum: enumPqrType })

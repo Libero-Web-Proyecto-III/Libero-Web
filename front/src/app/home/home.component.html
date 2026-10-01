@@ -79,9 +79,18 @@
             colombiana.
           </p>
           <div class="presentation-section__badges">
-            <span class="pres-badge pres-badge--copper">⛏️ Cobre · Molibdeno</span>
-            <span class="pres-badge pres-badge--green">🌿 Desarrollo Responsable</span>
-            <span class="pres-badge pres-badge--blue">⚡ Transición Energética</span>
+            <span class="pres-badge pres-badge--copper">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:5px;"><path d="m14 10-8.5 8.5a2.12 2.12 0 1 1-3-3L11 7"/><path d="M15 4 8 11l4 4 7-7a2 2 0 0 0 0-3l-1-1a2 2 0 0 0-3 0Z"/></svg>
+              Cobre · Molibdeno
+            </span>
+            <span class="pres-badge pres-badge--green">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:5px;"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+              Desarrollo Responsable
+            </span>
+            <span class="pres-badge pres-badge--blue">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:5px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Transición Energética
+            </span>
           </div>
         </div>
       </div>
@@ -306,8 +315,10 @@
               class="carousel-btn btn-prev"
               (click)="prevSurvey()"
               aria-label="Encuesta anterior"
+              style="display:inline-flex; align-items:center; gap:4px;"
             >
-              ◀ Anterior
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Anterior
             </button>
 
             <div class="carousel-indicators">
@@ -328,8 +339,10 @@
               class="carousel-btn btn-next"
               (click)="nextSurvey()"
               aria-label="Siguiente encuesta"
+              style="display:inline-flex; align-items:center; gap:4px;"
             >
-              Siguiente ▶
+              Siguiente
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
 
@@ -337,13 +350,19 @@
           <div class="surveys-carousel-content" *ngIf="activeSurveys[currentSurveyIndex] as survey">
             <div class="home-survey-card">
               <div class="survey-card-top">
-                <span class="public-badge">🌐 Consulta Pública</span>
+                <span class="public-badge" style="display:inline-flex; align-items:center; gap:5px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  Consulta Pública
+                </span>
                 <h3 class="survey-card-title">{{ survey.title }}</h3>
                 <p class="survey-card-desc">
                   {{ survey.description || 'Participa y comparte tu opinión sobre este tema.' }}
                 </p>
                 <div class="survey-card-meta">
-                  <span>📋 {{ survey.questions.length }} Preguntas</span>
+                  <span style="display:inline-flex; align-items:center; gap:5px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                    {{ survey.questions.length }} Preguntas
+                  </span>
                 </div>
               </div>
 
@@ -351,12 +370,16 @@
                 type="button"
                 class="btn-toggle-survey"
                 (click)="toggleAnswerSurvey(survey.index)"
+                style="display:inline-flex; align-items:center; justify-content:center; gap:6px;"
               >
-                {{
-                  selectedSurveyIdToAnswer === survey.index
-                    ? '✕ Cerrar Encuesta'
-                    : '✍️ Responder Encuesta'
-                }}
+                <ng-container *ngIf="selectedSurveyIdToAnswer === survey.index; else answerSurveyTpl">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <span>Cerrar Encuesta</span>
+                </ng-container>
+                <ng-template #answerSurveyTpl>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  <span>Responder Encuesta</span>
+                </ng-template>
               </button>
 
               <div
@@ -403,7 +426,31 @@
         <div class="highlights-stats">
           @for (stat of stats; track stat.label) {
             <div class="highlights-stat-card">
-              <span class="highlights-stat-card__icon">{{ stat.icon }}</span>
+              <span class="highlights-stat-card__icon" [ngClass]="'icon--' + stat.type">
+                @if (stat.type === 'mineral') {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m14 10-8.5 8.5a2.12 2.12 0 1 1-3-3L11 7"/>
+                    <path d="M15 4 8 11l4 4 7-7a2 2 0 0 0 0-3l-1-1a2 2 0 0 0-3 0Z"/>
+                  </svg>
+                } @else if (stat.type === 'copper') {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <circle cx="12" cy="12" r="4"/>
+                  </svg>
+                } @else if (stat.type === 'years') {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                } @else if (stat.type === 'eco') {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                  </svg>
+                }
+              </span>
               <span class="highlights-stat-card__value">{{ stat.value }}</span>
               <span class="highlights-stat-card__label">{{ stat.label }}</span>
             </div>

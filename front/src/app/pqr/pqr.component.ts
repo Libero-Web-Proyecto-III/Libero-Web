@@ -1,21 +1,25 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
-import { Pqr, PqrStatus, PqrType } from './pqr.model';
+import { PqrType } from './pqr.model';
 import { PqrService } from './services/pqr.service';
 import { AuthService } from '../auth/services/auth.service';
 
 @Component({
   selector: 'app-pqr',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent, FooterComponent],
   templateUrl: './pqr.component.html',
   styleUrl: './pqr.component.scss'
 })
-export class PqrComponent implements OnInit {
+export class PqrComponent {
+  private readonly pqrService = inject(PqrService);
+  public readonly authService = inject(AuthService);
+
   readonly typeOptions: { value: PqrType; label: string }[] = [
     { value: 'peticion', label: 'Petición' },
     { value: 'queja', label: 'Queja' },
@@ -23,16 +27,11 @@ export class PqrComponent implements OnInit {
     { value: 'sugerencia', label: 'Sugerencia' }
   ];
 
-  readonly statusLabels: Record<PqrStatus, string> = {
-    pendiente: 'Pendiente',
-    en_revision: 'En revisión',
-    resuelto: 'Resuelto',
-    rechazado: 'Rechazado'
-  };
+  readonly currentUser = this.authService.currentUser;
+  readonly isLoggedIn = this.authService.isLoggedIn;
 
-  // Formulario público
-  formFullName = signal('');
-  formEmail = signal('');
+  // Formulario de PQR
+  isAnonymous = signal(false);
   formPhone = signal('');
   formType = signal<PqrType>('peticion');
   formSubject = signal('');
@@ -41,63 +40,27 @@ export class PqrComponent implements OnInit {
   sendError = signal<string | null>(null);
   sendSuccess = signal(false);
 
-  // Panel de gestión
-  showPanel = signal(false);
-  pqrs = signal<Pqr[]>([]);
-  panelLoading = signal(false);
-  filterType = signal<PqrType | ''>('');
-  filterStatus = signal<PqrStatus | ''>('');
-  expandedUuid = signal<string | null>(null);
-  statusDraft = signal<PqrStatus>('pendiente');
-  responseDraft = signal('');
-  updating = signal(false);
-  updateError = signal<string | null>(null);
-
-  constructor(private pqrService: PqrService, private authService: AuthService) {}
-
-  canManagePqrs = computed(() => {
-    const role = this.authService.currentUser()?.role?.toLowerCase();
-    return role === 'mod' || role === 'admin';
-  });
-
-  ngOnInit(): void {
-    if (this.canManagePqrs()) {
-      this.loadPanel();
-    }
-  }
-
-  togglePanel() {
-    this.showPanel.update(v => !v);
-    if (this.showPanel() && this.pqrs().length === 0) {
-      this.loadPanel();
-    }
-  }
-
-  loadPanel() {
-    this.panelLoading.set(true);
-    this.pqrService.findAll(1, 50, this.filterType() || undefined, this.filterStatus() || undefined).subscribe({
-      next: (res) => {
-        this.pqrs.set(res.data);
-        this.panelLoading.set(false);
-      },
-      error: () => {
-        this.panelLoading.set(false);
-      }
-    });
-  }
-
-  applyFilters() {
-    this.loadPanel();
-  }
-
   submitPqr() {
-    const fullName = this.formFullName().trim();
-    const email = this.formEmail().trim();
+    if (!this.isLoggedIn()) {
+      this.sendError.set('Debes iniciar sesión para registrar una solicitud PQR.');
+      return;
+    }
+
     const subject = this.formSubject().trim();
     const message = this.formMessage().trim();
 
-    if (!fullName || !email || !subject || !message) {
-      this.sendError.set('Completa todos los campos obligatorios.');
+    if (!subject || !message) {
+      this.sendError.set('Completa todos los campos obligatorios (Asunto y Mensaje).');
+      return;
+    }
+
+    if (subject.length < 5) {
+      this.sendError.set('El asunto debe tener al menos 5 caracteres.');
+      return;
+    }
+
+    if (message.length < 10) {
+      this.sendError.set('El mensaje debe tener al menos 10 caracteres.');
       return;
     }
 
@@ -105,9 +68,8 @@ export class PqrComponent implements OnInit {
     this.sendError.set(null);
 
     this.pqrService.create({
-      fullName,
-      email,
       phone: this.formPhone().trim() || undefined,
+      isAnonymous: this.isAnonymous(),
       type: this.formType(),
       subject,
       message
@@ -115,8 +77,7 @@ export class PqrComponent implements OnInit {
       next: () => {
         this.sending.set(false);
         this.sendSuccess.set(true);
-        this.formFullName.set('');
-        this.formEmail.set('');
+        this.isAnonymous.set(false);
         this.formPhone.set('');
         this.formType.set('peticion');
         this.formSubject.set('');
@@ -132,32 +93,4 @@ export class PqrComponent implements OnInit {
   dismissSuccess() {
     this.sendSuccess.set(false);
   }
-
-  toggleExpand(pqr: Pqr) {
-    if (this.expandedUuid() === pqr.uuid) {
-      this.expandedUuid.set(null);
-      return;
-    }
-    this.expandedUuid.set(pqr.uuid);
-    this.statusDraft.set(pqr.status);
-    this.responseDraft.set(pqr.response ?? '');
-    this.updateError.set(null);
-  }
-
-  submitStatusUpdate(pqr: Pqr) {
-    this.updating.set(true);
-    this.updateError.set(null);
-
-    this.pqrService.updateStatus(pqr.uuid, this.statusDraft(), this.responseDraft().trim() || undefined).subscribe({
-      next: (updated) => {
-        this.pqrs.update(list => list.map(p => (p.uuid === updated.uuid ? updated : p)));
-        this.updating.set(false);
-        this.expandedUuid.set(null);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.updating.set(false);
-        this.updateError.set(err?.error?.message ?? 'No se pudo actualizar la PQR.');
-      }
-    });
-  }
-}
+}

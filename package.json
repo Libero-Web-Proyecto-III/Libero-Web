@@ -19,5 +19,7 @@
     "url": "https://github.com/D4N-1/Libero-Web/issues"
   },
   "homepage": "https://github.com/D4N-1/Libero-Web#readme",
-  "dependencies": {}
+  "dependencies": {
+    "@nestjs/schedule": "^12.0.2"
+  }
 }

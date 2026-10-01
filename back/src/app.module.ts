@@ -10,6 +10,7 @@ import { UserModule } from './modules/user/user.module';
 import { PublicationModule } from './modules/publication/publication.module';
 import { EventModule } from './modules/event/event.module';
 import { FacebookModule } from './modules/facebook/facebook.module';
+import { CategoryModule } from './modules/category/category.module';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
@@ -17,8 +18,14 @@ import { JwtAuthGuard } from './common/guard/jwt-auth.guard';
 import { RolesGuard } from './common/guard/roles.guard';
 import { ReactionModule } from './modules/reaction/reaction.module';
 import { CommentModule } from './modules/comment/comment.module';
+import { SurveyModule } from './modules/survey/survey.module';
+import { VisitModule } from './modules/visit/visit.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PqrModule } from './modules/pqr/pqr.module';
 
+
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -27,6 +34,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
       isGlobal: true,
       envFilePath: '.env'
     }),
+
+    ScheduleModule.forRoot(),
 
     ThrottlerModule.forRoot([{
       ttl: 60_000,
@@ -37,13 +46,14 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     DatabaseModule,
 
     TagModule, RolModule,
-    UserModule, PublicationModule, ReactionModule,
-    EventModule, AuthModule, CommentModule, FacebookModule
-],
+    UserModule, PublicationModule, ReactionModule, PqrModule,
+    EventModule, AuthModule, CommentModule, SurveyModule,
+    VisitModule, FacebookModule, CategoryModule, NotificationModule
+  ],
   controllers: [AppController],
   providers: [
     AppService,
-    
+
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
@@ -58,4 +68,4 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

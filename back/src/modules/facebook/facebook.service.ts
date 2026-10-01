@@ -1,5 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as fs from 'fs';
+import * as path from 'path';
+import { spawn } from 'child_process';
 
 export interface FacebookPost {
   id: string;
@@ -10,66 +13,324 @@ export interface FacebookPost {
 }
 
 @Injectable()
-export class FacebookService {
+export class FacebookService implements OnModuleInit {
   private readonly logger = new Logger(FacebookService.name);
   private cachedPosts: FacebookPost[] | null = null;
   private lastFetchTime: number = 0;
-  private readonly CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutos de caché
+  private readonly CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutos de caché en memoria
+  private isScraping: boolean = false;
+  private readonly AUTO_SCRAPE_INTERVAL_MS = 6 * 60 * 60 * 1000; // Cada 6 horas
+  private readonly MAX_CACHE_AGE_MS = 4 * 60 * 60 * 1000; // Si supera 4 horas, se refresca
 
   constructor(private readonly configService: ConfigService) {
-    // Forzar recarga fresca en cada arranque del servidor
     this.cachedPosts = null;
     this.lastFetchTime = 0;
   }
 
-  async getLatestPosts(limit: number = 6): Promise<FacebookPost[]> {
-    const now = Date.now();
-    if (this.cachedPosts && now - this.lastFetchTime < this.CACHE_TTL_MS) {
-      return this.cachedPosts.slice(0, limit);
+  onModuleInit() {
+    // Al arrancar el servidor, precargar inmediatamente publicaciones disponibles en memoria
+    this.cachedPosts = this.getLocalScrapedPosts();
+    if (this.cachedPosts && this.cachedPosts.length > 0) {
+      this.lastFetchTime = Date.now();
+      this.logger.log(`Precargadas ${this.cachedPosts.length} publicaciones de Facebook en memoria.`);
     }
 
-    const rssUrl = this.configService.get<string>('FACEBOOK_RSS_URL');
-    const isValidRss = rssUrl && !rssUrl.includes('tu_feed_id') && rssUrl.trim().length > 0;
+    // Comprobar si hace falta scrapear
+    this.checkAndAutoScrape();
 
-    let posts: FacebookPost[] = [];
+    // Programar actualización automática cada 6 horas en segundo plano
+    setInterval(() => {
+      this.logger.log('Disparando actualización automática programada de Facebook...');
+      this.triggerBackgroundScrape();
+    }, this.AUTO_SCRAPE_INTERVAL_MS);
+  }
 
-    if (isValidRss) {
-      try {
-        this.logger.log(`Cargando publicaciones desde el feed RSS: ${rssUrl}`);
-        const response = await fetch(rssUrl);
-        if (response.ok) {
-          const contentType = response.headers.get('content-type') || '';
-          const bodyText = await response.text();
+  triggerBackgroundScrape(): boolean {
+    if (this.isScraping) {
+      this.logger.log('El scraper de Facebook ya está ejecutándose en segundo plano.');
+      return false;
+    }
 
-          if (contentType.includes('application/json') || bodyText.trim().startsWith('{')) {
-            try {
-              const json = JSON.parse(bodyText);
-              posts = this.parseJsonRss(json);
-            } catch {
-              posts = this.parseXmlRss(bodyText);
-            }
-          } else {
-            posts = this.parseXmlRss(bodyText);
-          }
+    const scriptPath = path.join(process.cwd(), 'scripts', 'scrape-facebook.js');
+    if (!fs.existsSync(scriptPath)) {
+      this.logger.warn(`No se encontró el script de scraping en: ${scriptPath}`);
+      return false;
+    }
 
-          if (posts.length > 0) {
-            this.logger.log(`Obtenidas ${posts.length} publicaciones desde el feed RSS con imágenes procesadas.`);
-            this.cachedPosts = posts;
-            this.lastFetchTime = now;
-            return posts.slice(0, limit);
-          }
-        } else {
-          this.logger.warn(`Error al consultar RSS de Facebook (${response.status}): ${response.statusText}`);
+    this.isScraping = true;
+    this.logger.log('Iniciando scraper automático de Facebook en segundo plano...');
+
+    try {
+      const child = spawn(process.execPath, [scriptPath], {
+        detached: true,
+        stdio: 'ignore',
+        cwd: process.cwd(),
+      });
+
+      child.unref();
+
+      child.on('close', (code) => {
+        this.isScraping = false;
+        this.logger.log(`Scraper automático finalizado con código: ${code}`);
+        // Recargar datos nuevos inmediatamente en memoria si el scraper generó publicaciones válidas
+        const freshPosts = this.getLocalScrapedPosts();
+        if (freshPosts && freshPosts.length > 0) {
+          this.cachedPosts = freshPosts;
+          this.lastFetchTime = Date.now();
+          this.logger.log(`Caché en memoria actualizada con ${freshPosts.length} publicaciones.`);
         }
-      } catch (error) {
-        this.logger.error('Excepción consultando el feed RSS de Facebook:', error);
+      });
+
+      child.on('error', (err) => {
+        this.isScraping = false;
+        this.logger.error('Error al ejecutar el scraper automático:', err);
+      });
+
+      return true;
+    } catch (err) {
+      this.isScraping = false;
+      this.logger.error('Excepción al lanzar el scraper automático:', err);
+      return false;
+    }
+  }
+
+  private checkAndAutoScrape() {
+    const candidates = [
+      path.join(process.cwd(), 'src', 'modules', 'facebook', 'facebook-posts.json'),
+      path.join(__dirname, 'facebook-posts.json'),
+    ];
+
+    let foundPath: string | null = null;
+    for (const p of candidates) {
+      if (fs.existsSync(p)) {
+        foundPath = p;
+        break;
       }
     }
 
-    posts = this.getFallbackPosts();
+    if (!foundPath) {
+      this.logger.log('No se encontró archivo de publicaciones. Iniciando primera extracción automática...');
+      this.triggerBackgroundScrape();
+      return;
+    }
+
+    try {
+      const stats = fs.statSync(foundPath);
+      const ageMs = Date.now() - stats.mtimeMs;
+      if (ageMs > this.MAX_CACHE_AGE_MS) {
+        const hours = (ageMs / (1000 * 60 * 60)).toFixed(1);
+        this.logger.log(
+          `El archivo de posts tiene ${hours} horas de antigüedad. Actualizando en segundo plano...`,
+        );
+        this.triggerBackgroundScrape();
+      }
+    } catch (e) {
+      this.logger.error('Error comprobando mtime del archivo de posts:', e);
+    }
+  }
+
+  async getLatestPosts(limit: number = 6): Promise<FacebookPost[]> {
+    const now = Date.now();
+    const diskFileMtime = this.getScrapedFileMtime();
+    const isCacheValid =
+      this.cachedPosts &&
+      this.cachedPosts.length >= limit &&
+      now - this.lastFetchTime < this.CACHE_TTL_MS &&
+      this.lastFetchTime >= diskFileMtime;
+
+    if (isCacheValid && this.cachedPosts) {
+      return this.cachedPosts.slice(0, limit);
+    }
+
+    const pageId = this.configService.get<string>('FACEBOOK_PAGE_ID');
+    const accessToken = this.configService.get<string>('FACEBOOK_ACCESS_TOKEN');
+    const isValidToken =
+      accessToken &&
+      accessToken.trim().length > 15 &&
+      !accessToken.includes('tu_facebook_page_access_token');
+    const isValidPageId =
+      pageId && pageId.trim().length > 0 && !pageId.includes('tu_facebook_page_id');
+
+    let posts: FacebookPost[] = [];
+
+    // 1. Intentar Meta Graph API oficial si las credenciales están configuradas
+    if (isValidToken && isValidPageId) {
+      const graphPosts = await this.fetchFromGraphApi(pageId.trim(), accessToken.trim(), limit);
+      if (graphPosts && graphPosts.length > 0) {
+        posts = graphPosts;
+      }
+    }
+
+    // 2. Si no hay publicaciones de Graph API, usar las extraídas por el Scraper
+    if (posts.length === 0) {
+      const scrapedPosts = this.getLocalScrapedPosts();
+      if (scrapedPosts && scrapedPosts.length > 0) {
+        posts = scrapedPosts;
+      }
+    }
+
+    // 3. Intentar RSS como alternativa terciaria si aún está vacío
+    if (posts.length === 0) {
+      const rssUrl = this.configService.get<string>('FACEBOOK_RSS_URL');
+      const isValidRss = rssUrl && !rssUrl.includes('tu_feed_id') && rssUrl.trim().length > 0;
+      if (isValidRss) {
+        const rssPosts = await this.fetchFromRss(rssUrl);
+        if (rssPosts && rssPosts.length > 0) {
+          posts = rssPosts;
+        }
+      }
+    }
+
+    // 4. Garantizar que SIEMPRE se retorne al menos el número de publicaciones solicitado (limit)
+    // Complementando con respaldos oficiales de alta calidad en caso de que falten publicaciones
+    if (posts.length < limit) {
+      const fallbacks = this.getFallbackPosts();
+      for (const fb of fallbacks) {
+        const alreadyIncluded = posts.some(
+          (p) => p.id === fb.id || (p.message && fb.message && p.message.slice(0, 30) === fb.message.slice(0, 30)),
+        );
+        if (!alreadyIncluded) {
+          posts.push(fb);
+        }
+        if (posts.length >= limit) break;
+      }
+    }
+
     this.cachedPosts = posts;
     this.lastFetchTime = now;
     return posts.slice(0, limit);
+  }
+
+  private getScrapedFileMtime(): number {
+    try {
+      const candidates = [
+        path.join(process.cwd(), 'src', 'modules', 'facebook', 'facebook-posts.json'),
+        path.join(process.cwd(), 'dist', 'modules', 'facebook', 'facebook-posts.json'),
+        path.join(__dirname, 'facebook-posts.json'),
+      ];
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          return fs.statSync(p).mtimeMs;
+        }
+      }
+    } catch {}
+    return 0;
+  }
+
+  private getLocalScrapedPosts(): FacebookPost[] | null {
+    try {
+      const candidates = [
+        path.join(__dirname, 'facebook-posts.json'),
+        path.join(process.cwd(), 'src', 'modules', 'facebook', 'facebook-posts.json'),
+        path.join(process.cwd(), 'dist', 'modules', 'facebook', 'facebook-posts.json'),
+      ];
+
+      for (const filePath of candidates) {
+        if (fs.existsSync(filePath)) {
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const data = JSON.parse(content);
+          if (Array.isArray(data) && data.length > 0) {
+            this.logger.log(
+              `Obtenidas ${data.length} publicaciones oficiales desde archivo scrapeado: ${filePath}`,
+            );
+            return data;
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error('Error leyendo facebook-posts.json local:', error);
+    }
+    return null;
+  }
+
+  private async fetchFromGraphApi(
+    pageId: string,
+    accessToken: string,
+    limit: number,
+  ): Promise<FacebookPost[] | null> {
+    try {
+      this.logger.log(`Consultando publicaciones desde Meta Graph API para la página: ${pageId}`);
+      const endpoint = `https://graph.facebook.com/v22.0/${encodeURIComponent(
+        pageId,
+      )}/posts?fields=id,message,story,full_picture,created_time,permalink_url&limit=${limit}&access_token=${encodeURIComponent(
+        accessToken,
+      )}`;
+
+      const response = await fetch(endpoint);
+      const data = (await response.json()) as any;
+
+      if (!response.ok || data.error) {
+        const errorMsg = data.error?.message || response.statusText;
+        const errorCode = data.error?.code;
+        this.logger.error(
+          `Error en Meta Graph API (Código ${errorCode || response.status}): ${errorMsg}`,
+        );
+        if (errorCode === 190) {
+          this.logger.error(
+            'El FACEBOOK_ACCESS_TOKEN ha caducado o es inválido. Genera un nuevo token en Meta for Developers.',
+          );
+        }
+        return null;
+      }
+
+      const items = data.data || [];
+      if (!Array.isArray(items) || items.length === 0) {
+        this.logger.warn('Meta Graph API respondió correctamente pero no contiene publicaciones en "data".');
+        return null;
+      }
+
+      const posts: FacebookPost[] = items.map((item: any, index: number) => {
+        const text = item.message || item.story || 'Noticia oficial del Proyecto Mocoa en Facebook.';
+        return {
+          id: item.id || `fb-graph-${index}`,
+          message: this.cleanTextMessage(text),
+          full_picture: this.cleanUrl(item.full_picture),
+          created_time: item.created_time || new Date().toISOString(),
+          permalink_url: item.permalink_url || `https://www.facebook.com/${item.id || pageId}`,
+        };
+      });
+
+      this.logger.log(`Obtenidas ${posts.length} publicaciones exitosamente desde Meta Graph API.`);
+      return posts;
+    } catch (error) {
+      this.logger.error('Excepción consultando Meta Graph API:', error);
+      return null;
+    }
+  }
+
+  private async fetchFromRss(rssUrl: string): Promise<FacebookPost[] | null> {
+    try {
+      this.logger.log(`Cargando publicaciones desde el feed RSS: ${rssUrl}`);
+      const response = await fetch(rssUrl);
+      if (!response.ok) {
+        this.logger.warn(`Error al consultar RSS de Facebook (${response.status}): ${response.statusText}`);
+        return null;
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+      const bodyText = await response.text();
+
+      let posts: FacebookPost[] = [];
+      if (contentType.includes('application/json') || bodyText.trim().startsWith('{')) {
+        try {
+          const json = JSON.parse(bodyText);
+          posts = this.parseJsonRss(json);
+        } catch {
+          posts = this.parseXmlRss(bodyText);
+        }
+      } else {
+        posts = this.parseXmlRss(bodyText);
+      }
+
+      if (posts.length > 0) {
+        this.logger.log(`Obtenidas ${posts.length} publicaciones desde el feed RSS con imágenes procesadas.`);
+        return posts;
+      }
+      return null;
+    } catch (error) {
+      this.logger.error('Excepción consultando el feed RSS de Facebook:', error);
+      return null;
+    }
   }
 
   private parseJsonRss(json: any): FacebookPost[] {

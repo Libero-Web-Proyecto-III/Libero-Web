@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -13,14 +14,17 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { GetCommentQueryDto } from './dto/get-comment-query.dto';
 import { CommentEntity } from './entities/comment.entity';
+import { UserEntity } from '../user/entities/user.entity';
+import { JwtAuthGuard } from '../../common/guard/jwt-auth.guard';
+import { RolesGuard } from '../../common/guard/roles.guard';
+import { PRIVATE } from 'src/common/decorator/private.decorator';
 
-// NOTA: igual que en publication.controller.ts, se usa @Req() req.user
-// como autor. Cuando el equipo tenga listo el módulo de autenticación
-// (guard que llene req.user), esto queda funcionando sin cambios.
 @ApiTags('comments')
+@ApiBearerAuth()
 @Controller('comments')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CommentController {
-  constructor(private readonly commentService: CommentService) {}
+  constructor(private readonly commentService: CommentService) { }
 
   @Get()
   @ApiOperation({
@@ -95,7 +99,9 @@ export class CommentController {
     return this.commentService.findOneBy.uuid(uuid);
   }
 
+  @PRIVATE()
   @Post()
+  @PRIVATE()
   @ApiOperation({
     summary: 'Crear un comentario en una publicación',
     description:
@@ -129,10 +135,13 @@ export class CommentController {
     },
   })
   create(@Body() dto: CreateCommentDto, @Req() req: any) {
-    return this.commentService.create(dto, req.user);
+    const userIndex = req.user?.id ?? req.user?.index;
+    return this.commentService.create(dto, { index: userIndex, id: userIndex } as any);
   }
 
+  @PRIVATE()
   @Patch(':uuid')
+  @PRIVATE()
   @ApiOperation({
     summary: 'Editar un comentario (solo el autor puede hacerlo)',
     description:
@@ -178,15 +187,17 @@ export class CommentController {
     },
   })
   update(@Param('uuid') uuid: string, @Body() dto: UpdateCommentDto, @Req() req: any) {
-    return this.commentService.update(uuid, dto, req.user);
+    const userIndex = req.user?.id ?? req.user?.index;
+    return this.commentService.update(uuid, dto, { index: userIndex, id: userIndex, role: req.user?.role } as any);
   }
 
+  @PRIVATE()
   @Delete(':uuid')
   @ApiOperation({
-    summary: 'Eliminar (soft delete) un comentario (solo el autor)',
+    summary: 'Eliminar (soft delete) un comentario (solo el autor o moderador/admin)',
     description:
       'Elimina lógicamente un comentario (soft delete, se conserva en base de datos con `deletedAt` establecido). ' +
-      'Solo el autor original del comentario puede eliminarlo.',
+      'Permitido para el autor original, o para moderadores y administradores especificando motivo.',
   })
   @ApiParam({
     name: 'uuid',
@@ -195,39 +206,19 @@ export class CommentController {
   })
   @ApiOkResponse({
     description: 'Comentario eliminado (soft delete) correctamente.',
-    schema: {
-      example: {
-        message: 'Comentario ELIMINADO',
-        comment: {
-          index: 10,
-          uuid: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
-          content: 'Muy buen post!',
-          deletedAt: '2026-08-08T10:20:00.000Z',
-        },
-      },
-    },
   })
-  @ApiNotFoundResponse({
-    description: 'No existe ningún comentario con el uuid indicado.',
-    schema: {
-      example: {
-        statusCode: 404,
-        message: 'No se encontró este comentario',
-        error: 'Not Found',
-      },
-    },
-  })
-  @ApiForbiddenResponse({
-    description: 'El usuario autenticado no es el autor del comentario.',
-    schema: {
-      example: {
-        statusCode: 403,
-        message: 'No puedes eliminar un comentario que no es tuyo',
-        error: 'Forbidden',
-      },
-    },
-  })
-  remove(@Param('uuid') uuid: string, @Req() req: any) {
-    return this.commentService.remove(uuid, req.user);
+  remove(
+    @Param('uuid') uuid: string,
+    @Body() body: { reason?: string },
+    @Query('reason') queryReason: string,
+    @Req() req: any,
+  ) {
+    const userIndex = req.user?.id ?? req.user?.index;
+    const reason = body?.reason || queryReason;
+    return this.commentService.remove(
+      uuid,
+      { index: userIndex, id: userIndex, role: req.user?.role } as any,
+      reason,
+    );
   }
 }

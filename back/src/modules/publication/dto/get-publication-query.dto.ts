@@ -1,4 +1,4 @@
-import { IsOptional, IsPositive } from 'class-validator';
+import { IsOptional, IsPositive, IsUUID } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -22,4 +22,12 @@ export class GetAllPublicationQueryDto {
   @Type(() => Number)
   @IsPositive()
   limit?: number = 10;
+
+  @ApiPropertyOptional({
+    description: 'Filtrar publicaciones por categoría (uuid)',
+    example: '9c858901-8a57-4791-81fe-4c455b099bc9',
+  })
+  @IsOptional()
+  @IsUUID()
+  categoryUuid?: string;
 }

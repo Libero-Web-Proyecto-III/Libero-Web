@@ -185,7 +185,6 @@
 
     .card-img {
       transform: scale(1.06);
-      filter: grayscale(100%) contrast(1.2);
     }
 
     .cta-btn:not(.subscribed-btn) {
@@ -207,12 +206,36 @@
   overflow: hidden;
   background-color: #000000;
 
+  &.is-fallback-logo,
+  &.white-bg {
+    background-color: #ffffff !important;
+    border-right: 1px solid #e4e4e7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .card-img-overlay {
+      display: none !important;
+    }
+  }
+
   .card-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: grayscale(100%) contrast(1.1);
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &.fallback-logo {
+      object-fit: contain !important;
+      width: 48% !important;
+      height: 48% !important;
+      max-width: 180px !important;
+      max-height: 180px !important;
+      margin: auto;
+      background-color: transparent !important;
+      padding: 0 !important;
+    }
   }
 
   .card-img-overlay {
@@ -352,6 +375,51 @@
       color: #71717a;
     }
   }
+
+  .subscribed-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .active-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #166534;
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 0.5rem 0.85rem;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #dcfce7;
+      }
+    }
+
+    .unsubscribe-card-btn {
+      background-color: #ffffff;
+      border: 1px solid #fca5a5;
+      color: #dc2626;
+      padding: 0.65rem 1.1rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #fef2f2;
+        border-color: #ef4444;
+        color: #991b1b;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+      }
+    }
+  }
 }
 
 /* ==========================================================================
@@ -441,11 +509,31 @@
     border-radius: 6px;
     overflow: hidden;
 
+    &.is-fallback-logo,
+    &.white-bg {
+      background-color: #ffffff !important;
+      border: 1px solid #e4e4e7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      filter: grayscale(100%) contrast(1.15);
+      display: block;
+
+      &.fallback-logo {
+        object-fit: contain !important;
+        width: 48% !important;
+        height: 48% !important;
+        max-width: 160px !important;
+        max-height: 140px !important;
+        margin: auto;
+        background-color: transparent !important;
+        padding: 0 !important;
+      }
     }
   }
 
@@ -483,6 +571,25 @@
   justify-content: flex-end;
   gap: 1rem;
 
+  .modal-error-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+
+    .alert-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+  }
+
   .modal-cancel-btn {
     padding: 0.75rem 1.5rem;
     background: transparent;
@@ -491,12 +598,21 @@
     border-radius: 4px;
     cursor: pointer;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: #f4f4f5;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 
   .modal-confirm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     padding: 0.75rem 1.75rem;
     background-color: #000000;
     border: none;
@@ -504,10 +620,53 @@
     font-weight: 800;
     border-radius: 4px;
     cursor: pointer;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       opacity: 0.9;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: #71717a;
+    }
+
+    .btn-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+
+  .modal-unsubscribe-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    background-color: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #e11d48;
+    font-weight: 800;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background-color: #ffe4e6;
+      border-color: #fda4af;
+      color: #be123c;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.15);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 }
@@ -541,6 +700,18 @@
     margin-bottom: 0.4rem;
   }
 
+  .email-highlight {
+    display: inline-block;
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    color: #09090b;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    margin: 0.35rem 0 0.85rem;
+  }
+
   .event-name-highlight {
     font-size: 1.1rem;
     font-weight: 700;
@@ -554,11 +725,53 @@
     margin-bottom: 1.5rem;
   }
 
+  .btn-success-understood {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.85rem 2.25rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+    transition: all 0.2s ease;
+
+    svg {
+      transition: transform 0.2s ease;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(234, 88, 12, 0.35);
+      border-color: #ea580c;
+
+      svg {
+        transform: scale(1.15);
+      }
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
   .success-actions {
     display: flex;
     justify-content: center;
     margin-top: 1.25rem;
   }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Animations */

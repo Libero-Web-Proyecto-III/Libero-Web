@@ -1,34 +1,41 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { TermsModalComponent } from '../../common/terms-modal/terms-modal.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, TermsModalComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
-  // Estado completo utilizado por el formulario de inicio de sesión y sus mensajes visuales.
+  // Propiedades públicas del formulario y estado de la interfaz
   public LoginForm: FormGroup;
   public IsLoading: boolean = false;
   public ShowPassword: boolean = false;
   public ErrorMessage: string | null = null;
   public SuccessMessage: string | null = null;
 
+  // Estado del modal de Términos y Condiciones
+  public IsTermsModalOpen: boolean = false;
+  public TermsModalTab: 'terms' | 'privacy' = 'terms';
+
   // Constructor: Inyección de servicios e inicialización de validaciones
   constructor(
     private FormBuilderService: FormBuilder,
     private RouterService: Router,
-    private AuthService: AuthService
+    private AuthService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {
-    // Define los campos del login y las validaciones que deben cumplir antes del envío.
+    // Configuración del grupo de controles y reglas de validación del Login
     this.LoginForm = this.FormBuilderService.group({
-      UserEmail: ['', [Validators.required]],
-      UserPassword: ['', [Validators.required]],
+      UserEmail: ['', [Validators.required, Validators.email]],
+      UserPassword: ['', [Validators.required, Validators.minLength(6)]],
       RememberMe: [false],
     });
   }
@@ -38,8 +45,21 @@ export class LoginComponent {
     this.ShowPassword = !this.ShowPassword;
   }
 
+  // Apertura y control del modal de Términos y Condiciones
+  public OpenTermsModal(tab: 'terms' | 'privacy' = 'terms'): void {
+    this.TermsModalTab = tab;
+    this.IsTermsModalOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  public CloseTermsModal(): void {
+    this.IsTermsModalOpen = false;
+    this.cdr.detectChanges();
+  }
+
   // Procesamiento y envío del formulario de inicio de sesión
   public OnSubmit(): void {
+    // Validación previa de campos antes de procesar
     if (this.LoginForm.invalid) {
       this.LoginForm.markAllAsTouched();
       return;
@@ -49,25 +69,45 @@ export class LoginComponent {
     this.IsLoading = true;
     this.ErrorMessage = null;
     this.SuccessMessage = null;
+    this.cdr.detectChanges();
 
-    const payload = {
-      identifier: this.LoginForm.value.UserEmail,
-      password: this.LoginForm.value.UserPassword,
-    };
+    const identifier = (this.LoginForm.value.UserEmail || '').trim();
+    const password = this.LoginForm.value.UserPassword;
+    const rememberMe = !!this.LoginForm.value.RememberMe;
 
-    // Envío HTTP real al backend NestJS (POST http://localhost:3000/auth/login)
-    this.AuthService.login(payload).subscribe({
-      next: (response) => {
-        this.IsLoading = false;
-        this.SuccessMessage = response.message || '¡Inicio de sesión exitoso! Redirigiendo...';
-        setTimeout(() => {
-          this.RouterService.navigate(['/']);
-        }, 1500);
-      },
-      error: (err: Error) => {
-        this.IsLoading = false;
-        this.ErrorMessage = err.message;
-      },
-    });
+    this.AuthService.login({
+      identifier,
+      password,
+      rememberMe,
+    })
+      .pipe(
+        finalize(() => {
+          this.IsLoading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: response => {
+          this.SuccessMessage = response.message || '¡Inicio de sesión exitoso! Redirigiendo...';
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.RouterService.navigate(['/']);
+          }, 1500);
+        },
+        error: (err) => {
+          if (err?.status === 404) {
+            this.ErrorMessage = 'Cuenta no encontrada o no registrada';
+          } else if (err?.status === 401) {
+            this.ErrorMessage = 'Contraseña incorrecta';
+          } else if (err?.error?.message) {
+            this.ErrorMessage = Array.isArray(err.error.message)
+              ? err.error.message[0]
+              : err.error.message;
+          } else {
+            this.ErrorMessage = 'No se pudo iniciar sesión. Por favor verifica tus credenciales o conexión.';
+          }
+          this.cdr.detectChanges();
+        },
+      });
   }
-}
+}

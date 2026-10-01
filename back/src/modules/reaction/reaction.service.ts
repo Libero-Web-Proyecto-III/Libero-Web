@@ -28,18 +28,8 @@ export class ReactionService {
     private readonly commentRepository: Repository<CommentEntity>,
     @InjectRepository(PublicationEntity)
     private readonly publicationRepository: Repository<PublicationEntity>,
-  ) {}
+  ) { }
 
-  /**
-   * Lógica central del módulo (toggle), válida tanto para reaccionar a un
-   * COMENTARIO como a una PUBLICACIÓN (se manda uno solo de los dos uuid).
-   *
-   * Un usuario solo puede tener UNA reacción por comentario/publicación,
-   * nunca like y dislike al mismo tiempo sobre el mismo elemento:
-   *   - No existe reacción todavía        -> se crea.
-   *   - Ya existe con el MISMO tipo        -> se elimina (quitar el like/dislike).
-   *   - Ya existe con tipo DISTINTO        -> se actualiza al nuevo tipo.
-   */
   async react(dto: CreateReactionDto, author: UserEntity): Promise<ReactResult> {
     if (dto.commentUuid && dto.publicationUuid) {
       throw new BadRequestException('Solo puedes reaccionar a un comentario O a una publicación, no a ambos');
@@ -54,28 +44,30 @@ export class ReactionService {
     return this.reactToPublication(dto.publicationUuid as string, dto.type, author);
   }
 
-  private async reactToComment(commentUuid: string, type: ReactionType, author: UserEntity): Promise<ReactResult> {
+  private async reactToComment(commentUuid: string, type: ReactionType, author: UserEntity & { id?: number }): Promise<ReactResult> {
     const comment = await this.commentRepository.findOne({ where: { uuid: commentUuid } });
     if (!comment) throw new NotFoundException('No se encontró el comentario a reaccionar');
 
+    const authorIndex = author.index ?? author.id;
     const existing = await this.reactionRepository.findOne({
-      where: { comment: { uuid: commentUuid }, author: { uuid: author.uuid } },
+      where: authorIndex ? { comment: { uuid: commentUuid }, author: { index: authorIndex } } : { comment: { uuid: commentUuid }, author: { uuid: author.uuid } },
       relations: { comment: true, author: true },
     });
 
-    return this.applyToggle(existing, type, { comment, publication: null, author });
+    return this.applyToggle(existing, type, { comment, publication: null, author: { index: authorIndex } as UserEntity });
   }
 
-  private async reactToPublication(publicationUuid: string, type: ReactionType, author: UserEntity): Promise<ReactResult> {
+  private async reactToPublication(publicationUuid: string, type: ReactionType, author: UserEntity & { id?: number }): Promise<ReactResult> {
     const publication = await this.publicationRepository.findOne({ where: { uuid: publicationUuid } });
     if (!publication) throw new NotFoundException('No se encontró la publicación a reaccionar');
 
+    const authorIndex = author.index ?? author.id;
     const existing = await this.reactionRepository.findOne({
-      where: { publication: { uuid: publicationUuid }, author: { uuid: author.uuid } },
+      where: authorIndex ? { publication: { uuid: publicationUuid }, author: { index: authorIndex } } : { publication: { uuid: publicationUuid }, author: { uuid: author.uuid } },
       relations: { publication: true, author: true },
     });
 
-    return this.applyToggle(existing, type, { comment: null, publication, author });
+    return this.applyToggle(existing, type, { comment: null, publication, author: { index: authorIndex } as UserEntity });
   }
 
   private async applyToggle(

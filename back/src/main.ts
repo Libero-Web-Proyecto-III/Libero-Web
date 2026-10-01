@@ -1,7 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import cors from "cors";
 import { json, urlencoded } from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -11,41 +12,30 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-
-  //////////// CORS /////////////
-
-  const CORS_config = {
-    origin: [
-      /\.liberocobre\.online$/,
-      'https://liberocobre.online',
-      'http://localhost:81',
-      'http://127.0.0.1:81',
-      'http://127.0.0.1:3000'
-    ],
-    credentials: true,
-    allowedHeaders: [ 'Content-Type', 'Authorization', 'Accept' ],
-    maxAge: 3_600,
-    optionsSuccessStatus: 200,
-    methods: [ 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS' ],
-  }
-
-  app.enableCors(CORS_config);
-
-  ///////// GLOBAL ///////////
-  app.useGlobalPipes( new ValidationPipe({
+  ///////// GLOBAL PIPES & INTERCEPTORS ///////////
+  app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
     transform: true
-  }))
+  }));
+
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(reflector));
 
 
+
+  ////////// CORS /////////////
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
 
   ////////// USE ///////////////
-
-  app.use( json({ limit: '10mb' }) );
-  app.use( urlencoded({ extended: true, limit: '10mb' }) );
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
   app.set('trust proxy', 'loopback');
-  app.use( helmet() );
+  app.use(helmet());
 
 
   //// SWAGGER / SCALAR ////////
@@ -57,7 +47,7 @@ async function bootstrap() {
     .addCookieAuth()
     .build()
 
-  
+
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('docs', app, document);

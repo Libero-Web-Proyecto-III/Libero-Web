@@ -1,128 +1,92 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
-import { Comment, Publication, ReactionType } from './publication.model';
+import { Category, Comment, Publication, ReactionType } from './publication.model';
+import { NoticeService } from './services/notice.service';
+import { CommentService } from './services/comment.service';
+import { ReactionService } from './services/reaction.service';
+import { CategoryService } from './services/category.service';
+import { AuthService } from '../auth/services/auth.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { SafeUrlPipe } from './safe-url.pipe';
+import { CategoryIconComponent } from '../common/category-icon/category-icon.component';
 
 @Component({
   selector: 'app-notice',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, FooterComponent, SafeUrlPipe, CategoryIconComponent],
   templateUrl: './notice.component.html',
   styleUrl: './notice.component.scss'
 })
-export class NoticeComponent {
+export class NoticeComponent implements OnInit {
   selectedUuid = signal<string | null>(null);
+  openTagsCommentUuid = signal<string | null>(null);
   newCommentDraft = signal<string>('');
+  news = signal<Publication[]>([]);
+  loading = signal<boolean>(true);
+  errorMessage = signal<string | null>(null);
+  commentsLoading = signal(false);
+  reactionError = signal<string | null>(null);
+  categories = signal<Category[]>([]);
+  selectedCategoryUuid = signal<string | null>(null);
 
-  news = signal<Publication[]>([
-    {
-      uuid: '1',
-      title: 'Nuevo avance en energías renovables promete duplicar la eficiencia solar',
-      content:
-        'Un equipo de investigadores presentó un panel solar de doble capa que aprovecha longitudes de onda antes desperdiciadas. Según los primeros resultados, la eficiencia de conversión podría acercarse al 45% en condiciones controladas, un salto importante frente al estándar actual de la industria.',
-      media: [{ url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1400&q=80', type: 'image' }],
-      author: 'Redacción Ciencia',
-      createdAt: new Date('2026-09-01T10:00:00'),
-      likes: 24,
-      dislikes: 2,
-      userReaction: null,
-      comments: [
-        {
-          uuid: 'c1', author: 'Marcela R.', content: 'Ojalá esto llegue pronto a proyectos comunitarios.',
-          createdAt: new Date('2026-09-01T12:00:00'), likes: 5, dislikes: 0, userReaction: null
-        },
-        {
-          uuid: 'c2', author: 'Andrés T.', content: 'Falta ver el costo de producción real, pero suena prometedor.',
-          createdAt: new Date('2026-09-01T13:30:00'), likes: 2, dislikes: 1, userReaction: null
-        }
-      ]
-    },
-    {
-      uuid: '2',
-      title: 'Descubren especie marina bioluminiscente en aguas profundas del Pacífico',
-      content:
-        'La expedición registró un organismo nunca antes catalogado a más de 3.000 metros de profundidad. Su capacidad de emitir luz propia podría ayudar a entender mejor los ecosistemas de zonas abisales, prácticamente inexploradas hasta hace pocos años.',
-      media: [{ url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1400&q=80', type: 'image' }],
-      author: 'Redacción Ciencia',
-      createdAt: new Date('2026-08-29T09:15:00'),
-      likes: 41,
-      dislikes: 1,
-      userReaction: null,
-      comments: [
-        {
-          uuid: 'c3', author: 'Laura P.', content: 'El océano sigue guardando sorpresas increíbles.',
-          createdAt: new Date('2026-08-29T10:00:00'), likes: 8, dislikes: 0, userReaction: null
-        }
-      ]
-    },
-    {
-      uuid: '3',
-      title: 'Ciudades inteligentes: la movilidad eléctrica avanza en Latinoamérica',
-      content:
-        'Varias capitales de la región están ampliando sus flotas de transporte público eléctrico. El reporte destaca reducciones medibles en ruido y emisiones locales, aunque advierte sobre los retos de infraestructura de carga a gran escala.',
-      media: [{ url: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=1400&q=80', type: 'image' }],
-      author: 'Redacción Urbana',
-      createdAt: new Date('2026-08-25T08:00:00'),
-      likes: 17,
-      dislikes: 3,
-      userReaction: null,
-      comments: []
-    },
-    {
-      uuid: '4',
-      title: 'Documental corto: el futuro del reciclaje de plástico',
-      content:
-        'Un recorrido audiovisual por plantas de reciclaje de nueva generación que separan y transforman plástico con procesos casi completamente automatizados, reduciendo tiempos y contaminación cruzada entre materiales.',
-      media: [{
-        url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-        type: 'video',
-        poster: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=1400&q=80'
-      }],
-      author: 'Comunicaciones',
-      createdAt: new Date('2026-08-20T14:00:00'),
-      likes: 30,
-      dislikes: 0,
-      userReaction: null,
-      comments: [
-        {
-          uuid: 'c4', author: 'Julián S.', content: 'Excelente edición, se entiende clarísimo el proceso.',
-          createdAt: new Date('2026-08-20T15:00:00'), likes: 6, dislikes: 0, userReaction: null
-        }
-      ]
-    },
-    {
-      uuid: '5',
-      title: 'Avance médico: nueva terapia genética reduce riesgo cardiovascular',
-      content:
-        'Los resultados preliminares de un ensayo clínico muestran una disminución significativa de un marcador asociado a enfermedades del corazón. Los investigadores piden cautela: aún se necesitan estudios más amplios antes de hablar de un tratamiento definitivo.',
-      media: [{ url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1400&q=80', type: 'image' }],
-      author: 'Redacción Salud',
-      createdAt: new Date('2026-08-15T11:00:00'),
-      likes: 52,
-      dislikes: 4,
-      userReaction: null,
-      comments: []
-    },
-    {
-      uuid: '6',
-      title: 'Reportaje: la robótica aplicada a la agricultura sostenible',
-      content:
-        'Pequeños robots autónomos ya están ayudando a identificar plagas y optimizar el riego en cultivos piloto. El reportaje muestra cómo esta tecnología busca reducir el uso de agroquímicos sin afectar el rendimiento de la cosecha.',
-      media: [{
-        url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/coffee.mp4',
-        type: 'video',
-        poster: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1400&q=80'
-      }],
-      author: 'Comunicaciones',
-      createdAt: new Date('2026-08-10T09:00:00'),
-      likes: 19,
-      dislikes: 1,
-      userReaction: null,
-      comments: []
-    }
-  ]);
+  selectedCategoryName = computed(() =>
+    this.categories().find(c => c.uuid === this.selectedCategoryUuid())?.name ?? ''
+  );
+
+  featured = computed(() => (this.selectedCategoryUuid() ? null : this.news()[0] ?? null));
+  recentThree = computed(() => (this.selectedCategoryUuid() ? [] : this.news().slice(1, 4)));
+  sidebarLatest = computed(() => (this.selectedCategoryUuid() ? [] : this.news().slice(0, 5)));
+
+  public readonly authService = inject(AuthService);
+  readonly currentUser = this.authService.currentUser;
+  readonly isLoggedIn = this.authService.isLoggedIn;
+
+  constructor(
+    private noticeService: NoticeService,
+    private commentService: CommentService,
+    private reactionService: ReactionService,
+    private categoryService: CategoryService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) { }
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const categoria = params.get('categoria');
+      this.selectedCategoryUuid.set(categoria);
+      this.loadNews(categoria ?? undefined);
+    });
+
+    this.loadCategories();
+  }
+
+  private loadNews(categoryUuid?: string) {
+    this.loading.set(true);
+    this.noticeService.findAll(1, 50, categoryUuid).subscribe({
+      next: (res) => {
+        this.news.set(res.data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('No se pudieron cargar las noticias. Verifica que el backend esté corriendo en localhost:3000.');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private loadCategories() {
+    this.categoryService.findAll().subscribe({
+      next: (categories) => this.categories.set(categories),
+      error: () => {
+        // Si falla, simplemente no habrá opciones de categoría en los formularios.
+      }
+    });
+  }
 
   selectedForModal = computed(() =>
     this.news().find(n => n.uuid === this.selectedUuid()) ?? null
@@ -131,76 +95,302 @@ export class NoticeComponent {
   openModal(uuid: string) {
     this.selectedUuid.set(uuid);
     this.newCommentDraft.set('');
+    this.reactionError.set(null);
+    this.loadReactionSummary(uuid);
+    this.loadComments(uuid);
   }
 
   closeModal() {
     this.selectedUuid.set(null);
   }
 
+  private loadReactionSummary(publicationUuid: string) {
+    this.reactionService.getPublicationSummary(publicationUuid).subscribe({
+      next: (summary) => {
+        this.news.update(list =>
+          list.map(pub =>
+            pub.uuid === publicationUuid
+              ? { ...pub, likes: summary.likes, dislikes: summary.dislikes, userReaction: summary.userReaction }
+              : pub
+          )
+        );
+      },
+      error: () => {
+        // Si falla, se queda con el conteo que ya tenía. No es crítico.
+      }
+    });
+  }
+
+  private loadComments(publicationUuid: string) {
+    this.commentsLoading.set(true);
+    this.commentService.findByPublication(publicationUuid).subscribe({
+      next: (comments) => {
+        if (comments.length === 0) {
+          this.news.update(list =>
+            list.map(pub => (pub.uuid === publicationUuid ? { ...pub, comments } : pub))
+          );
+          this.commentsLoading.set(false);
+          return;
+        }
+
+        const summaryRequests = comments.map(c => this.reactionService.getCommentSummary(c.uuid));
+
+        forkJoin(summaryRequests).subscribe({
+          next: (summaries) => {
+            const enriched = comments.map((c, i) => ({
+              ...c,
+              likes: summaries[i].likes,
+              dislikes: summaries[i].dislikes,
+              userReaction: summaries[i].userReaction
+            }));
+            this.news.update(list =>
+              list.map(pub => (pub.uuid === publicationUuid ? { ...pub, comments: enriched } : pub))
+            );
+            this.commentsLoading.set(false);
+          },
+          error: () => {
+            this.news.update(list =>
+              list.map(pub => (pub.uuid === publicationUuid ? { ...pub, comments } : pub))
+            );
+            this.commentsLoading.set(false);
+          }
+        });
+      },
+      error: () => {
+        this.commentsLoading.set(false);
+      }
+    });
+  }
+
   toggleReaction(publicationUuid: string, type: ReactionType) {
-    this.news.update(list =>
-      list.map(pub => (pub.uuid === publicationUuid ? this.applyReaction(pub, type) : pub))
-    );
+    this.reactionError.set(null);
+    this.reactionService.toggle({ publicationUuid }, type).subscribe({
+      next: (result) => {
+        this.news.update(list =>
+          list.map(pub =>
+            pub.uuid === publicationUuid ? this.applyReactionResult(pub, type, result.action) : pub
+          )
+        );
+      },
+      error: (err: HttpErrorResponse) => {
+        this.reactionError.set(
+          err.status === 401 ? 'Debes iniciar sesión para reaccionar.' : 'No se pudo procesar tu reacción.'
+        );
+      }
+    });
   }
 
   toggleCommentReaction(publicationUuid: string, commentUuid: string, type: ReactionType) {
-    this.news.update(list =>
-      list.map(pub => {
-        if (pub.uuid !== publicationUuid) return pub;
-        return {
-          ...pub,
-          comments: pub.comments.map(c => (c.uuid === commentUuid ? this.applyReaction(c, type) : c))
-        };
-      })
-    );
+    this.reactionError.set(null);
+    this.reactionService.toggle({ commentUuid }, type).subscribe({
+      next: (result) => {
+        this.news.update(list =>
+          list.map(pub => {
+            if (pub.uuid !== publicationUuid) return pub;
+            return {
+              ...pub,
+              comments: pub.comments.map(c =>
+                c.uuid === commentUuid ? this.applyReactionResult(c, type, result.action) : c
+              )
+            };
+          })
+        );
+      },
+      error: (err: HttpErrorResponse) => {
+        this.reactionError.set(
+          err.status === 401 ? 'Debes iniciar sesión para reaccionar.' : 'No se pudo procesar tu reacción.'
+        );
+      }
+    });
+  }
+
+  sortOption = signal<'recent' | 'comments' | 'likes'>('recent');
+
+  sortedNews = computed(() => {
+    const list = [...this.news()];
+    const opt = this.sortOption();
+
+    if (opt === 'comments') return list.sort((a, b) => b.comments.length - a.comments.length);
+    if (opt === 'likes') return list.sort((a, b) => b.likes - a.likes);
+    return list.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  });
+
+  featuredInCategory = computed(() => this.sortedNews()[0] ?? null);
+  restInCategory = computed(() => this.sortedNews().slice(1));
+
+  topRead = computed(() =>
+    [...this.news()]
+      .sort((a, b) => (b.likes + b.comments.length) - (a.likes + a.comments.length))
+      .slice(0, 5)
+  );
+
+  setSortOption(value: string) {
+    this.sortOption.set(value as 'recent' | 'comments' | 'likes');
+  }
+
+  viewAll = signal(false);
+
+  showListView = computed(() => !!this.selectedCategoryUuid() || this.viewAll());
+
+  showAllNews() {
+    this.viewAll.set(true);
+  }
+
+  goToCategory(categoryUuid: string) {
+    this.sortOption.set('recent');
+    this.router.navigate([], { relativeTo: this.route, queryParams: { categoria: categoryUuid } });
+  }
+
+  clearCategoryFilter() {
+    this.sortOption.set('recent');
+    this.viewAll.set(false);
+    this.router.navigate([], { relativeTo: this.route, queryParams: {} });
+  }
+
+  readonly isModeratorOrAdmin = computed(() => {
+    const role = this.currentUser()?.role?.toLowerCase()?.trim();
+    return role === 'admin' || role === 'administrador' || role === 'mod' || role === 'moderador';
+  });
+
+  canDeleteComment(comment: Comment): boolean {
+    if (!this.isLoggedIn()) return false;
+    if (this.isModeratorOrAdmin()) return true;
+    const currentUsername = this.currentUser()?.username;
+    return !!currentUsername && comment.author === currentUsername;
+  }
+
+  moderationModalOpen = signal<boolean>(false);
+  selectedCommentToModerate = signal<{ publicationUuid: string; comment: Comment } | null>(null);
+  moderationReasonDraft = signal<string>('');
+  moderationError = signal<string | null>(null);
+  moderationDeleting = signal<boolean>(false);
+
+  readonly presetReasons = [
+    'Lenguaje inapropiado o falta de respeto',
+    'Spam o contenido no relacionado',
+    'Incumplimiento de normas comunitarias',
+    'Información falsa o engañosa',
+    'Acoso o mensajes ofensivos',
+  ];
+
+  selectPresetReason(reason: string): void {
+    this.moderationReasonDraft.set(reason);
+    this.moderationError.set(null);
+  }
+
+  openDeleteCommentDialog(publicationUuid: string, comment: Comment): void {
+    this.selectedCommentToModerate.set({ publicationUuid, comment });
+    this.moderationReasonDraft.set('');
+    this.moderationError.set(null);
+    this.moderationModalOpen.set(true);
+  }
+
+  closeModerationModal(): void {
+    this.moderationModalOpen.set(false);
+    this.selectedCommentToModerate.set(null);
+    this.moderationReasonDraft.set('');
+    this.moderationError.set(null);
+  }
+
+  confirmDeleteComment(): void {
+    const target = this.selectedCommentToModerate();
+    if (!target) return;
+
+    const currentUsername = this.currentUser()?.username;
+    const isAuthor = target.comment.author === currentUsername;
+    const isMod = this.isModeratorOrAdmin();
+
+    // Si no es el autor y es moderador/admin, la razón es obligatoria
+    if (!isAuthor && isMod && !this.moderationReasonDraft().trim()) {
+      this.moderationError.set('Por favor especifica el motivo o selecciona una razón para notificar al usuario.');
+      return;
+    }
+
+    const reason = (!isAuthor && isMod) ? this.moderationReasonDraft().trim() : undefined;
+    this.moderationDeleting.set(true);
+    this.moderationError.set(null);
+
+    this.commentService.delete(target.comment.uuid, reason).subscribe({
+      next: () => {
+        this.news.update(list =>
+          list.map(pub =>
+            pub.uuid === target.publicationUuid
+              ? { ...pub, comments: pub.comments.filter(c => c.uuid !== target.comment.uuid) }
+              : pub
+          )
+        );
+        this.moderationDeleting.set(false);
+        this.closeModerationModal();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.moderationDeleting.set(false);
+        this.moderationError.set(
+          err?.error?.message ?? 'No se pudo eliminar el comentario. Inténtalo de nuevo.'
+        );
+      },
+    });
   }
 
   addComment(publicationUuid: string) {
+    if (!this.isLoggedIn()) {
+      this.reactionError.set('Debes iniciar sesión para comentar.');
+      return;
+    }
+
     const text = this.newCommentDraft().trim();
     if (!text) return;
 
-    const comment: Comment = {
-      uuid: crypto.randomUUID(),
-      author: 'Tú',
-      content: text,
-      createdAt: new Date(),
-      likes: 0,
-      dislikes: 0,
-      userReaction: null
-    };
-
-    this.news.update(list =>
-      list.map(pub =>
-        pub.uuid === publicationUuid ? { ...pub, comments: [comment, ...pub.comments] } : pub
-      )
-    );
-
-    this.newCommentDraft.set('');
+    this.commentService.create(publicationUuid, text).subscribe({
+      next: (comment: Comment) => {
+        this.news.update(list =>
+          list.map(pub =>
+            pub.uuid === publicationUuid ? { ...pub, comments: [comment, ...pub.comments] } : pub
+          )
+        );
+        this.newCommentDraft.set('');
+        this.reactionError.set(null);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.reactionError.set(
+          err.status === 401
+            ? 'Debes iniciar sesión para comentar.'
+            : err?.error?.message ?? 'No se pudo publicar tu comentario.'
+        );
+      }
+    });
   }
 
-  // Misma lógica de toggle que usa el backend en ReactionService:
-  // sin reacción -> se crea; mismo tipo -> se quita; tipo contrario -> se reemplaza.
-  private applyReaction<T extends { likes: number; dislikes: number; userReaction: ReactionType | null }>(
+
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.src = '/logo.png';
+    img.classList.add('fallback-logo');
+    img.parentElement?.classList.add('no-media');
+  }
+
+
+
+  private applyReactionResult<T extends { likes: number; dislikes: number; userReaction: ReactionType | null }>(
     entity: T,
-    type: ReactionType
+    type: ReactionType,
+    action: 'created' | 'updated' | 'removed'
   ): T {
-    const current = entity.userReaction;
-
-    if (current === type) {
-      return {
-        ...entity,
-        userReaction: null,
-        likes: type === 'like' ? entity.likes - 1 : entity.likes,
-        dislikes: type === 'dislike' ? entity.dislikes - 1 : entity.dislikes
-      };
-    }
-
-    if (current === null) {
+    if (action === 'created') {
       return {
         ...entity,
         userReaction: type,
         likes: type === 'like' ? entity.likes + 1 : entity.likes,
         dislikes: type === 'dislike' ? entity.dislikes + 1 : entity.dislikes
+      };
+    }
+
+    if (action === 'removed') {
+      return {
+        ...entity,
+        userReaction: null,
+        likes: type === 'like' ? entity.likes - 1 : entity.likes,
+        dislikes: type === 'dislike' ? entity.dislikes - 1 : entity.dislikes
       };
     }
 
@@ -210,5 +400,32 @@ export class NoticeComponent {
       likes: type === 'like' ? entity.likes + 1 : entity.likes - 1,
       dislikes: type === 'dislike' ? entity.dislikes + 1 : entity.dislikes - 1
     };
+  }
+
+  toggleTagsPopover(commentUuid: string, event?: Event): void {
+    event?.stopPropagation();
+    if (this.openTagsCommentUuid() === commentUuid) {
+      this.openTagsCommentUuid.set(null);
+    } else {
+      this.openTagsCommentUuid.set(commentUuid);
+    }
+  }
+
+  closeTagsPopover(): void {
+    this.openTagsCommentUuid.set(null);
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    if (this.openTagsCommentUuid()) {
+      this.closeTagsPopover();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.openTagsCommentUuid()) {
+      this.closeTagsPopover();
+    }
   }
 }

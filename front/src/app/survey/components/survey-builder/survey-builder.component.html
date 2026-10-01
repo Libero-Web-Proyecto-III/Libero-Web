@@ -1,0 +1,342 @@
+<!-- 
+  # OBJETIVO DEL PLANTILLA: Formulario Dinámico Interactivo (RF-17)
+  Encargado: Eduardo
+  Constructor dinámico con selección de preguntas, opciones, checkbox de borrador y cierre programado con hora AM/PM y calendario.
+-->
+<div class="survey-builder-card">
+  <!-- Cabecera principal del constructor de encuestas dinámicas -->
+  <div class="card-header">
+    <h3>Constructor de Encuestas Dinámicas</h3>
+    <p>Diseña un nuevo formulario dinámico con preguntas adaptables y programa su vigencia o guárdalo como borrador.</p>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()" class="builder-form">
+    <!-- Configuración Básica de la Encuesta -->
+    <div class="form-section">
+      <h4>1. Información General y Configuración</h4>
+      
+      <div class="form-group">
+        <label for="survey-title">Título de la Encuesta *</label>
+        <input
+          id="survey-title"
+          type="text"
+          formControlName="title"
+          placeholder="Ej. Encuesta de Evaluación Académica 2026"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="survey-desc">Descripción (Opcional)</label>
+        <textarea
+          id="survey-desc"
+          formControlName="description"
+          rows="2"
+          placeholder="Ingresa una breve explicación o propósito para los encuestados..."
+        ></textarea>
+      </div>
+
+      <!-- Checkboxes de Configuración: Borrador, Cierre Programado, Acceso Público -->
+      <div class="survey-config-toggles">
+        <!-- Checkbox 1: Guardar como Borrador -->
+        <div class="config-toggle-item" [class.checked]="isDraft">
+          <label class="custom-toggle-label">
+            <input
+              type="checkbox"
+              [checked]="isDraft"
+              (change)="isDraft = $any($event.target).checked"
+            />
+            <span class="custom-checkbox-ui">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+            <div class="toggle-text-block">
+              <span class="toggle-title">Guardar como borrador</span>
+              <span class="toggle-desc">Mantener en edición; no se publicará ni recibirá respuestas hasta desactivar esta casilla.</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Checkbox 2: Habilitar tiempo / Programar Cierre Automático -->
+        <div class="config-toggle-item" [class.checked]="hasAutoClose">
+          <label class="custom-toggle-label">
+            <input
+              type="checkbox"
+              [checked]="hasAutoClose"
+              (change)="toggleAutoClose($any($event.target).checked)"
+            />
+            <span class="custom-checkbox-ui">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+            <div class="toggle-text-block">
+              <span class="toggle-title">Programar fecha y hora de cierre automático</span>
+              <span class="toggle-desc">La encuesta se pasará al estado "Cerrada" automáticamente en la fecha y hora seleccionada.</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Checkbox 3: Respuestas públicas -->
+        <div class="config-toggle-item" [class.checked]="surveyForm.get('isPublic')?.value">
+          <label class="custom-toggle-label">
+            <input
+              type="checkbox"
+              formControlName="isPublic"
+            />
+            <span class="custom-checkbox-ui">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+            <div class="toggle-text-block">
+              <span class="toggle-title">Permitir respuestas públicas</span>
+              <span class="toggle-desc">Cualquier persona puede responder sin requerir inicio de sesión obligatorio.</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Apartado Interactivo de Selección de Fecha y Hora (AM / PM + Calendario) -->
+      <div *ngIf="hasAutoClose" class="schedule-picker-box animate-fade-in">
+        <div class="schedule-box-header">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <h5>Configuración de Cierre Automático Programado</h5>
+        </div>
+
+        <div class="schedule-inputs-grid">
+          <!-- Selector de Calendario -->
+          <div class="schedule-field">
+            <label for="close-date-input">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              Fecha de Cierre (Calendario) *
+            </label>
+            <input
+              id="close-date-input"
+              type="date"
+              [min]="minDateString"
+              [(ngModel)]="closeDate"
+              [ngModelOptions]="{standalone: true}"
+              (change)="validateDateTime()"
+              class="date-picker-input"
+            />
+          </div>
+
+          <!-- Selector Intuitivo de Hora con AM / PM -->
+          <div class="schedule-field">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Hora de Cierre (Formato 12 Horas AM / PM) *
+            </label>
+            
+            <div class="time-picker-controls">
+              <!-- Horas 1-12 -->
+              <div class="select-wrapper">
+                <select
+                  [(ngModel)]="closeHour12"
+                  [ngModelOptions]="{standalone: true}"
+                  (change)="validateDateTime()"
+                  class="time-unit-select"
+                >
+                  <option *ngFor="let h of hours12List" [value]="h">{{ h }}</option>
+                </select>
+                <span class="unit-label">Hora</span>
+              </div>
+
+              <span class="time-colon">:</span>
+
+              <!-- Minutos 00-59 -->
+              <div class="select-wrapper">
+                <select
+                  [(ngModel)]="closeMinute"
+                  [ngModelOptions]="{standalone: true}"
+                  (change)="validateDateTime()"
+                  class="time-unit-select"
+                >
+                  <option *ngFor="let m of minutesList" [value]="m">{{ m }}</option>
+                </select>
+                <span class="unit-label">Min</span>
+              </div>
+
+              <!-- Botones AM / PM -->
+              <div class="ampm-toggle-group">
+                <button
+                  type="button"
+                  class="ampm-btn"
+                  [class.active]="closeAmPm === 'AM'"
+                  (click)="setAmPm('AM')"
+                >
+                  AM
+                </button>
+                <button
+                  type="button"
+                  class="ampm-btn"
+                  [class.active]="closeAmPm === 'PM'"
+                  (click)="setAmPm('PM')"
+                >
+                  PM
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerta de Validación de Fecha/Hora Pasada -->
+        <div *ngIf="timeError" class="schedule-time-error">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>{{ timeError }}</span>
+        </div>
+
+        <!-- Vista previa de Cierre Programado -->
+        <div *ngIf="!timeError && previewScheduledText" class="schedule-preview-pill">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>La encuesta se pasará a <strong>CERRADA</strong> automáticamente el: <strong>{{ previewScheduledText }}</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista Dinámica de Preguntas (FormArray) -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4>2. Preguntas del Formulario</h4>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="addQuestion()">
+          + Agregar Pregunta
+        </button>
+      </div>
+
+      <div formArrayName="questions" class="questions-container">
+        <div
+          *ngFor="let questionGroup of questions.controls; let qIndex = index"
+          [formGroupName]="qIndex"
+          class="question-card"
+        >
+          <div class="question-card-header">
+            <span class="question-number">Pregunta #{{ qIndex + 1 }}</span>
+            <button
+              type="button"
+              class="btn-icon-delete"
+              (click)="removeQuestion(qIndex)"
+              title="Eliminar Pregunta"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+              Eliminar
+            </button>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label [for]="'q-title-' + qIndex">Enunciado / Pregunta *</label>
+              <input
+                [id]="'q-title-' + qIndex"
+                type="text"
+                formControlName="title"
+                placeholder="Ej. ¿Qué tan satisfecho está con los servicios?"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label [for]="'q-type-' + qIndex">Tipo de Respuesta</label>
+              <select
+                [id]="'q-type-' + qIndex"
+                formControlName="type"
+                (change)="onTypeChange(qIndex)"
+              >
+                <option *ngFor="let t of questionTypes" [value]="t.value">
+                  {{ t.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isRequired" />
+              <span>Pregunta de respuesta obligatoria</span>
+            </label>
+          </div>
+
+          <!-- Opciones Anidadas (Sólo para Selección Única o Múltiple) -->
+          <div
+            *ngIf="
+              questionGroup.get('type')?.value === 'SINGLE_CHOICE' ||
+              questionGroup.get('type')?.value === 'MULTIPLE_CHOICE'
+            "
+            formArrayName="options"
+            class="options-container"
+          >
+            <h5>Opciones de Respuesta:</h5>
+
+            <div
+              *ngFor="let optionGroup of getOptions(qIndex).controls; let oIndex = index"
+              [formGroupName]="oIndex"
+              class="option-row"
+            >
+              <span class="option-bullet">•</span>
+              <input
+                type="text"
+                formControlName="optionText"
+                [placeholder]="'Opción ' + (oIndex + 1)"
+              />
+              <button
+                type="button"
+                class="btn-icon-sm"
+                (click)="removeOption(qIndex, oIndex)"
+                title="Quitar Opción"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="btn-link-sm"
+              (click)="addOption(qIndex)"
+            >
+              + Agregar Opción de Respuesta
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón de Envío -->
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="isSubmitting || surveyForm.invalid || (hasAutoClose && !!timeError)"
+      >
+        <ng-container *ngIf="!isSubmitting">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          {{ isDraft ? 'Guardar como Borrador' : 'Guardar y Publicar Encuesta' }}
+        </ng-container>
+        <ng-container *ngIf="isSubmitting">Guardando Encuesta...</ng-container>
+      </button>
+    </div>
+  </form>
+</div>

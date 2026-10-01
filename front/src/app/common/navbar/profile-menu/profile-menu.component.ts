@@ -1,10 +1,12 @@
 import { Component, ElementRef, HostListener, computed, inject, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
+import { CanDirective } from '../../../core/directive';
 
 @Component({
   selector: 'app-profile-menu',
   standalone: true,
+  imports: [CanDirective],
   templateUrl: './profile-menu.component.html',
   styleUrl: './profile-menu.component.scss',
 })
@@ -32,7 +34,10 @@ export class ProfileMenuComponent {
   readonly roleDisplayName = computed(() => {
     const user = this.currentUser();
     if (!user) return 'Invitado';
-    return user.role?.toLowerCase() === 'admin' ? 'Administrador' : 'Usuario';
+    const role = user.role?.toLowerCase()?.trim();
+    if (role === 'admin' || role === 'administrador') return 'Administrador';
+    if (role === 'mod' || role === 'moderador') return 'Moderador';
+    return 'Usuario';
   });
 
   toggleMenu(): void {
@@ -48,9 +53,13 @@ export class ProfileMenuComponent {
     this.closeMenu();
   }
 
-  requestProfile(): void {
-    this.profileRequested.emit();
+  goToConfig(): void {
     this.closeMenu();
+    void this.router.navigate(['/config']);
+  }
+
+  requestProfile(): void {
+    this.goToConfig();
   }
 
   requestAdministration(): void {

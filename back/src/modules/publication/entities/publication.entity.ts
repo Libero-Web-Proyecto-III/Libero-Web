@@ -16,6 +16,7 @@ import { Exclude } from 'class-transformer';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { CommentEntity } from 'src/modules/comment/entities/comment.entity';
 import { ReactionEntity } from 'src/modules/reaction/entities/reaction.entity';
+import { CategoryEntity } from 'src/modules/category/entities/category.entity';
 
 @Entity('publication')
 export class PublicationEntity {
@@ -41,6 +42,16 @@ export class PublicationEntity {
   })
   author: UserEntity;
 
+  @ApiPropertyOptional({
+    description: 'Categoría de la publicación',
+    type: () => CategoryEntity,
+  })
+  @JoinColumn({ name: 'category' })
+  @ManyToOne(() => CategoryEntity, (category) => category.publications, {
+    nullable: true,
+  })
+  category: CategoryEntity;
+
   @ApiProperty({
     description: 'Título de la publicación',
     example: 'Lanzamos la nueva versión de ForgeHub',
@@ -49,11 +60,29 @@ export class PublicationEntity {
   title: string;
 
   @ApiPropertyOptional({
-    description: 'Lista de URLs de media adjunta',
+    description: 'Lista de URLs o imágenes en Base64 de media adjunta',
     example: ['https://cdn.forgehub.com/img1.png'],
     type: [String],
   })
-  @Column('simple-array', { nullable: true })
+  @Column({
+    type: 'longtext',
+    nullable: true,
+    transformer: {
+      to: (value: string[] | undefined | null): string | null => {
+        if (!value) return null;
+        return JSON.stringify(value);
+      },
+      from: (value: string | undefined | null): string[] => {
+        if (!value) return [];
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          return typeof value === 'string' ? value.split(',') : [];
+        }
+      },
+    },
+  })
   media: string[];
 
   @ApiProperty({

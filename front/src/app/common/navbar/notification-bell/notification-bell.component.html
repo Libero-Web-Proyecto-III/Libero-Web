@@ -1,0 +1,174 @@
+<div class="notification-bell-container" *ngIf="isLoggedIn()">
+  <!-- Botón de campana de notificaciones -->
+  <button
+    type="button"
+    class="bell-trigger-btn"
+    [class.active]="isOpen()"
+    (click)="toggleDropdown()"
+    aria-label="Notificaciones"
+    [attr.aria-expanded]="isOpen()"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="bell-svg"
+    >
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+
+    <!-- Badge contador si hay no leídas -->
+    <span class="bell-badge" *ngIf="unreadCount() > 0">
+      {{ unreadCount() > 99 ? '99+' : unreadCount() }}
+    </span>
+  </button>
+
+  <!-- Menú flotante / dropdown de notificaciones -->
+  @if (isOpen()) {
+    <div class="notification-dropdown animate-fade-in" (click)="$event.stopPropagation()">
+      <!-- Encabezado del dropdown -->
+      <div class="dropdown-header">
+        <div class="header-title-group">
+          <div class="header-icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </div>
+          <h4>Notificaciones</h4>
+          <span class="header-count" *ngIf="notifications().length > 0">{{ notifications().length }}</span>
+        </div>
+
+        @if (unreadCount() > 0) {
+          <button type="button" class="btn-mark-all-read" (click)="markAllAsRead()">
+            Marcar leídas
+          </button>
+        }
+      </div>
+
+      <!-- Aviso informativo de caducidad (3 días) -->
+      <div class="expiry-notice-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>Las notificaciones se eliminan automáticamente tras 3 días.</span>
+      </div>
+
+      <!-- Lista de notificaciones -->
+      <div class="notifications-list">
+        @if (notifications().length === 0) {
+          <div class="empty-notifications">
+            <div class="empty-icon-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <p class="empty-title">Sin notificaciones pendientes</p>
+            <p class="empty-desc">No tienes avisos de moderación o respuestas a tus PQRs.</p>
+          </div>
+        } @else {
+          @for (item of notifications(); track item.uuid) {
+            <article
+              class="notification-card"
+              [class.unread]="!item.read"
+              [class.pqr-type]="item.type === 'pqr_response'"
+              (click)="markAsRead(item)"
+            >
+              <!-- Cabecera de la tarjeta -->
+              <div class="notif-card-head">
+                @if (item.type === 'pqr_response') {
+                  <span class="mod-pill-badge pqr-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Respuesta a PQR
+                  </span>
+                } @else {
+                  <span class="mod-pill-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    Comentario eliminado
+                  </span>
+                }
+                
+                <div class="notif-actions">
+                  <span class="notif-date">{{ item.createdAt | date: 'd MMM, h:mm a' }}</span>
+                  <button
+                    type="button"
+                    class="btn-dismiss-notif"
+                    (click)="deleteNotification(item, $event)"
+                    title="Descartar notificación"
+                    aria-label="Descartar"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Título / Contexto -->
+              <div class="notif-card-body">
+                <p class="notif-title">
+                  {{ item.title }}
+                </p>
+
+                @if (item.type === 'pqr_response') {
+                  <!-- Estado PQR -->
+                  <div class="notif-comment-box pqr-box" *ngIf="item.commentContent">
+                    <span class="box-label">Estado de la solicitud:</span>
+                    <p class="status-summary-text">{{ item.commentContent }}</p>
+                  </div>
+
+                  <!-- Respuesta PQR -->
+                  <div class="notif-reason-box pqr-response" *ngIf="item.moderationReason">
+                    <span class="reason-label pqr-label">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      Respuesta del moderador / admin:
+                    </span>
+                    <p class="reason-text pqr-text">{{ item.moderationReason }}</p>
+                  </div>
+                } @else {
+                  <!-- Comentario eliminado -->
+                  <div class="notif-comment-box" *ngIf="item.commentContent">
+                    <span class="box-label">Comentario original:</span>
+                    <p class="quoted-comment">“{{ item.commentContent }}”</p>
+                  </div>
+
+                  <!-- Razón de la moderación -->
+                  <div class="notif-reason-box" *ngIf="item.moderationReason">
+                    <span class="reason-label">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                      Motivo de eliminación:
+                    </span>
+                    <p class="reason-text">{{ item.moderationReason }}</p>
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

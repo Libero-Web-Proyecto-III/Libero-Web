@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { ProfileMenuComponent } from './profile-menu/profile-menu.component';
+import { NotificationBellComponent } from './notification-bell/notification-bell.component';
 
 export interface NavLink {
   label: string;
@@ -25,7 +26,7 @@ export interface NavLink {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProfileMenuComponent],
+  imports: [CommonModule, RouterModule, ProfileMenuComponent, NotificationBellComponent],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
 })
@@ -53,7 +54,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     { label: 'Inicio', path: '/', exact: true },
     { label: 'Eventos', path: '/eventos', exact: false },
     { label: 'Noticias', path: '/noticias', exact: false },
+    { label: 'PQRs', path: '/pqr', exact: false },
     { label: 'Quiénes Somos', path: '/about', exact: false },
+
   ];
 
   ngAfterViewInit(): void {
@@ -140,6 +143,11 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
 
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  goToAdministration(): void {
+    this.closeMenu();
+    void this.router.navigate(['/admin/metricas']);
   }
 
   @HostListener('window:scroll', [])

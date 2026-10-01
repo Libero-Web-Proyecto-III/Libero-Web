@@ -38,8 +38,11 @@
       }
     </ul>
 
-    <!-- Perfil y selector temporal de rol frontend -->
-    <app-profile-menu></app-profile-menu>
+    <!-- Acciones de usuario: Notificaciones y Perfil -->
+    <div class="navbar__user-actions">
+      <app-notification-bell></app-notification-bell>
+      <app-profile-menu (administrationRequested)="goToAdministration()"></app-profile-menu>
+    </div>
 
     <!-- Hamburger Button -->
     <button

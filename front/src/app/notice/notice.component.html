@@ -2,144 +2,587 @@
   <app-navbar></app-navbar>
 
   <main class="notice-container">
-    <div class="results-bar">
-      <span class="results-count">
-        MOSTRANDO <strong>{{ news().length }}</strong> NOTICIA(S)
-      </span>
+
+    <div class="page-header-row">
+      <div>
+        <h1 class="page-title">Noticias</h1>
+        <p class="page-subtitle">Mantente al día con las novedades de Libero Cobre</p>
+      </div>
     </div>
 
-    <div class="notice-list">
-      @for (item of news(); track item.uuid) {
-        <article class="notice-card" (click)="openModal(item.uuid)">
+    @if (!showListView()) {
+    <!-- ===== Vista de exploración (Destacada + Recientes + Últimas + Categorías) ===== -->
 
-          <div class="card-image-wrapper">
-            @if (item.media[0].type === 'video') {
-              <img [src]="item.media[0].poster" [alt]="item.title" class="card-img" />
-              <span class="play-badge">▶</span>
+    <div class="explore-columns">
+      <div class="explore-main">
+
+        @if (featured(); as item) {
+        <article class="hero-card" (click)="openModal(item.uuid)">
+          <div class="hero-image-wrapper" [class.no-media]="item.media.length === 0">
+            @if (item.media.length > 0) {
+            <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+              (error)="onImageError($event)" />
             } @else {
-              <img [src]="item.media[0].url" [alt]="item.title" class="card-img" />
+            <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
             }
-            <div class="card-img-overlay"></div>
-          </div>
-
-          <div class="card-content">
-            <div class="card-meta">
-              <span>{{ item.author }}</span>
-              <span>·</span>
-              <span>{{ item.createdAt | date: 'longDate' }}</span>
-            </div>
-
-            <h2 class="card-title">{{ item.title }}</h2>
-            <p class="card-description">{{ item.content }}</p>
-
-            <div class="card-footer">
-              <div class="reaction-preview">
-                <span>👍 {{ item.likes }}</span>
-                <span>👎 {{ item.dislikes }}</span>
-                <span class="comment-count">💬 {{ item.comments.length }}</span>
-              </div>
-
-              <button class="cta-btn" (click)="openModal(item.uuid); $event.stopPropagation()">
-                LEER MÁS
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-              </button>
+            <span class="hero-badge">DESTACADO</span>
+            <div class="hero-floating-meta">
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                {{ item.createdAt | date: 'd MMM. y' }}
+              </span>
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                {{ item.comments.length }} comentarios
+              </span>
             </div>
           </div>
-
+          <div class="hero-content">
+            <span class="hero-eyebrow">NOTICIAS</span>
+            <h2 class="hero-title">{{ item.title }}</h2>
+            <p class="hero-description">{{ item.content }}</p>
+            <button class="hero-cta-btn" (click)="openModal(item.uuid); $event.stopPropagation()">Leer más →</button>
+          </div>
         </article>
-      }
+        }
+
+        @if (recentThree().length > 0) {
+        <section class="recent-section">
+          <div class="section-header">
+            <h2>Noticias recientes</h2>
+            <button class="ver-todas-btn" (click)="showAllNews()">Ver todas →</button>
+          </div>
+          <div class="recent-grid">
+            @for (item of recentThree(); track item.uuid) {
+            <article class="recent-card" (click)="openModal(item.uuid)">
+              <div class="recent-image-wrapper" [class.no-media]="item.media.length === 0">
+                @if (item.media.length > 0) {
+                <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url"
+                  [alt]="item.title" (error)="onImageError($event)" />
+                } @else {
+                <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+                }
+              </div>
+              <div class="recent-card-body">
+                @if (item.category) {
+                <span class="category-pill" [style.color]="item.category.color"
+                  [style.borderColor]="item.category.color">{{ item.category.name }}</span>
+                }
+                <h3>{{ item.title }}</h3>
+                <span class="recent-meta">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  {{ item.createdAt | date: 'd MMM. y' }} &nbsp;·&nbsp;
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  {{ item.comments.length }} comentarios
+                </span>
+              </div>
+            </article>
+            }
+          </div>
+        </section>
+        }
+
+      </div>
+
+      <aside class="sidebar-latest">
+        <div class="section-header">
+          <h3>Últimas noticias</h3>
+          <button class="ver-todas-btn" (click)="showAllNews()">Ver todas →</button>
+        </div>
+        @for (item of sidebarLatest(); track item.uuid) {
+        <div class="sidebar-item" (click)="openModal(item.uuid)">
+          <div class="sidebar-thumb" [class.no-media]="item.media.length === 0">
+            @if (item.media.length > 0) {
+            <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+              (error)="onImageError($event)" />
+            } @else {
+            <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+            }
+          </div>
+          <div>
+            @if (item.category) {
+            <span class="sidebar-category" [style.color]="item.category.color">{{ item.category.name | uppercase
+              }}</span>
+            }
+            <p class="sidebar-title">{{ item.title }}</p>
+            <span class="sidebar-date">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              {{ item.createdAt | date: 'd MMM. y' }}
+            </span>
+          </div>
+        </div>
+        }
+      </aside>
     </div>
+
+    @if (categories().length > 0) {
+    <section class="category-explore">
+      <div class="section-header">
+        <h2>Explora por categoría</h2>
+        <button class="ver-todas-btn" (click)="showAllNews()">Ver todas →</button>
+      </div>
+      <div class="category-buttons">
+        @for (cat of categories(); track cat.uuid) {
+        <button class="category-card-btn" (click)="goToCategory(cat.uuid)">
+          <span class="category-icon" [style.background]="cat.color">
+            <app-category-icon [icon]="cat.icon" [size]="20" [strokeWidth]="2.2"></app-category-icon>
+          </span>
+          <span class="category-card-name">{{ cat.name }}</span>
+        </button>
+        }
+      </div>
+    </section>
+    }
+
+    } @else {
+    <!-- ===== Vista de categoría (estilo página de sección) ===== -->
+
+    <div class="category-page-layout">
+
+      <aside class="category-sidebar-nav">
+        <button class="back-link" (click)="clearCategoryFilter()">← Todas las categorías</button>
+        @for (cat of categories(); track cat.uuid) {
+        <button class="category-nav-item" [class.active]="cat.uuid === selectedCategoryUuid()"
+          (click)="goToCategory(cat.uuid)">
+          <span class="nav-icon">
+            <app-category-icon [icon]="cat.icon" [size]="15" [strokeWidth]="2.2"></app-category-icon>
+          </span>
+          {{ cat.name }}
+        </button>
+        }
+      </aside>
+
+      <div class="category-main">
+        <div class="category-header-block">
+          <div class="category-header-title">
+            @if (selectedCategoryUuid()) {
+            <span class="category-header-icon"
+              [style.background]="categories().find(c => c.uuid === selectedCategoryUuid())?.color">
+              <app-category-icon [icon]="categories().find(c => c.uuid === selectedCategoryUuid())?.icon" [size]="22" [strokeWidth]="2.2"></app-category-icon>
+            </span>
+            }
+            <div>
+              <h1>{{ selectedCategoryUuid() ? selectedCategoryName() : 'Todas las noticias' }}</h1>
+              <p>{{ news().length }} publicaciones disponibles</p>
+            </div>
+          </div>
+
+          <select class="sort-select" [ngModel]="sortOption()" (ngModelChange)="setSortOption($event)">
+            <option value="recent">Más recientes</option>
+            <option value="comments">Más comentadas</option>
+            <option value="likes">Más gustadas</option>
+          </select>
+        </div>
+
+        @if (featuredInCategory(); as item) {
+        <article class="category-featured" (click)="openModal(item.uuid)">
+          <div class="category-featured-media" [class.no-media]="item.media.length === 0">
+            @if (item.media.length > 0) {
+            <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+              (error)="onImageError($event)" />
+            } @else {
+            <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+            }
+          </div>
+          <div class="category-featured-overlay">
+            @if (item.category) {
+            <span class="category-pill solid" [style.background]="item.category.color">{{ item.category.name }}</span>
+            }
+            <h2>{{ item.title }}</h2>
+            <div class="category-featured-meta">
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                {{ item.createdAt | date: 'd MMM. y' }}
+              </span>
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                {{ item.comments.length }} comentarios
+              </span>
+            </div>
+          </div>
+          <button class="category-featured-btn" (click)="openModal(item.uuid); $event.stopPropagation()">Leer más
+            →</button>
+        </article>
+        }
+
+        @if (restInCategory().length > 0) {
+        <div class="recent-grid category-grid">
+          @for (item of restInCategory(); track item.uuid) {
+          <article class="recent-card" (click)="openModal(item.uuid)">
+            <div class="recent-image-wrapper" [class.no-media]="item.media.length === 0">
+              @if (item.media.length > 0) {
+              <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+                (error)="onImageError($event)" />
+              } @else {
+              <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+              }
+            </div>
+            <div class="recent-card-body">
+              @if (item.category) {
+              <span class="category-pill" [style.color]="item.category.color"
+                [style.borderColor]="item.category.color">{{ item.category.name }}</span>
+              }
+              <h3>{{ item.title }}</h3>
+              <p class="recent-desc">{{ item.content }}</p>
+              <span class="recent-meta">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                {{ item.createdAt | date: 'd MMM. y' }} &nbsp;·&nbsp;
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                {{ item.comments.length }} comentarios
+              </span>
+            </div>
+          </article>
+          }
+        </div>
+        }
+
+        @if (!featuredInCategory()) {
+        <p class="empty-category">No hay noticias en esta categoría todavía.</p>
+        }
+      </div>
+
+      <aside class="ranking-sidebar">
+        <h3>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-2px; margin-right:6px; color:#ea580c;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+          Más leídas @if (selectedCategoryUuid()) { en {{ selectedCategoryName() }} }
+        </h3>
+        @for (item of topRead(); track item.uuid; let i = $index) {
+        <div class="ranking-item" (click)="openModal(item.uuid)">
+          <span class="ranking-number">{{ i + 1 }}</span>
+          <div class="ranking-thumb" [class.no-media]="item.media.length === 0">
+            @if (item.media.length > 0) {
+            <img [src]="item.media[0].type === 'video' ? item.media[0].poster : item.media[0].url" [alt]="item.title"
+              (error)="onImageError($event)" />
+            } @else {
+            <img src="/logo.png" [alt]="item.title" class="fallback-logo" />
+            }
+          </div>
+          <div>
+            <p class="ranking-title">{{ item.title }}</p>
+            <span class="ranking-meta">
+              {{ item.createdAt | date: 'd MMM. y' }} ·
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:2px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              {{ item.comments.length }}
+            </span>
+          </div>
+        </div>
+        }
+      </aside>
+
+    </div>
+    }
+
   </main>
 
   <app-footer></app-footer>
 
+  <!-- Modal de vista previa -->
   @if (selectedForModal(); as item) {
-    <div class="modal-backdrop" (click)="closeModal()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="closeModal()">✕</button>
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeModal()" aria-label="Cerrar modal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
 
-        <div class="modal-media">
-          @if (item.media[0].type === 'video') {
-            <video controls [poster]="item.media[0].poster">
-              <source [src]="item.media[0].url" type="video/mp4" />
-            </video>
+      @if (item.media.length > 0) {
+      <div class="modal-media">
+        @if (item.media[0].type === 'video') {
+        @if (item.media[0].embedUrl) {
+        <iframe [src]="item.media[0].embedUrl | safeUrl" frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+        } @else {
+        <video controls [poster]="item.media[0].poster">
+          <source [src]="item.media[0].url" type="video/mp4" />
+        </video>
+        }
+        } @else {
+        <img [src]="item.media[0].url" [alt]="item.title" (error)="onImageError($event)" />
+        }
+      </div>
+      }
+
+      <div class="modal-header">
+        <span class="modal-meta">{{ item.author }} · {{ item.createdAt | date: 'longDate' }}</span>
+        <h2 class="modal-title">{{ item.title }}</h2>
+      </div>
+
+      <p class="modal-content-text">{{ item.content }}</p>
+
+      @if (reactionError()) {
+      <p class="create-error">{{ reactionError() }}</p>
+      }
+
+      <div class="reaction-bar">
+        <button class="reaction-btn" [class.active]="item.userReaction === 'like'"
+          (click)="toggleReaction(item.uuid, 'like')" title="Me gusta">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+          <span>{{ item.likes }}</span>
+        </button>
+        <button class="reaction-btn" [class.active]="item.userReaction === 'dislike'"
+          (click)="toggleReaction(item.uuid, 'dislike')" title="No me gusta">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+          <span>{{ item.dislikes }}</span>
+        </button>
+      </div>
+
+      <section class="comments-section">
+        <h3 class="comments-title">Comentarios ({{ item.comments.length }})</h3>
+
+        <div class="comment-form">
+          @if (currentUser(); as user) {
+            <div class="comment-form-user">
+              <div class="form-user-avatar-wrap">
+                @if (user.avatar) {
+                  <img [src]="user.avatar" alt="Avatar" class="form-user-avatar" />
+                } @else {
+                  <span class="form-user-initial">{{ (user.username || 'U').charAt(0).toUpperCase() }}</span>
+                }
+              </div>
+              <span class="form-user-name">Comentando como <strong>{{ user.username }}</strong></span>
+            </div>
           } @else {
-            <img [src]="item.media[0].url" [alt]="item.title" />
+            <div class="comment-form-guest-hint">
+              <span style="display:inline-flex; align-items:center; gap:6px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                Inicia sesión para unirte a la conversación.
+              </span>
+            </div>
           }
+          <textarea placeholder="Escribe un comentario..." [ngModel]="newCommentDraft()"
+            (ngModelChange)="newCommentDraft.set($event)"></textarea>
+          <button class="submit-comment-btn" (click)="addComment(item.uuid)">Comentar</button>
         </div>
 
-        <div class="modal-header">
-          <span class="modal-meta">{{ item.author }} · {{ item.createdAt | date: 'longDate' }}</span>
-          <h2 class="modal-title">{{ item.title }}</h2>
-        </div>
+        @if (item.comments.length === 0) {
+        <p class="no-comments">Sé el primero en comentar esta noticia.</p>
+        }
 
-        <p class="modal-content-text">{{ item.content }}</p>
+        <div class="comments-list">
+          @for (comment of item.comments; track comment.uuid) {
+          <div class="comment-item">
+            <div class="comment-avatar">
+              @if (comment.avatar) {
+                <img [src]="comment.avatar" [alt]="comment.author" (error)="comment.avatar = ''" />
+              } @else {
+                <span>{{ (comment.author || 'U').charAt(0).toUpperCase() }}</span>
+              }
+            </div>
+            <div class="comment-body">
+              <div class="comment-head">
+                <div class="comment-author-wrap">
+                  <span class="comment-author">{{ comment.author }}</span>
 
-        <div class="reaction-bar">
-          <button
-            class="reaction-btn"
-            [class.active]="item.userReaction === 'like'"
-            (click)="toggleReaction(item.uuid, 'like')"
-          >
-            👍 <span>{{ item.likes }}</span>
-          </button>
-          <button
-            class="reaction-btn"
-            [class.active]="item.userReaction === 'dislike'"
-            (click)="toggleReaction(item.uuid, 'dislike')"
-          >
-            👎 <span>{{ item.dislikes }}</span>
-          </button>
-        </div>
+                  <!-- Tag de rol al lado del usuario (ADMIN / MOD) -->
+                  @if (comment.authorRole === 'admin' || comment.authorRole === 'administrador') {
+                    <span class="user-role-tag admin" title="Administrador del sitio">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      ADMIN
+                    </span>
+                  } @else if (comment.authorRole === 'mod' || comment.authorRole === 'moderador') {
+                    <span class="user-role-tag mod" title="Moderador del sitio">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                      MOD
+                    </span>
+                  }
 
-        <section class="comments-section">
-          <h3 class="comments-title">Comentarios ({{ item.comments.length }})</h3>
+                  <!-- Tags asignados al usuario (hasta 2 visibles + desplegable para el resto) -->
+                  @if (comment.authorTags && comment.authorTags.length > 0) {
+                    <div class="comment-tags-container">
+                      <!-- Primeros 2 tags -->
+                      @for (tag of comment.authorTags.slice(0, 2); track tag.name) {
+                        <span
+                          class="user-custom-tag"
+                          [style.color]="tag.color ? tag.color : null"
+                          [style.borderColor]="tag.color ? tag.color + '66' : null"
+                          [style.backgroundColor]="tag.color ? tag.color + '18' : null"
+                          [title]="'Etiqueta: ' + tag.name"
+                        >
+                          #{{ tag.name }}
+                        </span>
+                      }
 
-          <div class="comment-form">
-            <textarea
-              placeholder="Escribe un comentario..."
-              [ngModel]="newCommentDraft()"
-              (ngModelChange)="newCommentDraft.set($event)"
-            ></textarea>
-            <button class="submit-comment-btn" (click)="addComment(item.uuid)">Comentar</button>
-          </div>
+                      <!-- Botón + para desplegar si hay más de 2 tags -->
+                      @if (comment.authorTags.length > 2) {
+                        <div class="more-tags-wrapper">
+                          <button
+                            type="button"
+                            class="btn-more-tags"
+                            [class.active]="openTagsCommentUuid() === comment.uuid"
+                            (click)="toggleTagsPopover(comment.uuid, $event)"
+                            [title]="'Ver todos los ' + comment.authorTags.length + ' tags'"
+                            aria-label="Ver más etiquetas"
+                          >
+                            +{{ comment.authorTags.length - 2 }}
+                          </button>
 
-          @if (item.comments.length === 0) {
-            <p class="no-comments">Sé el primero en comentar esta noticia.</p>
-          }
+                          <!-- Desplegable flotante con todos los tags -->
+                          @if (openTagsCommentUuid() === comment.uuid) {
+                            <div class="tags-popover-dropdown animate-fade-in" (click)="$event.stopPropagation()">
+                              <div class="tags-popover-header">
+                                <span>Etiquetas ({{ comment.authorTags.length }})</span>
+                                <button type="button" class="btn-close-popover" (click)="closeTagsPopover()">✕</button>
+                              </div>
+                              <div class="tags-popover-list">
+                                @for (tag of comment.authorTags; track tag.name) {
+                                  <span
+                                    class="user-custom-tag in-popover"
+                                    [style.color]="tag.color ? tag.color : null"
+                                    [style.borderColor]="tag.color ? tag.color + '66' : null"
+                                    [style.backgroundColor]="tag.color ? tag.color + '18' : null"
+                                  >
+                                    #{{ tag.name }}
+                                  </span>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  } @else if (comment.authorRole !== 'admin' && comment.authorRole !== 'administrador' && comment.authorRole !== 'mod' && comment.authorRole !== 'moderador') {
+                    <span class="user-role-tag user">
+                      USUARIO
+                    </span>
+                  }
+                </div>
 
-          <div class="comments-list">
-            @for (comment of item.comments; track comment.uuid) {
-              <div class="comment-item">
-                <div class="comment-avatar">{{ comment.author.charAt(0) }}</div>
-                <div class="comment-body">
-                  <div class="comment-head">
-                    <span class="comment-author">{{ comment.author }}</span>
-                    <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
-                  </div>
-                  <p class="comment-text">{{ comment.content }}</p>
-                  <div class="comment-reactions">
+                <div class="comment-head-right">
+                  <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
+
+                  <!-- Botón borrar / moderar (X) -->
+                  @if (canDeleteComment(comment)) {
                     <button
-                      [class.active]="comment.userReaction === 'like'"
-                      (click)="toggleCommentReaction(item.uuid, comment.uuid, 'like')"
+                      type="button"
+                      class="btn-delete-comment"
+                      (click)="openDeleteCommentDialog(item.uuid, comment)"
+                      [title]="isModeratorOrAdmin() && comment.author !== currentUser()?.username ? 'Moderar y eliminar comentario' : 'Eliminar comentario'"
+                      aria-label="Eliminar comentario"
                     >
-                      👍 {{ comment.likes }}
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
                     </button>
-                    <button
-                      [class.active]="comment.userReaction === 'dislike'"
-                      (click)="toggleCommentReaction(item.uuid, comment.uuid, 'dislike')"
-                    >
-                      👎 {{ comment.dislikes }}
-                    </button>
-                  </div>
+                  }
                 </div>
               </div>
-            }
+
+              <p class="comment-text">{{ comment.content }}</p>
+              <div class="comment-reactions">
+                <button [class.active]="comment.userReaction === 'like'"
+                  (click)="toggleCommentReaction(item.uuid, comment.uuid, 'like')" title="Me gusta">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                  {{ comment.likes }}
+                </button>
+                <button [class.active]="comment.userReaction === 'dislike'"
+                  (click)="toggleCommentReaction(item.uuid, comment.uuid, 'dislike')" title="No me gusta">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+                  {{ comment.dislikes }}
+                </button>
+              </div>
+            </div>
           </div>
-        </section>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+  }
+
+  <!-- Modal de confirmación y moderación de comentarios -->
+  @if (moderationModalOpen(); as open) {
+    <div class="moderation-modal-backdrop" (click)="closeModerationModal()">
+      <div class="moderation-modal-card animate-fade-in" (click)="$event.stopPropagation()">
+        <div class="moderation-modal-header">
+          <div class="mod-icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="header-text-group">
+            <h3>Eliminar Comentario</h3>
+            <p>
+              @if (isModeratorOrAdmin() && selectedCommentToModerate()?.comment?.author !== currentUser()?.username) {
+                Acción de moderación &mdash; se notificará al usuario con el motivo.
+              } @else {
+                ¿Estás seguro de que deseas eliminar tu comentario?
+              }
+            </p>
+          </div>
+          <button type="button" class="btn-close-mod-modal" (click)="closeModerationModal()" aria-label="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="moderation-modal-body">
+          <!-- Vista previa del comentario -->
+          <div class="target-comment-preview">
+            <div class="target-author">
+              <strong>{{ selectedCommentToModerate()?.comment?.author }}</strong>
+              <span>{{ selectedCommentToModerate()?.comment?.createdAt | date: 'short' }}</span>
+            </div>
+            <p class="target-text">“{{ selectedCommentToModerate()?.comment?.content }}”</p>
+          </div>
+
+          <!-- Campo de motivo (Requerido para moderadores) -->
+          @if (isModeratorOrAdmin() && selectedCommentToModerate()?.comment?.author !== currentUser()?.username) {
+            <div class="reason-section">
+              <label class="reason-label">
+                Motivo / Razón de la eliminación:
+                <span class="required">*</span>
+              </label>
+
+              <!-- Opciones rápidas de motivo -->
+              <div class="preset-chips">
+                @for (preset of presetReasons; track preset) {
+                  <button
+                    type="button"
+                    class="preset-chip-btn"
+                    [class.active]="moderationReasonDraft() === preset"
+                    (click)="selectPresetReason(preset)"
+                  >
+                    {{ preset }}
+                  </button>
+                }
+              </div>
+
+              <!-- Input personalizado -->
+              <textarea
+                class="reason-textarea"
+                rows="3"
+                placeholder="Escribe o personaliza la razón por la que se retira este comentario..."
+                [ngModel]="moderationReasonDraft()"
+                (ngModelChange)="moderationReasonDraft.set($event); moderationError.set(null)"
+              ></textarea>
+            </div>
+          }
+
+          @if (moderationError()) {
+            <div class="moderation-error-box">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span>{{ moderationError() }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="moderation-modal-footer">
+          <button type="button" class="btn-cancel-mod" (click)="closeModerationModal()" [disabled]="moderationDeleting()">
+            Cancelar
+          </button>
+          <button type="button" class="btn-confirm-mod" (click)="confirmDeleteComment()" [disabled]="moderationDeleting()">
+            @if (moderationDeleting()) {
+              <span>Eliminando...</span>
+            } @else {
+              <span>Confirmar Eliminación</span>
+            }
+          </button>
+        </div>
       </div>
     </div>
   }

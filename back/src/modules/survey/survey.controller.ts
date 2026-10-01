@@ -76,12 +76,11 @@ export class SurveyController {
     return this.surveyService.findOne(id);
   }
 
-  // # Este bloque tiene como objetivo exponer el endpoint POST /:id/responses exigiendo inicio de sesión obligatorio (@PRIVATE) para responder la encuesta (RF-18)
+  // # Este bloque tiene como objetivo exponer el endpoint POST /:id/responses para responder encuestas (públicas o privadas con validación) (RF-18)
   @Post(':id/responses')
-  @PRIVATE()
   @ApiOperation({
     summary: 'Enviar respuestas a encuesta',
-    description: 'Guarda las respuestas a las preguntas de una encuesta activa exigiendo registro obligatorio.',
+    description: 'Guarda las respuestas a las preguntas de una encuesta activa (pública para visitantes o privada para registrados).',
   })
   @ApiParam({ name: 'id', description: 'ID numérico de la encuesta', example: 1 })
   @ApiResponse({ status: 201, description: 'Respuesta registrada correctamente' })
@@ -96,7 +95,6 @@ export class SurveyController {
 
   // # Este bloque tiene como objetivo consultar si el usuario autenticado ya ha participado previamente en la encuesta especificada
   @Get(':id/user-status')
-  @PRIVATE()
   @ApiOperation({
     summary: 'Consultar estado de respuesta del usuario',
     description: 'Retorna si el usuario autenticado ya ha enviado sus respuestas a la encuesta.',

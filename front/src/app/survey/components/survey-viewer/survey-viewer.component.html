@@ -7,13 +7,13 @@
     <p>Cargando encuesta...</p>
   </div>
 
-  <!-- # Este bloque tiene como objetivo notificar a usuarios visitantes o no autenticados que deben registrarse obligatoriamente para votar -->
-  <div *ngIf="!isLoggedIn" class="auth-required-state">
+  <!-- # Este bloque tiene como objetivo notificar cuando la encuesta es privada/solo para registrados y el usuario NO está autenticado -->
+  <div *ngIf="!isLoading && survey && !survey.isPublic && !isLoggedIn" class="auth-required-state">
     <div class="lock-icon">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
     </div>
-    <h3>Regístrate para participar</h3>
-    <p>Para garantizar la transparencia e integridad de la Consulta Pública en Libero Web, debes estar registrado e iniciar sesión para enviar tus respuestas.</p>
+    <h3>Regístrate o inicia sesión para participar</h3>
+    <p>Esta encuesta está configurada de forma exclusiva para usuarios registrados de Libero Web. Por favor inicia sesión con tu cuenta para enviar tus respuestas.</p>
     <button type="button" class="btn btn-auth" (click)="goToAuth()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6"></path><path d="m15.5 7.5 3 3L22 7l-3-3"></path></svg>
       Iniciar sesión / Registrarse
@@ -21,12 +21,12 @@
   </div>
 
   <!-- # Este bloque tiene como objetivo bloquear envíos duplicados informando que el usuario ya ha participado (1 respuesta por usuario) -->
-  <div *ngIf="isLoggedIn && hasAlreadyResponded && !isSubmitted" class="already-responded-state">
+  <div *ngIf="!isLoading && survey && isLoggedIn && hasAlreadyResponded && !isSubmitted" class="already-responded-state">
     <div class="check-icon">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
     </div>
     <h3>Ya has participado en esta encuesta</h3>
-    <p>Se permite únicamente 1 sola participación por usuario registrado para "{{ survey?.title }}". ¡Agradecemos tu activa participación en nuestra comunidad!</p>
+    <p>Se permite únicamente 1 sola participación por usuario registrado para "{{ survey.title }}". ¡Agradecemos tu activa participación en nuestra comunidad!</p>
   </div>
 
   <div *ngIf="isSubmitted" class="submitted-state">
@@ -34,11 +34,11 @@
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
     </div>
     <h3>¡Gracias por responder!</h3>
-    <p>Tus respuestas para "{{ survey?.title }}" se han registrado exitosamente.</p>
+    <p>Tus respuestas para "{{ survey?.title || 'la encuesta' }}" se han registrado exitosamente.</p>
   </div>
 
   <!-- # Este bloque notifica cuando la encuesta ya fue cerrada o expiró su fecha de finalización -->
-  <div *ngIf="isLoggedIn && !hasAlreadyResponded && !isSubmitted && survey && isSurveyClosed()" class="already-responded-state">
+  <div *ngIf="!isLoading && survey && !isSubmitted && isSurveyClosed()" class="already-responded-state">
     <div class="lock-icon" style="color: #64748b; margin-bottom: 1rem;">
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -50,7 +50,7 @@
   </div>
 
   <!-- # Este bloque notifica cuando la encuesta se encuentra en modo borrador -->
-  <div *ngIf="isLoggedIn && !hasAlreadyResponded && !isSubmitted && survey && isSurveyDraft() && !isSurveyClosed()" class="already-responded-state">
+  <div *ngIf="!isLoading && survey && !isSubmitted && isSurveyDraft() && !isSurveyClosed()" class="already-responded-state">
     <div class="lock-icon" style="color: #d97706; margin-bottom: 1rem;">
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
@@ -62,9 +62,9 @@
     <p>Esta encuesta está guardada como borrador y todavía no ha sido publicada por la administración.</p>
   </div>
 
-  <div *ngIf="!isLoading && isLoggedIn && !hasAlreadyResponded && !isSubmitted && survey && !isSurveyClosed() && !isSurveyDraft()">
+  <div *ngIf="!isLoading && survey && (survey.isPublic || isLoggedIn) && !hasAlreadyResponded && !isSubmitted && !isSurveyClosed() && !isSurveyDraft()">
     <header class="viewer-header">
-      <span class="badge">Encuesta {{ survey.isPublic ? 'Pública' : 'Privada' }}</span>
+      <span class="badge" [class.badge-private]="!survey.isPublic">Encuesta {{ survey.isPublic ? 'Pública' : 'Solo Usuarios Registrados' }}</span>
       <h2>{{ survey.title }}</h2>
       <p *ngIf="survey.description" class="description">{{ survey.description }}</p>
     </header>

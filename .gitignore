@@ -58,5 +58,7 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-
-back\src\modules\facebook\facebook-posts.json
+# Facebook cache / data
+**/facebook-posts.json
+facebook-posts.json
+back/src/modules/facebook/facebook-posts.json

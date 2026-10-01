@@ -170,10 +170,13 @@ export class SurveyViewerComponent implements OnInit {
       },
       error: (err) => {
         const msg = err?.error?.message || '';
-        if (msg.includes('Ya has respondido')) {
+        if (msg.includes('Ya has respondido') || msg.includes('participación por usuario')) {
           this.hasAlreadyResponded = true;
-        } else if (err.status === 401 || msg.includes('Debes registrarte')) {
-          this.isLoggedIn = false;
+        } else if (err.status === 401 || msg.includes('Debes registrarte') || msg.includes('iniciar sesión')) {
+          if (!this.survey?.isPublic) {
+            this.isLoggedIn = false;
+          }
+          this.errorMessage = msg || 'Debes iniciar sesión para responder esta encuesta.';
         } else {
           this.errorMessage = msg || 'Error al enviar las respuestas. Revisa los datos ingresados.';
         }

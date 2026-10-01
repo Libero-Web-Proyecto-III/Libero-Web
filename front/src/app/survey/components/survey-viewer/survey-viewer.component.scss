@@ -79,6 +79,12 @@
       border-radius: 9999px;
       text-transform: uppercase;
       margin-bottom: 0.5rem;
+
+      &.badge-private {
+        background: #eff6ff;
+        color: #006581;
+        border-color: #0080A3;
+      }
     }
 
     h2 {

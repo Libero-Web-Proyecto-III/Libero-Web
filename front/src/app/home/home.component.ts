@@ -180,9 +180,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.loadActiveSurveys();
   }
 
-  // # Este bloque tiene como objetivo cargar las encuestas públicas disponibles para la comunidad en la página de inicio
+  // # Este bloque tiene como objetivo cargar las encuestas activas publicadas disponibles para la comunidad en la página de inicio
   loadActiveSurveys(): void {
-    this.surveyService.getSurveys(SurveyStatusEnum.PUBLISHED, true).subscribe({
+    this.surveyService.getSurveys(SurveyStatusEnum.PUBLISHED).subscribe({
       next: (surveys) => {
         this.activeSurveys = surveys || [];
         if (this.currentSurveyIndex >= this.activeSurveys.length) {

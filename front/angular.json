@@ -64,6 +64,11 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 85,
+            "allowedHosts": [ "liberocobre.online" ],
+            "host": "0.0.0.0"
+          },
           "configurations": {
             "production": {
               "buildTarget": "front:build:production"

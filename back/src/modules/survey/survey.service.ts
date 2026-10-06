@@ -217,34 +217,38 @@ export class SurveyService {
     return { responded: !!existingResponse };
   }
 
-  // # Este bloque tiene como objetivo guardar las respuestas enviadas por un usuario autenticado validando respuesta única por usuario, vigencia, obligatoriedad y filtro de groserías
+  // # Este bloque tiene como objetivo guardar las respuestas enviadas validando respuesta única por usuario registrado, acceso público/privado, vigencia, obligatoriedad y filtro de groserías
   async submitResponse(
     surveyId: number,
     dto: SubmitSurveyResponseDto,
     user?: any,
     ipHash?: string,
   ): Promise<SurveyResponseEntity> {
-    const userId = user?.index || user?.id;
-    if (!userId) {
-      throw new UnauthorizedException('Debes registrarte o iniciar sesión para participar en esta encuesta.');
-    }
-
     const survey = await this.findOne(surveyId);
 
     if (survey.status !== SurveyStatusEnum.PUBLISHED) {
       throw new BadRequestException('Esta encuesta no se encuentra activa para recibir respuestas.');
     }
 
-    // Validar que el usuario no haya respondido previamente a esta encuesta (1 sola respuesta por usuario)
-    const existingResponse = await this.responseRepository.findOne({
-      where: {
-        survey: { index: surveyId },
-        user: { index: userId },
-      },
-    });
+    const userId = user?.index || user?.id;
 
-    if (existingResponse) {
-      throw new BadRequestException('Ya has respondido previamente a esta encuesta. Solo se permite 1 participación por usuario.');
+    // Si la encuesta no es pública, es obligatorio que el usuario haya iniciado sesión
+    if (!survey.isPublic && !userId) {
+      throw new UnauthorizedException('Esta encuesta es exclusiva para usuarios registrados. Debes iniciar sesión para participar.');
+    }
+
+    // Si el usuario está registrado, validar que no haya respondido previamente (1 sola respuesta por usuario)
+    if (userId) {
+      const existingResponse = await this.responseRepository.findOne({
+        where: {
+          survey: { index: surveyId },
+          user: { index: userId },
+        },
+      });
+
+      if (existingResponse) {
+        throw new BadRequestException('Ya has respondido previamente a esta encuesta. Solo se permite 1 participación por usuario.');
+      }
     }
 
     // Validar filtro de seguridad contra lenguaje ofensivo / groserías
@@ -265,7 +269,7 @@ export class SurveyService {
     }
 
     // Construir entrega de respuestas
-    const userRelation = { index: userId } as UserEntity;
+    const userRelation = userId ? ({ index: userId } as UserEntity) : null;
     const responseEntity = this.responseRepository.create({
       survey,
       user: userRelation,

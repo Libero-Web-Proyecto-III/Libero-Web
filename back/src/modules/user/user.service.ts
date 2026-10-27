@@ -152,22 +152,40 @@ export class UserService {
     const isAdmin = name.toLowerCase() === 'admin' || newData.email?.toLowerCase().includes('admin');
     const roleToAssign = isAdmin ? enumRol.ADMIN : enumRol.USER;
 
-    const [ findRol, findTag, findUser ] = await Promise.all([
+    const [ findRol, findTag, findUserByName, findUserByEmail ] = await Promise.all([
       this.RolRepository.findOne( roleToAssign ),
       tag ? this.TagRepository.findOne( tag ) : null,
-      this.UserRepository.findOneBy({ name })
-    ])
+      this.UserRepository.findOneBy({ name }),
+      newData.email ? this.UserRepository.findOneBy({ email: newData.email }) : null,
+    ]);
 
-    if (findUser) throw new ConflictException( 'Ya existe un usuario con ese nombre' );
+    if (findUserByEmail) {
+      throw new ConflictException('El correo electrónico ya se encuentra registrado');
+    }
 
-    newUserData.rol = findRol
-    newUserData.tag = findTag
+    if (findUserByName) {
+      throw new ConflictException('Ya existe un usuario con ese nombre');
+    }
+
+    newUserData.rol = findRol;
+    newUserData.tag = findTag;
     newUserData.name = name;
     newUserData.password = await bcrypt.hash(password, 10);
 
     const newUser = this.UserRepository.create(newUserData);
 
-    return await this.UserRepository.save(newUser);
+    try {
+      return await this.UserRepository.save(newUser);
+    } catch (error: any) {
+      if (
+        error?.code === 'ER_DUP_ENTRY' ||
+        error?.errno === 1062 ||
+        error?.message?.toLowerCase().includes('duplicate')
+      ) {
+        throw new ConflictException('El correo electrónico o nombre de usuario ya está registrado');
+      }
+      throw error;
+    }
   }
 
   async delete(uuid: string) {

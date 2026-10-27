@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { TermsModalComponent } from '../../common/terms-modal/terms-modal.component';
 
@@ -29,7 +30,8 @@ export class RegisterComponent {
   constructor(
     private FormBuilderService: FormBuilder,
     private RouterService: Router,
-    private AuthService: AuthService
+    private AuthService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {
     // Define los campos del registro y aplica la validación de coincidencia de contraseñas.
     // La contraseña requiere mínimo 8 caracteres para coincidir con el DTO del backend.
@@ -72,10 +74,12 @@ export class RegisterComponent {
   public OpenTermsModal(tab: 'terms' | 'privacy' = 'terms'): void {
     this.TermsModalTab = tab;
     this.IsTermsModalOpen = true;
+    this.cdr.detectChanges();
   }
 
   public CloseTermsModal(): void {
     this.IsTermsModalOpen = false;
+    this.cdr.detectChanges();
   }
 
   // Procesamiento y envío del formulario de registro de usuario
@@ -89,26 +93,46 @@ export class RegisterComponent {
     this.IsLoading = true;
     this.ErrorMessage = null;
     this.SuccessMessage = null;
+    this.cdr.detectChanges();
 
     const payload = {
-      username: this.RegisterForm.value.FullName,
-      email: this.RegisterForm.value.UserEmail,
+      username: (this.RegisterForm.value.FullName || '').trim(),
+      email: (this.RegisterForm.value.UserEmail || '').trim().toLowerCase(),
       password: this.RegisterForm.value.UserPassword,
     };
 
     // Envío HTTP real al backend NestJS (POST http://localhost:3000/auth/register)
-    this.AuthService.register(payload).subscribe({
-      next: (response) => {
-        this.IsLoading = false;
-        this.SuccessMessage = response.message || '¡Registro exitoso! Redirigiendo al inicio de sesión...';
-        setTimeout(() => {
-          this.RouterService.navigate(['/auth/login']);
-        }, 1500);
-      },
-      error: (err: Error) => {
-        this.IsLoading = false;
-        this.ErrorMessage = err.message;
-      },
-    });
+    this.AuthService.register(payload)
+      .pipe(
+        finalize(() => {
+          this.IsLoading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.SuccessMessage = response.message || '¡Registro exitoso! Redirigiendo al inicio de sesión...';
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.RouterService.navigate(['/auth/login']);
+          }, 1500);
+        },
+        error: (err: any) => {
+          if (err?.status === 409) {
+            this.ErrorMessage =
+              err?.error?.message ||
+              'El correo electrónico o nombre de usuario ya está registrado en la plataforma.';
+          } else if (err?.error?.message) {
+            this.ErrorMessage = Array.isArray(err.error.message)
+              ? err.error.message[0]
+              : err.error.message;
+          } else if (err?.status === 0) {
+            this.ErrorMessage = 'No se pudo conectar con el servidor. Por favor verifica tu conexión.';
+          } else {
+            this.ErrorMessage = 'No se pudo completar el registro. Por favor verifica los datos ingresados.';
+          }
+          this.cdr.detectChanges();
+        },
+      });
   }
 }

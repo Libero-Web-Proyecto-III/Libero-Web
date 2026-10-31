@@ -1,5 +1,5 @@
 import { FormControl } from '@angular/forms';
-import { surveyClosingValidator } from './survey-closing-validator';
+import { surveyClosingValidator } from '../../app/survey/survey-closing-validator';
 
 describe('SurveyClosingValidator - Prueba Unitaria 4.2', () => {
   const validator = surveyClosingValidator();
@@ -18,3 +18,4 @@ describe('SurveyClosingValidator - Prueba Unitaria 4.2', () => {
     expect(validator(control)).toBeNull();
   });
 });
+

@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { describe, expect, it } from 'vitest';
-import { authGuard } from '../../src/app/auth/auth.guard';
-import { AuthService } from '../../src/app/auth/services/auth.service';
+import { authGuard } from '../../app/auth/auth.guard';
+import { AuthService } from '../../app/auth/services/auth.service';
 
 describe('th.authGuard', () => {
   it('permite continuar cuando existe una sesión activa', () => {

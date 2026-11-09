@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -29,7 +29,8 @@ export class RegisterComponent {
   constructor(
     private FormBuilderService: FormBuilder,
     private RouterService: Router,
-    private AuthService: AuthService
+    private AuthService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {
     // Define los campos del registro y aplica la validación de coincidencia de contraseñas.
     // La contraseña requiere mínimo 8 caracteres para coincidir con el DTO del backend.
@@ -101,6 +102,7 @@ export class RegisterComponent {
       next: (response) => {
         this.IsLoading = false;
         this.SuccessMessage = response.message || '¡Registro exitoso! Redirigiendo al inicio de sesión...';
+        this.cdr.detectChanges();
         setTimeout(() => {
           this.RouterService.navigate(['/auth/login']);
         }, 1500);
@@ -108,6 +110,7 @@ export class RegisterComponent {
       error: (err: Error) => {
         this.IsLoading = false;
         this.ErrorMessage = err.message;
+        this.cdr.detectChanges();
       },
     });
   }

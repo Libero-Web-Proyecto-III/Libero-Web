@@ -19,6 +19,11 @@
     "url": "https://github.com/Libero-Web-Proyecto-III/Libero-Web/issues"
   },
   "homepage": "https://github.com/Libero-Web-Proyecto-III/Libero-Web#readme",
+  "scripts": {
+    "test:login": "npm --prefix front run test:login",
+    "test:pqr": "npm --prefix front run test:pqr",
+    "test:integration": "npm --prefix front run test:integration"
+  },
   "dependencies": {
     "@nestjs/schedule": "^12.0.2"
   }

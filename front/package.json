@@ -10,6 +10,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:auth-service": "ng test --watch=false --reporters=tree --include=src/test/unitarias/St.auth.service.spec.ts",
+    "test:register": "ng test --watch=false --reporters=tree --include=src/test/unitarias/St.register.component.spec.ts",
     "test:login": "ng test --include=src/test/unitarias/login.integration.spec.ts --watch=false",
     "test:pqr": "ng test --include=src/test/unitarias/pqr.integration.spec.ts --watch=false",
     "test:integration": "ng test --include=src/test/unitarias/**/*.spec.ts --watch=false"

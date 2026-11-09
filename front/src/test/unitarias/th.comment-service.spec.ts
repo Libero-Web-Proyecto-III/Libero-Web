@@ -2,8 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { CommentService } from '../../src/app/notice/services/comment.service';
-import { AuthService } from '../../src/app/auth/services/auth.service';
+import { CommentService } from '../../app/notice/services/comment.service';
+import { AuthService } from '../../app/auth/services/auth.service';
 
 describe('th.CommentService', () => {
   let service: CommentService;
@@ -19,7 +19,7 @@ describe('th.CommentService', () => {
           provide: AuthService,
           useValue: {
             currentUser: () => ({
-              username: 'ana',
+              username: 'thomas',
               avatar: '/avatar.png',
               role: 'user',
             }),

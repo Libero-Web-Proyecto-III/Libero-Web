@@ -30,7 +30,9 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.scss"]
+            "styles": [
+              "src/styles.scss"
+            ]
           },
           "configurations": {
             "production": {
@@ -65,9 +67,12 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "port": 85,
-            "allowedHosts": [ "liberocobre.online" ],
-            "host": "0.0.0.0"
+            "port": 4200,
+            "allowedHosts": [
+              "liberocobre.online",
+              "localhost"
+            ],
+            "host": "localhost"
           },
           "configurations": {
             "production": {

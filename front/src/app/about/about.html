@@ -7,15 +7,51 @@
     <!-- ════════════ ENCABEZADO TÉCNICO / HERO ════════════ -->
     <header class="dossier-hero">
       <div class="dossier-container">
+
+        <!-- Selector Interactivo: Modo Comunitario vs Modo Técnico -->
+        <div class="mode-toggle-wrapper">
+          <div class="mode-toggle-pill">
+            <button
+              type="button"
+              class="mode-btn"
+              [class.active]="mode() === 'comunitario'"
+              (click)="setMode('comunitario')"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>Modo Comunitario (Lenguaje Claro)</span>
+              <span class="default-badge">Activo</span>
+            </button>
+
+            <button
+              type="button"
+              class="mode-btn"
+              [class.active]="mode() === 'tecnico'"
+              (click)="setMode('tecnico')"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+              </svg>
+              <span>Modo Técnico (Estándar NI 43-101)</span>
+            </button>
+          </div>
+        </div>
+
         <div class="dossier-hero__badge-row">
-          <span class="dossier-tag">Dossier Geocientífico</span>
-          <span class="dossier-compliance">Estándar NI 43-101</span>
+          <span class="dossier-tag">{{ mode() === 'comunitario' ? 'Información Ciudadana' : 'Dossier Geocientífico' }}</span>
+          <span class="dossier-compliance">{{ mode() === 'comunitario' ? 'Transparencia & Rigor Científico' : 'Estándar NI 43-101' }}</span>
           <span class="dossier-ownership">Libero Cobre · Proyecto Mocoa</span>
         </div>
 
         <h1 class="dossier-hero__title">
-          Pórfido de Cobre y Molibdeno Mocoa
-          <span class="dossier-hero__title-sub">Minerales Críticos para la Transición Energética de Colombia</span>
+          {{ mode() === 'comunitario' ? 'El Cobre de Mocoa para el Futuro de Colombia' : 'Pórfido de Cobre y Molibdeno Mocoa' }}
+          <span class="dossier-hero__title-sub">
+            {{ mode() === 'comunitario' ? 'Minerales esenciales para la energía limpia, la protección del agua y el desarrollo del Putumayo' : 'Minerales Críticos para la Transición Energética de Colombia' }}
+          </span>
         </h1>
 
         <!-- ════════════ PRESENTACIÓN INSTITUCIONAL DE APERTURA ════════════ -->
@@ -26,51 +62,117 @@
           </div>
           
           <div class="company-intro-card__body">
-            <p class="intro-lead">
-              <strong>Somos Libero Cobre,</strong> una compañía dedicada a estudios científicos, prospección y exploración geológica de cobre y otros minerales. Contamos con el <strong>Proyecto Mocoa</strong> como nuestro único proyecto en el país.
-            </p>
-
-            <div class="intro-substatement">
-              <span class="intro-bullet"></span>
-              <p>
-                Somos una compañía dedicada a la exploración geológica de cobre y sus derivados. Contamos con el Proyecto Mocoa como nuestro único proyecto de exploración en el país. 
-                <em>Somos más que cobre: somos aliados para la transición energética, el desarrollo socioeconómico y la conservación ambiental de Mocoa y el país.</em>
+            @if (mode() === 'comunitario') {
+              <p class="intro-lead">
+                <strong>Somos Líbero Cobre,</strong> una compañía de geólogos, biólogos e ingenieros que trabajamos junto a la comunidad de Mocoa estudiando el subsuelo de manera responsable, científica y transparente. Nuestro único proyecto en Colombia es el <strong>Proyecto Mocoa</strong>.
               </p>
-            </div>
+
+              <div class="intro-substatement">
+                <span class="intro-bullet"></span>
+                <p>
+                  No usamos cianuro ni mercurio. Nuestro compromiso es cuidar el agua del piedemonte amazónico, generar empleo digno para las familias locales y aportar el cobre que Colombia y el mundo necesitan para dejar atrás los combustibles fósiles y avanzar hacia energías limpias.
+                </p>
+              </div>
+            } @else {
+              <p class="intro-lead">
+                <strong>Somos Libero Cobre,</strong> una compañía dedicada a estudios científicos, prospección y exploración geológica de cobre y otros minerales. Contamos con el <strong>Proyecto Mocoa</strong> como nuestro único proyecto en el país.
+              </p>
+
+              <div class="intro-substatement">
+                <span class="intro-bullet"></span>
+                <p>
+                  Somos una compañía dedicada a la exploración geológica de cobre y sus derivados. Contamos con el Proyecto Mocoa como nuestro único proyecto de exploración en el país. 
+                  <em>Somos más que cobre: somos aliados para la transición energética, el desarrollo socioeconómico y la conservación ambiental de Mocoa y el país.</em>
+                </p>
+              </div>
+            }
           </div>
         </div>
 
-        <p class="dossier-hero__abstract">
-          <strong class="abstract-lead">Un activo estratégico de clase mundial:</strong>
-          Ubicado en el departamento del Putumayo, el yacimiento Mocoa constituye uno de los recursos de cobre-molibdeno no desarrollados de mayor escala en el continente. La mineralización permanece abierta en todas las dimensiones y las recientes campañas de perforación continúan descubriendo zonas de alta ley en el piedemonte andino-amazónico.
-        </p>
+        @if (mode() === 'comunitario') {
+          <div class="community-values-banner">
+            <div class="comm-value-item">
+              <div class="comm-icon">💧</div>
+              <div>
+                <strong>Agua 100% Protegida:</strong>
+                <p>Circuito cerrado de recirculación que no vierte químicos a los ríos ni a las quebradas de Mocoa.</p>
+              </div>
+            </div>
+            <div class="comm-value-item">
+              <div class="comm-icon">⚡</div>
+              <div>
+                <strong>El Cobre en tu Hogar:</strong>
+                <p>Transporta la electricidad a tu casa, hace funcionar computadores, paneles solares y buses eléctricos.</p>
+              </div>
+            </div>
+            <div class="comm-value-item">
+              <div class="comm-icon">🤝</div>
+              <div>
+                <strong>Empleo y Diálogo Local:</strong>
+                <p>Más del 85% de la mano de obra proviene de familias del municipio de Mocoa y el departamento.</p>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <p class="dossier-hero__abstract">
+            <strong class="abstract-lead">Un activo estratégico de clase mundial:</strong>
+            Ubicado en el departamento del Putumayo, el yacimiento Mocoa constituye uno de los recursos de cobre-molibdeno no desarrollados de mayor escala en el continente. La mineralización permanece abierta en todas las dimensiones y las recientes campañas de perforación continúan descubriendo zonas de alta ley en el piedemonte andino-amazónico.
+          </p>
+        }
 
         <!-- Franja de métricas clave del yacimiento -->
-        <div class="dossier-metrics-panel">
-          <div class="dossier-metric">
-            <span class="dossier-metric__num">1.12 Bt</span>
-            <span class="dossier-metric__lbl">Recurso Inferido In-Pit</span>
-          </div>
-          <div class="dossier-metric">
-            <span class="dossier-metric__num">0.51%</span>
-            <span class="dossier-metric__lbl">Ley Cobre Equivalente (CuEq*)</span>
-          </div>
-          <div class="dossier-metric">
-            <span class="dossier-metric__num">64</span>
-            <span class="dossier-metric__lbl">Sondeos Ejecutados</span>
-          </div>
-          <div class="dossier-metric">
-            <span class="dossier-metric__num">44.500 m</span>
-            <span class="dossier-metric__lbl">Perforación Diamantina Total</span>
-          </div>
-          <div class="dossier-metric">
-            <span class="dossier-metric__num">1.235 m</span>
-            <span class="dossier-metric__lbl">Pozo Más Profundo</span>
-          </div>
-          <div class="dossier-metric">
-            <span class="dossier-metric__num">Abierto</span>
-            <span class="dossier-metric__lbl">En Todas las Direcciones</span>
-          </div>
+        <div class="dossier-metrics-panel" [class.community-metrics]="mode() === 'comunitario'">
+          @if (mode() === 'comunitario') {
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">1.120 M</span>
+              <span class="dossier-metric__lbl">Toneladas de Roca con Mineral</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">0.51%</span>
+              <span class="dossier-metric__lbl">Riqueza Mineral (Cobre + Molibdeno)</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">64</span>
+              <span class="dossier-metric__lbl">Puntos Científicos Estudiados</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">44.500 m</span>
+              <span class="dossier-metric__lbl">Muestreo Geológico sin Destrucción</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">0%</span>
+              <span class="dossier-metric__lbl">Cianuro y 0% Mercurio</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">+85%</span>
+              <span class="dossier-metric__lbl">Empleo Local del Putumayo</span>
+            </div>
+          } @else {
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">1.12 Bt</span>
+              <span class="dossier-metric__lbl">Recurso Inferido In-Pit</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">0.51%</span>
+              <span class="dossier-metric__lbl">Ley Cobre Equivalente (CuEq*)</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">64</span>
+              <span class="dossier-metric__lbl">Sondeos Ejecutados</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">44.500 m</span>
+              <span class="dossier-metric__lbl">Perforación Diamantina Total</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">1.235 m</span>
+              <span class="dossier-metric__lbl">Pozo Más Profundo</span>
+            </div>
+            <div class="dossier-metric">
+              <span class="dossier-metric__num">Abierto</span>
+              <span class="dossier-metric__lbl">En Todas las Direcciones</span>
+            </div>
+          }
         </div>
       </div>
     </header>
@@ -520,6 +622,52 @@
           </div>
         </div>
 
+      </div>
+    </section>
+
+    <!-- ════════════ GLOSARIO CIUDADANO (LENGUAJE CLARO) ════════════ -->
+    <section id="glosario" class="dossier-block glossary-section">
+      <div class="dossier-container">
+        <div class="block-header-center">
+          <span class="block-kicker">Pedagogía &amp; Transparencia</span>
+          <h2 class="block-title">Glosario Ciudadano: Entendiendo la Exploración en Mocoa</h2>
+          <p class="block-subtitle">
+            Traducimos los conceptos mineros y geocientíficos a explicaciones sencillas, cercanas y cotidianas para que cualquier vecino del Putumayo conozca la realidad del proyecto.
+          </p>
+        </div>
+
+        <div class="glossary-accordion">
+          @for (item of glossaryItems; track item.term; let idx = $index) {
+            <div class="glossary-item" [class.open]="activeGlossaryIndex() === idx">
+              <button
+                type="button"
+                class="glossary-header"
+                (click)="toggleGlossary(idx)"
+                [attr.aria-expanded]="activeGlossaryIndex() === idx"
+              >
+                <div class="glossary-title-group">
+                  <span class="glossary-badge">{{ item.badge }}</span>
+                  <h3 class="glossary-term">{{ item.term }}</h3>
+                </div>
+                <div class="glossary-toggle-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </button>
+
+              @if (activeGlossaryIndex() === idx) {
+                <div class="glossary-content">
+                  <p class="glossary-def">{{ item.definition }}</p>
+                  <div class="glossary-example-box">
+                    <strong>¿Qué significa esto para ti y tu comunidad?</strong>
+                    <p>{{ item.practicalExample }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
       </div>
     </section>
 

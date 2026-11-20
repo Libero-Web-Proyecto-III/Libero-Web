@@ -962,3 +962,230 @@ $green-border: #bbf7d0;
     pointer-events: none;
   }
 }
+
+/* ==========================================================================
+   Modo Comunitario / Glosario Ciudadano
+   ========================================================================== */
+.mode-toggle-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.mode-toggle-pill {
+  display: inline-flex;
+  gap: 0.5rem;
+  background: rgba(16, 42, 76, 0.6);
+  padding: 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  .mode-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 1.25rem;
+    background: transparent;
+    border: none;
+    border-radius: 9999px;
+    color: #cbd5e1;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    &:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &.active {
+      background: #B85D19;
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(184, 93, 25, 0.4);
+    }
+
+    .default-badge {
+      font-size: 0.7rem;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 0.15rem 0.45rem;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  }
+}
+
+.community-values-banner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0 2rem;
+
+  .comm-value-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 1.25rem;
+    backdrop-filter: blur(8px);
+
+    .comm-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+
+    strong {
+      display: block;
+      color: #ffffff;
+      font-size: 0.98rem;
+      margin-bottom: 0.3rem;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+    }
+  }
+}
+
+.dossier-metrics-panel.community-metrics {
+  .dossier-metric {
+    border-color: rgba(184, 93, 25, 0.3);
+
+    .dossier-metric__num {
+      color: #ff9d54;
+    }
+
+    .dossier-metric__lbl {
+      color: #e2e8f0;
+      font-size: 0.78rem;
+    }
+  }
+}
+
+/* Glosario Ciudadano */
+.glossary-section {
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 4.5rem 0;
+}
+
+.glossary-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 900px;
+  margin: 2.5rem auto 0;
+
+  .glossary-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+
+    &.open {
+      border-color: #B85D19;
+      box-shadow: 0 6px 20px rgba(184, 93, 25, 0.08);
+
+      .glossary-toggle-icon {
+        transform: rotate(180deg);
+        color: #B85D19;
+      }
+    }
+
+    .glossary-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      gap: 1rem;
+
+      .glossary-title-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+
+        .glossary-badge {
+          display: inline-block;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #1B4D3E;
+          background: rgba(27, 77, 62, 0.1);
+          padding: 0.2rem 0.6rem;
+          border-radius: 6px;
+          text-transform: uppercase;
+          width: fit-content;
+        }
+
+        .glossary-term {
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0;
+        }
+      }
+
+      .glossary-toggle-icon {
+        color: #94a3b8;
+        transition: transform 0.25s ease, color 0.2s ease;
+        flex-shrink: 0;
+      }
+    }
+
+    .glossary-content {
+      padding: 0 1.5rem 1.5rem;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 1.25rem;
+
+      .glossary-def {
+        font-size: 0.95rem;
+        color: #334155;
+        line-height: 1.6;
+        margin: 0 0 1.25rem;
+      }
+
+      .glossary-example-box {
+        background: #fff7ed;
+        border-left: 4px solid #B85D19;
+        border-radius: 6px;
+        padding: 0.9rem 1.15rem;
+
+        strong {
+          display: block;
+          font-size: 0.85rem;
+          color: #B85D19;
+          margin-bottom: 0.3rem;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+
+        p {
+          font-size: 0.9rem;
+          color: #7c2d12;
+          line-height: 1.5;
+          margin: 0;
+        }
+      }
+    }
+  }
+}

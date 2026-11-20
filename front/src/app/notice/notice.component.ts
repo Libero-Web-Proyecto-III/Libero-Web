@@ -11,6 +11,7 @@ import { CommentService } from './services/comment.service';
 import { ReactionService } from './services/reaction.service';
 import { CategoryService } from './services/category.service';
 import { AuthService } from '../auth/services/auth.service';
+import { AuthPromptService } from '../common/services/auth-prompt.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SafeUrlPipe } from './safe-url.pipe';
 import { CategoryIconComponent } from '../common/category-icon/category-icon.component';
@@ -38,11 +39,26 @@ export class NoticeComponent implements OnInit {
     this.categories().find(c => c.uuid === this.selectedCategoryUuid())?.name ?? ''
   );
 
-  featured = computed(() => (this.selectedCategoryUuid() ? null : this.news()[0] ?? null));
-  recentThree = computed(() => (this.selectedCategoryUuid() ? [] : this.news().slice(1, 4)));
-  sidebarLatest = computed(() => (this.selectedCategoryUuid() ? [] : this.news().slice(0, 5)));
+  searchTerm = signal<string>('');
+
+  filteredNews = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const list = this.news();
+    if (!term) return list;
+    return list.filter(item =>
+      item.title.toLowerCase().includes(term) ||
+      (item.content && item.content.toLowerCase().includes(term)) ||
+      (item.category && item.category.name.toLowerCase().includes(term)) ||
+      (item.author && item.author.toLowerCase().includes(term))
+    );
+  });
+
+  featured = computed(() => (this.selectedCategoryUuid() || this.searchTerm().trim() ? null : this.filteredNews()[0] ?? null));
+  recentThree = computed(() => (this.selectedCategoryUuid() || this.searchTerm().trim() ? [] : this.filteredNews().slice(1, 4)));
+  sidebarLatest = computed(() => (this.selectedCategoryUuid() || this.searchTerm().trim() ? [] : this.filteredNews().slice(0, 5)));
 
   public readonly authService = inject(AuthService);
+  public readonly authPromptService = inject(AuthPromptService);
   readonly currentUser = this.authService.currentUser;
   readonly isLoggedIn = this.authService.isLoggedIn;
 
@@ -163,6 +179,15 @@ export class NoticeComponent implements OnInit {
   }
 
   toggleReaction(publicationUuid: string, type: ReactionType) {
+    if (!this.isLoggedIn()) {
+      this.authPromptService.open({
+        title: '¡Únete a la conversación!',
+        message: 'Inicia sesión o regístrate para reaccionar y participar en nuestras publicaciones.',
+        returnUrl: '/noticias',
+      });
+      return;
+    }
+
     this.reactionError.set(null);
     this.reactionService.toggle({ publicationUuid }, type).subscribe({
       next: (result) => {
@@ -181,6 +206,15 @@ export class NoticeComponent implements OnInit {
   }
 
   toggleCommentReaction(publicationUuid: string, commentUuid: string, type: ReactionType) {
+    if (!this.isLoggedIn()) {
+      this.authPromptService.open({
+        title: '¡Únete a la conversación!',
+        message: 'Inicia sesión o regístrate para reaccionar a los comentarios de la comunidad.',
+        returnUrl: '/noticias',
+      });
+      return;
+    }
+
     this.reactionError.set(null);
     this.reactionService.toggle({ commentUuid }, type).subscribe({
       next: (result) => {
@@ -207,7 +241,7 @@ export class NoticeComponent implements OnInit {
   sortOption = signal<'recent' | 'comments' | 'likes'>('recent');
 
   sortedNews = computed(() => {
-    const list = [...this.news()];
+    const list = [...this.filteredNews()];
     const opt = this.sortOption();
 
     if (opt === 'comments') return list.sort((a, b) => b.comments.length - a.comments.length);
@@ -219,7 +253,7 @@ export class NoticeComponent implements OnInit {
   restInCategory = computed(() => this.sortedNews().slice(1));
 
   topRead = computed(() =>
-    [...this.news()]
+    [...this.filteredNews()]
       .sort((a, b) => (b.likes + b.comments.length) - (a.likes + a.comments.length))
       .slice(0, 5)
   );
@@ -230,7 +264,7 @@ export class NoticeComponent implements OnInit {
 
   viewAll = signal(false);
 
-  showListView = computed(() => !!this.selectedCategoryUuid() || this.viewAll());
+  showListView = computed(() => !!this.selectedCategoryUuid() || this.viewAll() || this.searchTerm().trim().length > 0);
 
   showAllNews() {
     this.viewAll.set(true);
@@ -333,7 +367,11 @@ export class NoticeComponent implements OnInit {
 
   addComment(publicationUuid: string) {
     if (!this.isLoggedIn()) {
-      this.reactionError.set('Debes iniciar sesión para comentar.');
+      this.authPromptService.open({
+        title: '¡Únete a la conversación!',
+        message: 'Inicia sesión o regístrate para comentar en esta publicación.',
+        returnUrl: '/noticias',
+      });
       return;
     }
 

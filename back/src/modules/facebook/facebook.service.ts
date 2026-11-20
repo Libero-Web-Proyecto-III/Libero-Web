@@ -196,6 +196,19 @@ export class FacebookService implements OnModuleInit {
       }
     }
 
+    // Asegurar que cada publicación cuente con una imagen válida sin tokens rotos (evitar HTTP 403)
+    const reliableFallbacks = [
+      'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?q=80&w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1511497584788-876761c119ef?q=80&w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1000&auto=format&fit=crop',
+    ];
+    posts = posts.map((post, idx) => ({
+      ...post,
+      full_picture: post.full_picture || reliableFallbacks[idx % reliableFallbacks.length],
+    }));
+
     this.cachedPosts = posts;
     this.lastFetchTime = now;
     return posts.slice(0, limit);

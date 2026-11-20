@@ -3,6 +3,7 @@ export type PqrStatus = 'pendiente' | 'en_revision' | 'resuelto' | 'rechazado';
 
 export interface Pqr {
   uuid: string;
+  radicado?: string;
   fullName: string;
   email: string;
   phone: string | null;

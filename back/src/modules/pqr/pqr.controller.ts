@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PqrService } from './pqr.service';
 import { CreatePqrDto } from './dto/create-pqr.dto';
@@ -19,15 +19,26 @@ import { enumRol } from '../../common/enums/rol.enum';
 export class PqrController {
   constructor(private readonly pqrService: PqrService) {}
 
-  @PRIVATE()
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Enviar una PQR',
-    description: 'Endpoint para enviar una petición, queja, reclamo o sugerencia.',
+    summary: 'Enviar una PQR (Público)',
+    description: 'Endpoint público para enviar una petición, queja, reclamo o sugerencia.',
   })
-  @ApiResponse({ status: 201, description: 'PQR registrada correctamente', type: PqrEntity })
+  @ApiResponse({ status: 201, description: 'PQR registrada correctamente con su código de radicado', type: PqrEntity })
   create(@Body() dto: CreatePqrDto, @Req() req: any) {
     return this.pqrService.create(dto, req.user);
+  }
+
+  @Get('consultar/:radicado')
+  @ApiOperation({
+    summary: 'Consultar estado público de radicado',
+    description: 'Permite a cualquier ciudadano consultar el estado y respuesta de su PQR mediante el código de radicado único.',
+  })
+  @ApiParam({ name: 'radicado', description: 'Código de radicado (ej. MC-2026-0001)' })
+  @ApiResponse({ status: 200, description: 'Estado actual de la PQR' })
+  consultar(@Param('radicado') radicado: string) {
+    return this.pqrService.consultarPorRadicado(radicado);
   }
 
   @PRIVATE()

@@ -21,11 +21,23 @@ export class PqrService {
         private readonly notificationService: NotificationService,
     ) { }
 
+    private async generateRadicado(): Promise<string> {
+        const year = new Date().getFullYear();
+        const count = await this.pqrRepository.count();
+        let num = count + 1;
+        let candidate = `MC-${year}-${String(num).padStart(4, '0')}`;
+        while (await this.pqrRepository.findOne({ where: { radicado: candidate } })) {
+            num++;
+            candidate = `MC-${year}-${String(num).padStart(4, '0')}`;
+        }
+        return candidate;
+    }
+
     async create(dto: CreatePqrDto, userAuth?: any): Promise<PqrEntity> {
         const isAnon = !!dto.isAnonymous;
         let linkedUser: UserEntity | null = null;
 
-        if (userAuth?.id || userAuth?.index) {
+        if (!isAnon && (userAuth?.id || userAuth?.index)) {
             const userIndex = userAuth.id ?? userAuth.index;
             linkedUser = await this.userRepository.findOne({ where: { index: userIndex } });
         }
@@ -44,7 +56,10 @@ export class PqrService {
             email = email || 'contacto@libero.com';
         }
 
+        const radicado = await this.generateRadicado();
+
         const pqr = this.pqrRepository.create({
+            radicado,
             fullName,
             email,
             phone: dto.phone?.trim() || null,
@@ -56,6 +71,31 @@ export class PqrService {
         });
 
         return this.pqrRepository.save(pqr);
+    }
+
+    async consultarPorRadicado(radicado: string) {
+        const cleanRadicado = radicado?.trim()?.toUpperCase();
+        if (!cleanRadicado) {
+            throw new NotFoundException('Debes ingresar un código de radicado válido');
+        }
+
+        const pqr = await this.pqrRepository.findOne({
+            where: { radicado: cleanRadicado },
+        });
+
+        if (!pqr) {
+            throw new NotFoundException(`No se encontró ninguna PQR con el radicado ${cleanRadicado}`);
+        }
+
+        return {
+            radicado: pqr.radicado,
+            status: pqr.status,
+            type: pqr.type,
+            subject: pqr.subject,
+            response: pqr.response,
+            respondedAt: pqr.respondedAt,
+            createdAt: pqr.createdAt,
+        };
     }
 
     async findAll(query: GetPqrQueryDto): Promise<AllResponse> {

@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
+import * as L from 'leaflet';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
 import { SurveyViewerComponent } from '../survey/components/survey-viewer/survey-viewer.component';
@@ -88,7 +89,8 @@ const huellitasCardSources = [
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
+  private leafletMap: L.Map | null = null;
   // ─── Carrusel ──────────────────────────────────────────────────────────────
   currentSlide = signal(0);
   private carouselInterval: ReturnType<typeof setInterval> | null = null;
@@ -180,6 +182,78 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.loadActiveSurveys();
   }
 
+  ngAfterViewInit(): void {
+    this.initLeafletMap();
+  }
+
+  private initLeafletMap(): void {
+    const mapContainer = document.getElementById('territorial-map');
+    if (!mapContainer || this.leafletMap) return;
+
+    try {
+      const coords: [number, number] = [1.1490, -76.6436];
+      this.leafletMap = L.map(mapContainer, {
+        center: coords,
+        zoom: 12,
+        scrollWheelZoom: false,
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+        maxZoom: 18,
+      }).addTo(this.leafletMap);
+
+      const copperIcon = L.divIcon({
+        className: 'custom-copper-pin',
+        html: `
+          <div style="
+            background: #B85D19;
+            width: 34px;
+            height: 34px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            border: 3px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(184, 93, 25, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <div style="
+              width: 10px;
+              height: 10px;
+              background-color: #ffffff;
+              border-radius: 50%;
+              transform: rotate(45deg);
+            "></div>
+          </div>
+        `,
+        iconSize: [34, 34],
+        iconAnchor: [17, 34],
+        popupAnchor: [0, -34],
+      });
+
+      const popupContent = `
+        <div style="font-family: inherit; padding: 4px; max-width: 260px;">
+          <h4 style="margin: 0 0 4px 0; color: #B85D19; font-size: 15px; font-weight: 800;">Proyecto Mocoa · Líbero Cobre</h4>
+          <p style="margin: 0 0 6px 0; font-size: 13px; color: #1B4D3E; font-weight: 600;">
+            Piedemonte Andino-Amazónico
+          </p>
+          <p style="margin: 0; font-size: 12px; color: #475569; line-height: 1.4;">
+            Depósito estratégico de cobre y molibdeno para la transición energética.<br>
+            <strong>Coordenadas:</strong> 1.1490° N, 76.6436° O
+          </p>
+        </div>
+      `;
+
+      L.marker(coords, { icon: copperIcon })
+        .addTo(this.leafletMap)
+        .bindPopup(popupContent)
+        .openPopup();
+    } catch (e) {
+      console.warn('Error inicializando mapa Leaflet:', e);
+    }
+  }
+
   // # Este bloque tiene como objetivo cargar las encuestas activas publicadas disponibles para la comunidad en la página de inicio
   loadActiveSurveys(): void {
     this.surveyService.getSurveys(SurveyStatusEnum.PUBLISHED).subscribe({
@@ -226,6 +300,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopCarousel();
+    if (this.leafletMap) {
+      this.leafletMap.remove();
+      this.leafletMap = null;
+    }
   }
 
   scrollFbLeft(track: HTMLElement): void {
@@ -244,8 +322,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.selectedGalleryImage.set(null);
   }
 
-  onImageError(post: FacebookPost): void {
-    post.full_picture = undefined;
+  onImageError(eventOrPost: Event | FacebookPost | any, fallback: string = '/banner.png'): void {
+    if (eventOrPost?.target) {
+      (eventOrPost.target as HTMLImageElement).src = fallback;
+    } else if (eventOrPost?.full_picture !== undefined) {
+      eventOrPost.full_picture = fallback;
+    }
   }
 
   loadFacebookPosts(): void {

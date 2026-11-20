@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
@@ -13,7 +13,7 @@ import { TermsModalComponent } from '../../common/terms-modal/terms-modal.compon
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   // Propiedades públicas del formulario y estado de la interfaz
   public LoginForm: FormGroup;
   public IsLoading: boolean = false;
@@ -38,6 +38,15 @@ export class LoginComponent {
       UserPassword: ['', [Validators.required, Validators.minLength(6)]],
       RememberMe: [false],
     });
+  }
+
+  ngOnInit(): void {
+    const historyState = (history.state as { email?: string })?.email;
+    if (historyState) {
+      this.LoginForm.patchValue({ UserEmail: historyState });
+      this.SuccessMessage = '¡Cuenta creada con éxito! Ya puedes ingresar';
+      this.cdr.detectChanges();
+    }
   }
 
   // Alternar la visibilidad del campo de contraseña (Mostrar/Ocultar)

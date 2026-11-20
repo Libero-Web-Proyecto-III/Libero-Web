@@ -1,0 +1,139 @@
+.auth-prompt-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.auth-prompt-dialog {
+  position: relative;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2.25rem 2rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: promptEnter 0.25s ease-out;
+
+  .close-x-btn {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #0f172a;
+      background: #f1f5f9;
+    }
+  }
+
+  .prompt-icon-badge {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: rgba(184, 93, 25, 0.1);
+    color: #B85D19;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+  }
+
+  .prompt-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.6rem;
+    letter-spacing: -0.01em;
+  }
+
+  .prompt-message {
+    font-size: 0.92rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0 0 1.75rem;
+  }
+
+  .prompt-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.85rem 1.25rem;
+      background: #B85D19;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: #9e4e13;
+      }
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 0.8rem 1.25rem;
+      background: #f8fafc;
+      color: #1B4D3E;
+      border: 1.5px solid #1B4D3E;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(27, 77, 62, 0.08);
+      }
+    }
+  }
+
+  .btn-text-dismiss {
+    background: transparent;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #475569;
+    }
+  }
+}
+
+@keyframes promptEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

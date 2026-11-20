@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../common/navbar/navbar.component';
 import { FooterComponent } from '../common/footer/footer.component';
 import { AuthService, UserSession } from '../auth/services/auth.service';
+import { AuthPromptService } from '../common/services/auth-prompt.service';
 import { environment } from '../../environments/environment';
 
 export interface EventItem {
@@ -32,6 +33,7 @@ export interface EventItem {
 })
 export class EventsComponent implements OnInit {
   private authService = inject(AuthService);
+  private authPromptService = inject(AuthPromptService);
   private router = inject(Router);
   private http = inject(HttpClient);
 
@@ -167,8 +169,10 @@ export class EventsComponent implements OnInit {
 
     if (!this.authService.isLoggedIn()) {
       this.selectedEventForModal.set(null);
-      this.router.navigate(['/auth/login'], {
-        queryParams: { returnUrl: '/eventos' },
+      this.authPromptService.open({
+        title: 'Recordatorio de Evento',
+        message: 'Inicia sesión o regístrate para recibir un recordatorio 24 horas antes de este evento.',
+        returnUrl: '/eventos',
       });
       return;
     }
@@ -177,8 +181,11 @@ export class EventsComponent implements OnInit {
     const token = this.authService.getToken();
 
     if (!token) {
-      this.router.navigate(['/auth/login'], {
-        queryParams: { returnUrl: '/eventos' },
+      this.selectedEventForModal.set(null);
+      this.authPromptService.open({
+        title: 'Recordatorio de Evento',
+        message: 'Inicia sesión o regístrate para recibir un recordatorio 24 horas antes de este evento.',
+        returnUrl: '/eventos',
       });
       return;
     }

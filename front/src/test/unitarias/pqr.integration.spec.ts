@@ -65,17 +65,16 @@ describe('[INTEGRACIÓN FRONTEND] PqrComponent – Flujo de Solicitudes PQR', ()
     fixture.detectChanges();
   });
 
-  it('1. debería mostrar el bloqueo de inicio de sesión cuando el usuario es visitante no autenticado', () => {
+  it('1. debería mostrar el formulario de radicación inmediatamente a visitantes no autenticados sin candado ni bloqueo', () => {
     isLoggedInSignal.set(false);
     currentUserSignal.set(null);
     fixture.detectChanges();
 
     const lockBox = fixture.debugElement.query(By.css('.login-required-box'));
-    expect(lockBox).not.toBeNull();
-    expect(lockBox.nativeElement.textContent).toContain('Inicia sesión para enviar una PQR');
+    expect(lockBox).toBeNull();
 
     const form = fixture.debugElement.query(By.css('.pqr-form'));
-    expect(form).toBeNull();
+    expect(form).not.toBeNull();
   });
 
   it('2. debería mostrar el formulario con los datos del usuario cuando ha iniciado sesión', () => {

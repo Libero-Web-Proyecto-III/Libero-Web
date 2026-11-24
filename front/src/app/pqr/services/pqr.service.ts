@@ -20,6 +20,7 @@ interface PaginatedResponse<T> {
 
 interface RawPqr {
   uuid: string;
+  radicado?: string;
   fullName: string;
   email: string;
   phone: string | null;
@@ -67,6 +68,12 @@ export class PqrService {
       .pipe(map(item => this.mapPqr(item)));
   }
 
+  consultarPorRadicado(radicado: string): Observable<Pqr> {
+    return this.http
+      .get<RawPqr>(`${this.apiUrl}/consultar/${encodeURIComponent(radicado.trim())}`)
+      .pipe(map(item => this.mapPqr(item)));
+  }
+
   private authHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     return new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
@@ -75,6 +82,7 @@ export class PqrService {
   private mapPqr(item: RawPqr): Pqr {
     return {
       uuid: item.uuid,
+      radicado: item.radicado,
       fullName: item.fullName,
       email: item.email,
       phone: item.phone,

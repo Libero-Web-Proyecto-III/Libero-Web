@@ -104,14 +104,16 @@
         <div class="collage-grid">
           <div class="collage-item collage-item--video">
             <div class="collage-video">
-              <iframe
-                [src]="galleryVideoUrl"
-                title="Video de Facebook sobre Libero Cobre"
-                loading="lazy"
-                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                allowfullscreen
+              <video
+                controls
+                playsinline
+                preload="metadata"
+                poster="/sliders/Conferencia.jpg"
+                style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;"
               >
-              </iframe>
+                <source src="/sliders/Conferencia.jpg" type="video/mp4" />
+                Tu navegador no soporta el reproductor de video.
+              </video>
             </div>
           </div>
           <div class="collage-item">
@@ -123,6 +125,7 @@
             >
               <img
                 src="/galeria/%23ESCONCIENCIA.jpg"
+                (error)="onImageError($event, '/banner.png')"
                 alt="Actividad de conciencia ambiental"
                 loading="lazy"
               />
@@ -135,7 +138,12 @@
               (click)="openGalleryImage('/galeria/Actividad_n.jpg')"
               aria-label="Ampliar imagen de actividad de Libero Cobre"
             >
-              <img src="/galeria/Actividad_n.jpg" alt="Actividad de Libero Cobre" loading="lazy" />
+              <img
+                src="/galeria/Actividad_n.jpg"
+                (error)="onImageError($event, '/banner.png')"
+                alt="Actividad de Libero Cobre"
+                loading="lazy"
+              />
             </button>
           </div>
           <div class="collage-item">
@@ -147,6 +155,7 @@
             >
               <img
                 src="/galeria/cobre%20nuevo%20petroleo.jpg"
+                (error)="onImageError($event, '/banner.png')"
                 alt="El cobre como nuevo petróleo"
                 loading="lazy"
               />
@@ -218,7 +227,7 @@
                 <div class="fb-card__header">
                   <div class="fb-card__author">
                     <div class="fb-card__avatar">
-                      <img src="facebookicon.jpg" alt="Libero Cobre Avatar" class="fb-avatar-img" />
+                      <img src="facebookicon.jpg" (error)="onImageError($event, '/logo.png')" alt="Libero Cobre Avatar" class="fb-avatar-img" />
                     </div>
                     <div class="fb-card__meta">
                       <span class="fb-card__name">Libero Cobre</span>
@@ -237,7 +246,7 @@
                     <div class="fb-card__image-wrap">
                       <img
                         [src]="post.full_picture"
-                        (error)="onImageError(post)"
+                        (error)="onImageError($event, '/banner.png')"
                         [alt]="post.message"
                         class="fb-card__image"
                         loading="lazy"
@@ -662,13 +671,7 @@
 
         <div class="map-section__map">
           <div class="map-frame">
-            <iframe
-              [src]="mapUrl"
-              allowfullscreen
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-              title="Ubicación Proyecto Mocoa - Libero Cobre, Putumayo"
-            ></iframe>
+            <div id="territorial-map" style="width: 100%; height: 420px; border-radius: 16px;"></div>
             <div class="map-frame__pin">
               <span>Mocoa, Putumayo</span>
             </div>

@@ -7,6 +7,10 @@ import { enumPqrStatus } from '../../../common/enums/pqr-status.enum';
 
 @Entity('pqr')
 export class PqrEntity extends BaseEntity {
+  @ApiPropertyOptional({ description: 'Código único de radicado de la PQR', example: 'MC-2026-0001' })
+  @Column({ type: 'varchar', length: 50, unique: true, nullable: true })
+  radicado: string;
+
   @ApiProperty({ description: 'Nombre completo de quien envía la PQR', example: 'Ana María Rojas' })
   @Column({ type: 'varchar', length: 150 })
   fullName: string;

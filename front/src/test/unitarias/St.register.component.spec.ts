@@ -96,7 +96,9 @@ describe('Prueba unitaria 2: RegisterComponent (formulario de registro)', () => 
     expect(textoPantalla()).toContain('Usuario registrado correctamente.');
 
     vi.advanceTimersByTime(1500);
-    expect(navegar).toHaveBeenCalledWith(['/auth/login']);
+    expect(navegar).toHaveBeenCalledWith(['/auth/login'], {
+      state: { email: 'stiven@libero.com' },
+    });
   });
 
   it('6) si el correo ya existe muestra el aviso del servidor en pantalla', () => {

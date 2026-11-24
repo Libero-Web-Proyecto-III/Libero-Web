@@ -111,10 +111,13 @@ export class RegisterComponent {
       )
       .subscribe({
         next: (response) => {
-          this.SuccessMessage = response.message || '¡Registro exitoso! Redirigiendo al inicio de sesión...';
+          const registeredEmail = payload.email;
+          this.SuccessMessage = response?.message || '¡Cuenta creada con éxito! Ya puedes ingresar';
           this.cdr.detectChanges();
           setTimeout(() => {
-            this.RouterService.navigate(['/auth/login']);
+            this.RouterService.navigate(['/auth/login'], {
+              state: { email: registeredEmail },
+            });
           }, 1500);
         },
         error: (err: any) => {

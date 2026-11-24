@@ -12,6 +12,11 @@
     "test": "ng test",
     "test:auth-service": "ng test --watch=false --reporters=tree --include=src/test/unitarias/St.auth.service.spec.ts",
     "test:register": "ng test --watch=false --reporters=tree --include=src/test/unitarias/St.register.component.spec.ts",
+    "test:notice-reactions": "ng test --include=src/test/unitarias/Ed.notice-reactions.spec.ts --watch=false",
+    "test:survey-validator": "ng test --include=src/test/unitarias/Ed.survey-closing-validator.spec.ts --watch=false",
+    "test:survey-viewer": "ng test --include=src/test/unitarias/Ed.survey-viewer.spec.ts --watch=false",
+    "test:auth-guard": "ng test --include=src/test/unitarias/th.auth-guard.spec.ts --watch=false",
+    "test:comment-service": "ng test --include=src/test/unitarias/th.comment-service.spec.ts --watch=false",
     "test:login": "ng test --include=src/test/unitarias/login.integration.spec.ts --watch=false",
     "test:pqr": "ng test --include=src/test/unitarias/pqr.integration.spec.ts --watch=false",
     "test:integration": "ng test --include=src/test/unitarias/**/*.spec.ts --watch=false"

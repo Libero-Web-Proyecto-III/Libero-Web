@@ -22,6 +22,14 @@
   "scripts": {
     "test:login": "npm --prefix front run test:login",
     "test:pqr": "npm --prefix front run test:pqr",
+    "test:notice-reactions": "npm --prefix front run test:notice-reactions",
+    "test:survey-validator": "npm --prefix front run test:survey-validator",
+    "test:survey-viewer": "npm --prefix front run test:survey-viewer",
+    "test:auth-service": "npm --prefix front run test:auth-service",
+    "test:register": "npm --prefix front run test:register",
+    "test:auth-guard": "npm --prefix front run test:auth-guard",
+    "test:comment-service": "npm --prefix front run test:comment-service",
+    "test:all": "npm --prefix front run test:integration",
     "test:integration": "npm --prefix front run test:integration"
   },
   "dependencies": {
